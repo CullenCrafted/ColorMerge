@@ -16,6 +16,11 @@ body, html {
     -webkit-tap-highlight-color: rgba(0,0,0,0); /* Remove tap highlight */
 }
 
+/* Hide the color counts container */
+#color-counts {
+    display: none;
+}
+
 /* Styling for the main game container */
 #game-container {
     text-align: center;
@@ -33,10 +38,8 @@ body, html {
 
 /* Styling for the color display circle */
 .color-display {
-    width: 20vw; /* Use viewport width for better responsiveness */
-    height: 20vw; /* Use viewport width for better responsiveness */
-    max-width: 300px; /* Maximum size */
-    max-height: 300px; /* Maximum size */
+    width: 300px; /* Adjusted for better display on small screens */
+    height: 300px; /* Adjusted for better display on small screens */
     border-radius: 50%; /* Circle shape */
     background-color: #FFF; /* Start as white */
     margin: 2px auto;
@@ -52,19 +55,16 @@ body, html {
 /* Styling for the button container */
 #color-buttons {
     background-color: rgba(255, 255, 255, 0.8); /* Gray background for contrast */
-    padding: 15px; /* Adjusted padding */
+    padding: 20px; /* Slightly increased padding */
     border-radius: 25px; /* Rounded corners */
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-top: 20px; /* Space above the container */
-    width: 90%; /* Ensure it fits within the aspect ratio */
+    display: center;
+    margin-top: 18%; /* Space above the container */
 }
 
 /* Styling for individual buttons */
 #color-buttons button {
-    margin: 10px;
-    padding: 10px 15px; /* Adjusted for better touch */
+    margin: 20px;
+    padding: 70px 50px; /* Adjusted for better touch */
     font-size: 14px; /* Adjust font size for small screens */
     cursor: pointer;
     border: none;
@@ -85,16 +85,16 @@ body, html {
 /* Styling for the reset container */
 #reset-container {
     text-align: right;
-    width: 100%;
-    margin-top: 10px;
+    padding-left: 70%; /* Ensures alignment is maintained */
+    padding-top: 22%;
 }
 
 /* Styling for the reset button */
 #reset-button {
-    padding: 10px 20px; /* Adjusted padding for small screens */
-    font-size: 14px;
+    padding: 40px 25px; /* Adjusted padding for small screens */
+    font-size: 22px;
     cursor: pointer;
-    margin-bottom: 10px; /* Space below the button */
+    margin-bottom: 40px; /* Space below the button */
     border-radius: 8px; /* Rounded corners */
     background-color: rgba(255, 255, 255, 0.8); /* Green background */
     color: black; /* White text color */
@@ -113,13 +113,13 @@ body, html {
 .mix-indicator {
     display: flex;
     justify-content: center;
-    margin: 10px 0;
+    margin-bottom: 20px;
 }
 
 /* Styling for dots in the mix indicator */
 .mix-indicator .dot {
-    height: 20px; /* Adjusted for small screens */
-    width: 20px; /* Adjusted for small screens */
+    height: 50px; /* Adjusted for small screens */
+    width: 50px; /* Adjusted for small screens */
     background-color: black; /* Default color */
     border-radius: 50%; /* Rounded dots */
     margin: 2px;
@@ -141,11 +141,12 @@ body.background-black .mix-indicator .dot {
 /* Styling for the hearts container */
 #hearts-container {
     background-color: rgba(255, 255, 255, 0.8);
-    padding: 15px;
+    padding: 10px;
     border-radius: 15px;
     position: absolute;
-    top: 10%;
-    left: 5%;
+    top: 54%;
+    left: 18%;
+    transform: translateX(-50%);
     display: flex;
     align-items: center;
 }
@@ -164,7 +165,7 @@ body.background-black .mix-indicator .dot {
 #oops-popup {
     display: none; /* Hidden by default */
     position: fixed;
-    top: 50%;
+    top: 35%;
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: rgba(255, 255, 255, 0.8);
@@ -181,7 +182,7 @@ body.background-black .mix-indicator .dot {
 #try-again-popup {
     display: none; /* Hidden by default */
     position: fixed;
-    top: 50%;
+    top: 35%;
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: rgba(255, 255, 255, 0.8);
@@ -199,21 +200,21 @@ body.background-black .mix-indicator .dot {
     display: flex;
     justify-content: space-between;
     margin-top: 10px;
-    width: 90%;
+    width: 290px;
     padding: 2px;
     background-color: rgba(255, 255, 255, 0.8);
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     position: absolute;
-    bottom: 10%;
-    left: 50%;
+    bottom: 78%; /* Position just above the buttons */
+    left: 200px;
     transform: translate(-50%, -50%);
 }
 
 /* Styling for the streak text */
 #streaks p {
-    margin: 10px 25px;
-    font-size: 18px;
+    margin: 25px 25px;
+    font-size: 22px;
     font-weight: bold;
     color: #333;
 }
@@ -221,23 +222,24 @@ body.background-black .mix-indicator .dot {
 /* Media query for small screens */
 @media (max-width: 600px) {
     .color-display {
-        width: 50vw;
-        height: 50vw;
+        width: 150px;
+        height: 150px;
     }
 
     #color-buttons button {
         font-size: 12px;
-        padding: 10px 15px;
+        padding: 35px 25px;
     }
 
     .mix-indicator .dot {
-        width: 10px;
-        height: 10px;
+        width: 20px;
+        height: 20px;
     }
 
     .heart {
         width: 10px;
         height: 10px;
+        margin-left: 5px;
     }
 
     #reset-button {
@@ -246,15 +248,11 @@ body.background-black .mix-indicator .dot {
     }
 
     #oops-popup, #try-again-popup {
-        font-size: 16px;
+        font-size: 36px;
         padding: 15px;
     }
 
     .mix-indicator-counter {
         font-size: 16px;
-    }
-
-    #streaks p {
-        font-size: 14px;
     }
 }
