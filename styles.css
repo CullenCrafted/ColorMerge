@@ -24,26 +24,28 @@ body, html {
 /* Styling for the main game container */
 #game-container {
     text-align: center;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 0;
+    border-radius: 0;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Soft shadow for depth */
-    width: 90%; /* Ensure it fits the full width */
-    height: 90%; /* Ensure it fits the full height */
+    width: 100%;
+    height: 100%;
     margin: 0; /* Remove margin */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    position: relative; /* Ensure absolute children are positioned relative to this */
 }
 
 /* Styling for the color display circle */
 .color-display {
-    width: 300px; /* Adjusted for better display on small screens */
-    height: 300px; /* Adjusted for better display on small screens */
+    width: 20vw; /* 20% of the viewport width */
+    height: 20vw; /* 20% of the viewport width */
+    max-width: 300px; /* Maximum size */
+    max-height: 300px; /* Maximum size */
     border-radius: 50%; /* Circle shape */
     background-color: #FFF; /* Start as white */
-    margin: 2px auto;
-    box-shadow: 0 4px 8px rgba(0,0,0,0); /* Consistent shadow styling */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Consistent shadow styling */
     border: none; /* Default no border */
 }
 
@@ -57,14 +59,18 @@ body, html {
     background-color: rgba(255, 255, 255, 0.8); /* Gray background for contrast */
     padding: 20px; /* Slightly increased padding */
     border-radius: 25px; /* Rounded corners */
-    display: center;
-    margin-top: 18%; /* Space above the container */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2%; /* Space above the container */
+    position: absolute;
+    bottom: 5%;
 }
 
 /* Styling for individual buttons */
 #color-buttons button {
-    margin: 20px;
-    padding: 70px 50px; /* Adjusted for better touch */
+    margin: 10px;
+    padding: 20px 20px; /* Adjusted for better touch */
     font-size: 14px; /* Adjust font size for small screens */
     cursor: pointer;
     border: none;
@@ -85,16 +91,17 @@ body, html {
 /* Styling for the reset container */
 #reset-container {
     text-align: right;
-    padding-left: 70%; /* Ensures alignment is maintained */
-    padding-top: 22%;
+    position: absolute;
+    top: 2%;
+    right: 2%;
 }
 
 /* Styling for the reset button */
 #reset-button {
-    padding: 40px 25px; /* Adjusted padding for small screens */
+    padding: 20px 25px; /* Adjusted padding for small screens */
     font-size: 22px;
     cursor: pointer;
-    margin-bottom: 40px; /* Space below the button */
+    margin-bottom: 10px; /* Space below the button */
     border-radius: 8px; /* Rounded corners */
     background-color: rgba(255, 255, 255, 0.8); /* Green background */
     color: black; /* White text color */
@@ -118,8 +125,8 @@ body, html {
 
 /* Styling for dots in the mix indicator */
 .mix-indicator .dot {
-    height: 50px; /* Adjusted for small screens */
-    width: 50px; /* Adjusted for small screens */
+    height: 30px; /* Adjusted for small screens */
+    width: 30px; /* Adjusted for small screens */
     background-color: black; /* Default color */
     border-radius: 50%; /* Rounded dots */
     margin: 2px;
@@ -143,12 +150,13 @@ body.background-black .mix-indicator .dot {
     background-color: rgba(255, 255, 255, 0.8);
     padding: 10px;
     border-radius: 15px;
-    position: absolute;
-    top: 54%;
-    left: 18%;
-    transform: translateX(-50%);
+    margin-top: 10px;
     display: flex;
     align-items: center;
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 /* Styling for the hearts */
@@ -206,9 +214,9 @@ body.background-black .mix-indicator .dot {
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     position: absolute;
-    bottom: 78%; /* Position just above the buttons */
-    left: 200px;
-    transform: translate(-50%, -50%);
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 /* Styling for the streak text */
@@ -222,13 +230,15 @@ body.background-black .mix-indicator .dot {
 /* Media query for small screens */
 @media (max-width: 600px) {
     .color-display {
-        width: 150px;
-        height: 150px;
+        width: 40vw;
+        height: 40vw;
     }
 
     #color-buttons button {
         font-size: 12px;
-        padding: 35px 25px;
+        padding: 10px 15px;
+        width: 15vw;
+        height: 15vw;
     }
 
     .mix-indicator .dot {
