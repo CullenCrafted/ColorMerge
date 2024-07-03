@@ -219,7 +219,7 @@ body.background-black .mix-indicator .dot {
 }
 
 /* Media query for small screens */
-@media (max-width: 600px) {
+@media (max-width: 400px) {
     .color-display {
         width: 50vw;
         height: 50vw;
