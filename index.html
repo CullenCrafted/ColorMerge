@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Mix Challenge</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="hearts-container"></div>
+        <div id="oops-popup">Oops!</div>
+        <div id="try-again-popup">Try Again!</div>
+        <div id="reset-container">
+            <button onclick="resetGame()" id="reset-button">Reset</button>
+        </div>
+        <div id="mix-indicator" class="mix-indicator"></div>
+        <div id="mixing-area" class="color-display"></div>
+        <div id="streaks">
+            <p id="highest-streak">Highest Streak: 0</p>
+            <p id="current-streak">Current Streak: 0</p>
+        </div>
+        <div id="color-buttons">
+            <button onclick="addColor('blue')" style="background-color: blue;"></button>
+            <button onclick="addColor('red')" style="background-color: red;"></button>
+            <button onclick="addColor('yellow')" style="background-color: yellow; color: black;"></button>
+            <button onclick="addColor('white')" style="background-color: white;"></button>
+            <button onclick="addColor('black')" style="background-color: black; color: white;"></button>
+        </div>
+        <div id="click-counts"></div>
+    </div>
+    <div id="color-counts" style="text-align: left; position: absolute; top: 10px; left: 10px;">
+        <p id="red-count">Red: 0</p>
+        <p id="yellow-count">Yellow: 0</p>
+        <p id="blue-count">Blue: 0</p>
+        <p id="white-count">White: 0</p>
+        <p id="black-count">Black: 0</p>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

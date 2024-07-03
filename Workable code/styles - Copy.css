@@ -1,0 +1,150 @@
+/* General styles for the body and html */
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f0f0; /* Default background color */
+}
+
+/* Styling for the main game container */
+#game-container {
+    text-align: center;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Soft shadow for depth */
+}
+
+/* Styling for the color display circle */
+.color-display {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%; /* Circle shape */
+    background-color: #FFF; /* Start as white */
+    margin: 20px auto;
+    box-shadow: 0 4px 8px rgba(0,0,0,0); /* Consistent shadow styling */
+    border: none; /* Default no border */
+}
+
+/* Add black border when body background is white */
+.color-display.white-background {
+    border: 3px solid black;
+}
+
+/* Styling for the button container */
+#color-buttons {
+    background-color: #cccccc; /* Gray background for contrast */
+    padding: 15px; /* Slightly increased padding */
+    border-radius: 15px; /* Rounded corners */
+    display: inline-block;
+    margin-top: 20px; /* Space above the container */
+}
+
+/* Styling for individual buttons */
+#color-buttons button {
+    margin: 3px;
+    padding: 18px 25px; /* Adjusted for better touch */
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 12px; /* Rounded corners */
+    background-color: inherit; /* Maintain inline style color */
+    color: inherit; /* Maintain inline style text color */
+    transition: transform 0.2s; /* Smooth transform on hover */
+}
+
+/* Hover effect for buttons */
+#color-buttons button:hover {
+    transform: scale(1.1); /* Slightly enlarge buttons on hover */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Shadow effect for depth */
+}
+
+/* Styling for the reset container */
+#reset-container {
+    text-align: right;
+    padding-right: 20px; /* Ensures alignment is maintained */
+}
+
+/* Styling for the reset button */
+#reset-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 20px; /* Space below the button */
+    border-radius: 8px; /* Rounded corners */
+    background-color: #cccccc; /* Gray background */
+    color: black; /* White text color */
+    border: none; /* No border */
+    transition: background-color 0.3s; /* Smooth background color transition */
+}
+
+/* Change background color on hover for reset button */
+#reset-button:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+/* Styling for the mix indicator */
+.mix-indicator {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+/* Styling for dots in the mix indicator */
+.mix-indicator .dot {
+    height: 20px;
+    width: 20px;
+    background-color: black; /* Default color */
+    border-radius: 50%; /* Rounded dots */
+    margin: 2px;
+    border: none;
+}
+
+/* Add this CSS for white dots when the background is black */
+body.background-black .mix-indicator .dot {
+    background-color: white;
+}
+
+/* Additional styling for the mix indicator counter */
+.mix-indicator-counter {
+    font-size: 20px;
+    margin-left: 10px;
+    align-self: center;
+}
+
+/* Styling for the hearts container */
+#hearts-container {
+    position: absolute;
+    top: 40px;
+    left: 300px;
+    display: flex;
+    align-items: center;
+}
+
+/* Styling for the hearts */
+.heart {
+    width: 20px;
+    height: 20px;
+    background-color: red;
+    border: 1px solid black;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    margin-right: 5px;
+}
+
+/* Styling for the Oops pop-up */
+#oops-popup {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    font-size: 24px;
+    text-align: center;
+    z-index: 1000; /* Ensure it is above other elements */
+}
