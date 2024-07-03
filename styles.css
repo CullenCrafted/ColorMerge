@@ -45,7 +45,7 @@ body, html {
     max-height: 300px; /* Maximum size */
     border-radius: 50%; /* Circle shape */
     background-color: #FFF; /* Start as white */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Consistent shadow styling */
+    box-shadow: 0 4px 8px rgba(0,0,0,0); /* Consistent shadow styling */
     border: none; /* Default no border */
 }
 
@@ -94,6 +94,7 @@ body, html {
     position: absolute;
     top: 2%;
     right: 2%;
+    margin-top: 30%;
 }
 
 /* Styling for the reset button */
@@ -154,7 +155,7 @@ body.background-black .mix-indicator .dot {
     display: flex;
     align-items: center;
     position: absolute;
-    top: 20%;
+    top: 15%;
     left: 50%;
     transform: translateX(-50%);
 }
@@ -214,7 +215,7 @@ body.background-black .mix-indicator .dot {
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     position: absolute;
-    top: 5%;
+    top: 0%;
     left: 50%;
     transform: translateX(-50%);
 }
