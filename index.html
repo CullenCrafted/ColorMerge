@@ -8,18 +8,23 @@
 </head>
 <body>
     <div id="game-container">
-        <div id="hearts-container"></div>
-        <div id="oops-popup">Oops!</div>
-        <div id="try-again-popup">Try Again!</div>
-        <div id="reset-container">
+        <div id="status-container">
+            <div id="streaks">
+                <p id="highest-streak">Highest 0</p>
+                <p id="current-streak">Current 0</p>
+            </div>
+            <div id="hearts-container">
+                <div class="heart"></div>
+                <div class="heart"></div>
+            </div>
             <button onclick="resetGame()" id="reset-button">Reset</button>
         </div>
+        <div id="result-popup">
+            <div class="squares-container"></div>
+            <button id="ok-button">OK</button>
+        </div>        
         <div id="mix-indicator" class="mix-indicator"></div>
         <div id="mixing-area" class="color-display"></div>
-        <div id="streaks">
-            <p id="highest-streak">Highest Streak: 0</p>
-            <p id="current-streak">Current Streak: 0</p>
-        </div>
         <div id="color-buttons">
             <button onclick="addColor('blue')" style="background-color: blue;"></button>
             <button onclick="addColor('red')" style="background-color: red;"></button>

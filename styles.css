@@ -18,7 +18,7 @@ body, html {
 
 /* Hide the color counts container */
 #color-counts {
-    display: none;
+    display: left;
 }
 
 /* Styling for the main game container */
@@ -88,33 +88,10 @@ body, html {
     box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Shadow effect for depth */
 }
 
-/* Styling for the reset container */
-#reset-container {
-    text-align: right;
-    position: absolute;
-    top: 2%;
-    right: 2%;
-    margin-top: 30%;
-}
-
-/* Styling for the reset button */
-#reset-button {
-    padding: 20px 25px; /* Adjusted padding for small screens */
-    font-size: 22px;
-    cursor: pointer;
-    margin-bottom: 10px; /* Space below the button */
-    border-radius: 8px; /* Rounded corners */
-    background-color: rgba(255, 255, 255, 0.8); /* Green background */
-    color: black; /* White text color */
-    border: none; /* No border */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    font-weight: bold;
-    transition: background-color 0.3s; /* Smooth background color transition */
-}
-
-/* Change background color on hover for reset button */
-#reset-button:hover {
-    background-color: #38e038; /* Darker green on hover */
+/* Active effect for buttons to reset scale */
+#color-buttons button:active {
+    transform: scale(1); /* Reset scale on button press */
+    box-shadow: none; /* Remove shadow effect when pressed */
 }
 
 /* Styling for the mix indicator */
@@ -128,7 +105,8 @@ body, html {
 .mix-indicator .dot {
     height: 30px; /* Adjusted for small screens */
     width: 30px; /* Adjusted for small screens */
-    background-color: black; /* Default color */
+    background-color: gray; /* Default color */
+    box-shadow: 0 2px 4px black;
     border-radius: 50%; /* Rounded dots */
     margin: 2px;
     border: none;
@@ -146,18 +124,127 @@ body.background-black .mix-indicator .dot {
     align-self: center;
 }
 
-/* Styling for the hearts container */
-#hearts-container {
+/* Styling for squares in the mix indicator */
+.square {
+    height: 30px; /* Adjusted for small screens */
+    width: 30px; /* Adjusted for small screens */
+    color: gray; /* Default text color */
+    display: flex;
+    box-shadow: 0 2px 4px black;
+    justify-content: center;
+    align-items: center;
+    margin: 2px;
+    border: 1px solid black;
+    border-radius: 5px; /* Rounded corners */
+    font-weight: bold;
+    font-size: 16px; /* Font size for the number */
+}
+
+/* Set the font color of the last square to black */
+.mix-indicator .square:last-child {
+    color: black;
+}
+
+/* Styling for the result pop-up */
+#result-popup {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.8);
+    color: black;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 36px; /* Adjust font size for small screens */
+    text-align: center;
+    z-index: 1000; /* Ensure it is above other elements */
+    width: auto; /* Adjusted width */
+    justify-content: center; /* Center children horizontally */
+    align-items: center; /* Center children vertically */
+    flex-direction: row; /* Align children in a row */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 1);
+}
+
+/* Styling for the squares in the result popup */
+#result-popup .square {
+    margin: 5px;
+    height: 40px; /* Adjusted for visibility */
+    width: 40px; /* Adjusted for visibility */
+    font-size: 18px; /* Adjusted font size */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: gray; /* Text color */
+}
+
+/* Styling for the OK button in the result popup */
+#ok-button {
+    margin-left: 20px;
+    padding: 10px 20px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    background-color: #38e038; /* Green background */
+    color: white; /* White text */
+    cursor: pointer;
+    display: none; /* Hidden by default */
+}
+
+#ok-button:hover {
+    background-color: #32cd32; /* Darker green on hover */
+}
+
+/* Flash effect for the status container */
+.status-flash {
+    animation: flash-green 1s;
+}
+
+@keyframes flash-green {
+    from {
+        background-color: #38e038;
+    }
+    to {
+        background-color: rgba(255, 255, 255, 0.8); /* Original background color */
+    }
+}
+
+/* Styling for the unified status container */
+#status-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     background-color: rgba(255, 255, 255, 0.8);
     padding: 10px;
     border-radius: 15px;
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     position: absolute;
-    top: 15%;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
+    width: 90%; /* Adjust width to be responsive */
+    max-width: 600px; /* Maximum width for larger screens */
+}
+
+/* Styling for the streak container inside the status container */
+#streaks {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* Styling for the streak text */
+#streaks p {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Styling for the hearts container inside the status container */
+#hearts-container {
+    display: flex;
+    align-items: center;
 }
 
 /* Styling for the hearts */
@@ -170,62 +257,28 @@ body.background-black .mix-indicator .dot {
     border: 2px solid black;
 }
 
-/* Styling for the Oops pop-up */
-#oops-popup {
-    display: none; /* Hidden by default */
-    position: fixed;
-    top: 35%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(255, 255, 255, 0.8);
-    color: black;
-    padding: 10px;
-    border-radius: 10px;
-    font-size: 36px; /* Adjust font size for small screens */
-    text-align: center;
-    z-index: 1000; /* Ensure it is above other elements */
-    width: 80%; /* Ensure it fits on small screens */
-}
-
-/* Styling for the Try Again pop-up */
-#try-again-popup {
-    display: none; /* Hidden by default */
-    position: fixed;
-    top: 35%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(255, 255, 255, 0.8);
-    color: black;
-    padding: 10px;
-    border-radius: 10px;
-    font-size: 36px; /* Adjust font size for small screens */
-    text-align: center;
-    z-index: 1000; /* Ensure it is above other elements */
-    width: 80%; /* Ensure it fits on small screens */
-}
-
-/* Styling for the streak container */
-#streaks {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-    width: 290px;
-    padding: 2px;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 8px;
+/* Styling for the reset button inside the status container */
+#reset-button {
+    padding: 10px 15px; /* Adjusted padding for small screens */
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 8px; /* Rounded corners */
+    background-color: rgba(255, 255, 255, 0.8); /* Neutral background */
+    color: black; /* Text color */
+    border: none; /* No border */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    position: absolute;
-    top: 0%;
-    left: 50%;
-    transform: translateX(-50%);
+    font-weight: bold;
+    transition: background-color 0.3s; /* Smooth background color transition */
 }
 
-/* Styling for the streak text */
-#streaks p {
-    margin: 25px 25px;
-    font-size: 22px;
-    font-weight: bold;
-    color: #333;
+/* Change background color on hover for reset button */
+#reset-button:hover {
+    background-color: #38e038; /* Green on hover */
+}
+
+/* Temporary color change when pressed */
+#reset-button.pressed {
+    background-color: #38e038; /* Green when pressed */
 }
 
 /* Media query for small screens */
@@ -247,23 +300,58 @@ body.background-black .mix-indicator .dot {
         height: 20px;
     }
 
-    .heart {
-        width: 10px;
-        height: 10px;
-        margin-left: 5px;
-    }
-
     #reset-button {
         font-size: 12px;
         padding: 8px 15px;
     }
 
-    #oops-popup, #try-again-popup {
-        font-size: 36px;
-        padding: 15px;
+    #result-popup {
+        font-size: 24px;
+        padding: 10px;
+    }
+
+    #result-popup .square {
+        margin: 2px;
+        height: 40px; /* Adjusted for visibility */
+        width: 40px; /* Adjusted for visibility */
+        font-size: 20px; /* Adjusted font size */
+    }
+
+    #ok-button {
+        font-size: 24px;
+        padding: 8px 15px;
     }
 
     .mix-indicator-counter {
         font-size: 16px;
+    }
+
+    #status-container {
+        flex-direction: row;
+        align-items: center;
+        padding: 7%;
+    }
+
+    #streaks {
+        align-items: center;
+        margin-bottom: 0px;
+    }
+
+    #streaks p {
+        font-size: 24px;
+    }
+
+    #hearts-container {
+        margin-bottom: 0px;
+    }
+
+    .heart {
+        width: 20px;
+        height: 20px;
+    }
+
+    #reset-button {
+        font-size: 20px;
+        padding: 8px 12px;
     }
 }
