@@ -220,9 +220,22 @@ function updateHeartsDisplay() {
     }
 }
 
+
 window.onload = function () {
     resetGame(); // Setup initial game state
     updateHeartsDisplay(); // Display initial hearts
+    
+    // Add event listeners for touchstart and touchend to simulate hover on mobile
+    document.querySelectorAll('#color-buttons button').forEach(button => {
+        button.addEventListener('touchstart', function() {
+            button.classList.add('active');
+        });
+        button.addEventListener('touchend', function() {
+            button.classList.remove('active');
+        });
+    });
+    
+    
 }
 
 document.getElementById('reset-button').addEventListener('click', function () {

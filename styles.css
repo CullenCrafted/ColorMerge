@@ -83,7 +83,7 @@ body, html {
 }
 
 /* Hover effect for buttons */
-#color-buttons button:hover {
+#color-buttons button:hover, #color-buttons button.active {
     transform: scale(1.5); /* Slightly enlarge buttons on hover */
     box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Shadow effect for depth */
 }
