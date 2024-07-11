@@ -15,7 +15,8 @@ const colorValues = {
     yellow: { r: 255, g: 255, b: 0 },
     blue: { r: 0, g: 0, b: 255 },
     white: { r: 255, g: 255, b: 255 },
-    black: { r: 0, g: 0, b: 0 }
+    black: { r: 0, g: 0, b: 0 },
+    green: { r: 0, g: 255, b: 0 }  // Add green
 };
 
 function generateTargetColorAndRecipe() {
@@ -28,9 +29,22 @@ function generateTargetColorAndRecipe() {
         let color = colorsAvailable[Math.floor(Math.random() * colorsAvailable.length)];
         recipe[color]++;
         simulatedColor.count++;
-        simulatedColor.r = (simulatedColor.r * (simulatedColor.count - 1) + colorValues[color].r) / simulatedColor.count;
-        simulatedColor.g = (simulatedColor.g * (simulatedColor.count - 1) + colorValues[color].g) / simulatedColor.count;
-        simulatedColor.b = (simulatedColor.b * (simulatedColor.count - 1) + colorValues[color].b) / simulatedColor.count;
+
+        if (color === 'yellow' && recipe['blue'] > 0) {
+            // Ensure yellow and blue result in green
+            simulatedColor.r = (simulatedColor.r * (simulatedColor.count - 1) + colorValues.green.r) / simulatedColor.count;
+            simulatedColor.g = (simulatedColor.g * (simulatedColor.count - 1) + colorValues.green.g) / simulatedColor.count;
+            simulatedColor.b = (simulatedColor.b * (simulatedColor.count - 1) + colorValues.green.b) / simulatedColor.count;
+        } else if (color === 'blue' && recipe['yellow'] > 0) {
+            // Ensure blue and yellow result in green
+            simulatedColor.r = (simulatedColor.r * (simulatedColor.count - 1) + colorValues.green.r) / simulatedColor.count;
+            simulatedColor.g = (simulatedColor.g * (simulatedColor.count - 1) + colorValues.green.g) / simulatedColor.count;
+            simulatedColor.b = (simulatedColor.b * (simulatedColor.count - 1) + colorValues.green.b) / simulatedColor.count;
+        } else {
+            simulatedColor.r = (simulatedColor.r * (simulatedColor.count - 1) + colorValues[color].r) / simulatedColor.count;
+            simulatedColor.g = (simulatedColor.g * (simulatedColor.count - 1) + colorValues[color].g) / simulatedColor.count;
+            simulatedColor.b = (simulatedColor.b * (simulatedColor.count - 1) + colorValues[color].b) / simulatedColor.count;
+        }
     }
 
     return { targetColor: simulatedColor, recipe };
@@ -76,10 +90,19 @@ function showResultPopup(isFinal) {
 function addColor(color) {
     // Check if color is valid and mixCount is less than maxMixesAllowed
     if (color in colorValues && mixCount < maxMixesAllowed) {
-        currentColor.r = (currentColor.r * mixCount + colorValues[color].r) / (mixCount + 1);
-        currentColor.g = (currentColor.g * mixCount + colorValues[color].g) / (mixCount + 1);
-        currentColor.b = (currentColor.b * mixCount + colorValues[color].b) / (mixCount + 1);
-        chosenColors.push(colorValues[color]); // Store chosen color
+        if ((color === 'yellow' && chosenColors.some(c => c === colorValues.blue)) || 
+            (color === 'blue' && chosenColors.some(c => c === colorValues.yellow))) {
+            // Special rule: yellow + blue = green
+            currentColor.r = (currentColor.r * mixCount + colorValues.green.r) / (mixCount + 1);
+            currentColor.g = (currentColor.g * mixCount + colorValues.green.g) / (mixCount + 1);
+            currentColor.b = (currentColor.b * mixCount + colorValues.green.b) / (mixCount + 1);
+            chosenColors.push(colorValues.green); // Store green color
+        } else {
+            currentColor.r = (currentColor.r * mixCount + colorValues[color].r) / (mixCount + 1);
+            currentColor.g = (currentColor.g * mixCount + colorValues[color].g) / (mixCount + 1);
+            currentColor.b = (currentColor.b * mixCount + colorValues[color].b) / (mixCount + 1);
+            chosenColors.push(colorValues[color]); // Store chosen color
+        }
         colorClicks[color]++; // Increment the click count for this color
         mixCount++;
         updateDisplay();
@@ -101,7 +124,7 @@ function addColor(color) {
             statusContainer.classList.add('status-flash');
             setTimeout(() => {
                 statusContainer.classList.remove('status-flash');
-            }, 1000); // Flash for 1 seconds
+            }, 1000); // Flash for 1 second
 
             setTimeout(() => {
                 maxMixes++;
