@@ -379,7 +379,7 @@ function getEffectiveColors(colors) {
 function showNicePopup() {
     const nicePopup = document.createElement('div');
     nicePopup.id = 'nice-popup';
-    nicePopup.textContent = '+1';
+    nicePopup.textContent = '+1❤️';
     nicePopup.classList.add('nice-popup');
     document.body.appendChild(nicePopup);
 
