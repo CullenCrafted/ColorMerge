@@ -50,8 +50,13 @@ body, html {
 }
 
 /* Add black border when body background is white */
-.color-display.white-background {
+.color-display.white-background  {
     border: 3px solid black;
+}
+
+/* Add black border when body background is white */
+.color-display.black-background {
+    border: 3px solid white;
 }
 
 /* Styling for the button container */
@@ -112,6 +117,15 @@ body, html {
     border: none;
 }
 
+/* Styling for the indicator box */
+.indicator-box {
+    border: 2px solid transparent; /* Default transparent border */
+    border-radius: 50%; /* Match dot shape */
+    display: inline-block;
+    margin: 2px;
+    position: relative;
+}
+
 /* Add this CSS for white dots when the background is black */
 body.background-black .mix-indicator .dot {
     background-color: white;
@@ -145,42 +159,8 @@ body.background-black .mix-indicator .dot {
     color: black;
 }
 
-/* Styling for the result pop-up */
-#result-popup {
-    display: none; /* Hidden by default */
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(255, 255, 255, 0.8);
-    color: black;
-    padding: 10px;
-    border-radius: 10px;
-    font-size: 36px; /* Adjust font size for small screens */
-    text-align: center;
-    z-index: 1000; /* Ensure it is above other elements */
-    width: auto; /* Adjusted width */
-    justify-content: center; /* Center children horizontally */
-    align-items: center; /* Center children vertically */
-    flex-direction: row; /* Align children in a row */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 1);
-}
-
-/* Styling for the squares in the result popup */
-#result-popup .square {
-    margin: 5px;
-    height: 40px; /* Adjusted for visibility */
-    width: 40px; /* Adjusted for visibility */
-    font-size: 18px; /* Adjusted font size */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: gray; /* Text color */
-}
-
 /* Styling for the OK button in the result popup */
 #ok-button {
-    margin-left: 20px;
     padding: 10px 20px;
     font-size: 18px;
     border: none;
@@ -189,6 +169,10 @@ body.background-black .mix-indicator .dot {
     color: white; /* White text */
     cursor: pointer;
     display: none; /* Hidden by default */
+    border: 2px solid black;
+    position: absolute; /* Positioning */
+    bottom: 22%; /* Adjust based on your layout */
+    right: 15%; /* Adjust based on your layout */
 }
 
 #ok-button:hover {
@@ -281,6 +265,43 @@ body.background-black .mix-indicator .dot {
     background-color: #38e038; /* Green when pressed */
 }
 
+/* Styling for the indicator box */
+.indicator-box {
+    border: 4px solid transparent; /* Default transparent border */
+    border-radius: 25%; /* Match dot shape */
+    display: inline-block;
+    margin: 2px;
+    position: relative;
+}
+
+/* Add borders for correct and incorrect colors */
+.indicator-box.correct {
+    border-color: green;
+}
+
+.indicator-box.incorrect {
+    border-color: red;
+}
+
+/* Styling for the correct dot shown above the incorrect ones */
+.correct-dot {
+    position: absolute;
+    top: -35px; /* Adjust based on your layout */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px; /* Match dot size */
+    height: 20px; /* Match dot size */
+    border-radius: 50%;
+    background-color: transparent; /* Initially transparent */
+    border: 2px solid black;
+    box-shadow: 0 3px 5px white;
+}
+
+/* Add this CSS for white dots when the background is black */
+body.background-black .mix-indicator .dot {
+    background-color: white;
+}
+
 /* Media query for small screens */
 @media (max-width: 600px) {
     .color-display {
@@ -307,7 +328,7 @@ body.background-black .mix-indicator .dot {
 
     #result-popup {
         font-size: 24px;
-        padding: 10px;
+        padding: 1px;
     }
 
     #result-popup .square {
@@ -319,7 +340,7 @@ body.background-black .mix-indicator .dot {
 
     #ok-button {
         font-size: 24px;
-        padding: 8px 15px;
+        padding: 12px 36px;
     }
 
     .mix-indicator-counter {

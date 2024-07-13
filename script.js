@@ -2,7 +2,6 @@ let currentColor = { r: 255, g: 255, b: 255 }; // Start as white
 let targetColor, recipe, mixCount, maxMixes, maxMixesAchieved, maxMixesAllowed, hearts, chosenColors, colorClicks;
 let currentStreak = 0; // Current streak
 let highestStreak = 0; // Highest streak
-
 maxMixes = 1; // Initial max mixes allowed
 maxMixesAchieved = 1; // Initial max mixes achieved
 maxMixesAllowed = 1; // Initial max mixes allowed by the game logic
@@ -16,36 +15,29 @@ const colorValues = {
     blue: { r: 0, g: 0, b: 255 },
     white: { r: 255, g: 255, b: 255 },
     black: { r: 0, g: 0, b: 0 },
-    green: { r: 0, g: 255, b: 0 }  // Add green
+    green: { r: 0, g: 255, b: 0 }
 };
 
 function generateTargetColorAndRecipe() {
     let recipe = { red: 0, yellow: 0, blue: 0, white: 0, black: 0 };
     let simulatedColor = { r: 255, g: 255, b: 255, count: 0 }; // Start as white
-
     let colorsAvailable = ['red', 'yellow', 'blue', 'white', 'black'];
+    let chosenColors = [];
 
     for (let i = 0; i < maxMixes; i++) {
         let color = colorsAvailable[Math.floor(Math.random() * colorsAvailable.length)];
+        chosenColors.push(color);
         recipe[color]++;
-        simulatedColor.count++;
-
-        if (color === 'yellow' && recipe['blue'] > 0) {
-            // Ensure yellow and blue result in green
-            simulatedColor.r = (simulatedColor.r * (simulatedColor.count - 1) + colorValues.green.r) / simulatedColor.count;
-            simulatedColor.g = (simulatedColor.g * (simulatedColor.count - 1) + colorValues.green.g) / simulatedColor.count;
-            simulatedColor.b = (simulatedColor.b * (simulatedColor.count - 1) + colorValues.green.b) / simulatedColor.count;
-        } else if (color === 'blue' && recipe['yellow'] > 0) {
-            // Ensure blue and yellow result in green
-            simulatedColor.r = (simulatedColor.r * (simulatedColor.count - 1) + colorValues.green.r) / simulatedColor.count;
-            simulatedColor.g = (simulatedColor.g * (simulatedColor.count - 1) + colorValues.green.g) / simulatedColor.count;
-            simulatedColor.b = (simulatedColor.b * (simulatedColor.count - 1) + colorValues.green.b) / simulatedColor.count;
-        } else {
-            simulatedColor.r = (simulatedColor.r * (simulatedColor.count - 1) + colorValues[color].r) / simulatedColor.count;
-            simulatedColor.g = (simulatedColor.g * (simulatedColor.count - 1) + colorValues[color].g) / simulatedColor.count;
-            simulatedColor.b = (simulatedColor.b * (simulatedColor.count - 1) + colorValues[color].b) / simulatedColor.count;
-        }
     }
+
+    let effectiveColors = getEffectiveColors(chosenColors);
+
+    effectiveColors.forEach(color => {
+        simulatedColor.count++;
+        simulatedColor.r = (simulatedColor.r * (simulatedColor.count - 1) + colorValues[color].r) / simulatedColor.count;
+        simulatedColor.g = (simulatedColor.g * (simulatedColor.count - 1) + colorValues[color].g) / simulatedColor.count;
+        simulatedColor.b = (simulatedColor.b * (simulatedColor.count - 1) + colorValues[color].b) / simulatedColor.count;
+    });
 
     return { targetColor: simulatedColor, recipe };
 }
@@ -54,25 +46,75 @@ function showResultPopup(isFinal) {
     const popup = document.getElementById('result-popup');
     const squaresContainer = popup.querySelector('.squares-container');
     const okButton = document.getElementById('ok-button');
-
     squaresContainer.innerHTML = '';
 
-    const colors = ['blue', 'red', 'yellow', 'white', 'black'];
-    const colorNames = ['Blue', 'Red', 'Yellow', 'White', 'Black'];
+    // Update the mix indicator with correct and incorrect colors
+    const indicator = document.getElementById('mix-indicator');
+    indicator.innerHTML = '';
 
-    colors.forEach(color => {
-        let square = document.createElement('div');
-        square.className = 'square';
-        square.style.backgroundColor = color;
-        square.textContent = recipe[colorNames[colors.indexOf(color)].toLowerCase()];
-        squaresContainer.appendChild(square);
+    // Create a copy of the recipe to track the remaining correct counts
+    let remainingRecipe = { ...recipe };
+
+    // Calculate total correct and incorrect counts
+    let correctCount = 0;
+    let incorrectIndices = [];
+
+    chosenColors.forEach((color, index) => {
+        if (remainingRecipe[color] > 0) {
+            correctCount++;
+            remainingRecipe[color]--;
+        } else {
+            incorrectIndices.push(index);
+        }
     });
+
+    // Display correct dots
+    for (let i = 0; i < correctCount; i++) {
+        let indicatorBox = document.createElement('div');
+        indicatorBox.className = 'indicator-box correct';
+        let dot = document.createElement('div');
+        dot.className = 'dot';
+        dot.style.backgroundColor = `rgb(${colorValues[chosenColors[i]].r}, ${colorValues[chosenColors[i]].g}, ${colorValues[chosenColors[i]].b})`;
+        indicatorBox.appendChild(dot);
+        indicator.appendChild(indicatorBox);
+    }
+
+    // Display incorrect dots
+    incorrectIndices.forEach(index => {
+        let indicatorBox = document.createElement('div');
+        indicatorBox.className = 'indicator-box incorrect';
+        let dot = document.createElement('div');
+        dot.className = 'dot';
+        dot.style.backgroundColor = `rgb(${colorValues[chosenColors[index]].r}, ${colorValues[chosenColors[index]].g}, ${colorValues[chosenColors[index]].b})`;
+
+        // Find the correct color that should be here
+        let correctColor = Object.keys(recipe).find(key => recipe[key] > 0 && remainingRecipe[key] > 0);
+        if (correctColor) {
+            let correctDot = document.createElement('div');
+            correctDot.className = 'correct-dot';
+            correctDot.style.backgroundColor = `rgb(${colorValues[correctColor].r}, ${colorValues[correctColor].g}, ${colorValues[correctColor].b})`;
+            indicatorBox.appendChild(correctDot);
+            remainingRecipe[correctColor]--; // Decrement the correct color count
+        }
+
+        indicatorBox.appendChild(dot);
+        indicator.appendChild(indicatorBox);
+    });
+
+    // Fill in remaining slots if maxMixesAllowed is greater
+    for (let i = chosenColors.length; i < maxMixesAllowed; i++) {
+        let indicatorBox = document.createElement('div');
+        indicatorBox.className = 'indicator-box';
+        let dot = document.createElement('div');
+        dot.className = 'dot';
+        indicatorBox.appendChild(dot);
+        indicator.appendChild(indicatorBox);
+    }
 
     popup.style.backgroundColor = `rgb(${Math.round(targetColor.r)}, ${Math.round(targetColor.g)}, ${Math.round(targetColor.b)})`;
     popup.style.display = 'flex';
-    
-    okButton.style.display = 'block'; // Ensure OK button is displayed for all popups
 
+    okButton.style.display = 'block'; // Ensure OK button is displayed for all popups
     okButton.onclick = () => {
         popup.style.display = 'none';
         if (isFinal) {
@@ -90,26 +132,44 @@ function showResultPopup(isFinal) {
 function addColor(color) {
     // Check if color is valid and mixCount is less than maxMixesAllowed
     if (color in colorValues && mixCount < maxMixesAllowed) {
-        if ((color === 'yellow' && chosenColors.some(c => c === colorValues.blue)) || 
-            (color === 'blue' && chosenColors.some(c => c === colorValues.yellow))) {
-            // Special rule: yellow + blue = green
-            currentColor.r = (currentColor.r * mixCount + colorValues.green.r) / (mixCount + 1);
-            currentColor.g = (currentColor.g * mixCount + colorValues.green.g) / (mixCount + 1);
-            currentColor.b = (currentColor.b * mixCount + colorValues.green.b) / (mixCount + 1);
-            chosenColors.push(colorValues.green); // Store green color
-        } else {
-            currentColor.r = (currentColor.r * mixCount + colorValues[color].r) / (mixCount + 1);
-            currentColor.g = (currentColor.g * mixCount + colorValues[color].g) / (mixCount + 1);
-            currentColor.b = (currentColor.b * mixCount + colorValues[color].b) / (mixCount + 1);
-            chosenColors.push(colorValues[color]); // Store chosen color
-        }
+        chosenColors.push(color); // Store chosen color
         colorClicks[color]++; // Increment the click count for this color
         mixCount++;
+
+        // Calculate new current color
+        let effectiveColors = getEffectiveColors(chosenColors);
+        
+        // Adjust colors if green is present
+        let yellowCount = chosenColors.filter(c => c === 'yellow').length;
+        let blueCount = chosenColors.filter(c => c === 'blue').length;
+        let greenCount = Math.min(yellowCount, blueCount);
+        let remainingYellows = yellowCount - greenCount;
+        let remainingBlues = blueCount - greenCount;
+        let nonGreenColors = chosenColors.filter(c => c !== 'yellow' && c !== 'blue');
+        let additionalColors = [...Array(greenCount).fill('green')];
+
+        if (remainingYellows > 0) {
+            additionalColors.push(...Array(remainingYellows).fill('yellow'));
+        }
+        if (remainingBlues > 0) {
+            additionalColors.push(...Array(remainingBlues).fill('blue'));
+        }
+
+        effectiveColors = [...nonGreenColors, ...additionalColors];
+
+        let totalColors = effectiveColors.length;
+        let r = effectiveColors.reduce((sum, color) => sum + colorValues[color].r, 0) / totalColors;
+        let g = effectiveColors.reduce((sum, color) => sum + colorValues[color].g, 0) / totalColors;
+        let b = effectiveColors.reduce((sum, color) => sum + colorValues[color].b, 0) / totalColors;
+
+        currentColor = { r: r, g: g, b: b };
+
         updateDisplay();
     }
 
-    // Check if max mixes allowed and correct combination reached
+    // Ensure the game only checks for a match after all mixes have been done
     if (mixCount === maxMixesAllowed) {
+        let effectiveColors = getEffectiveColors(chosenColors);
         if (Math.round(currentColor.r) === Math.round(targetColor.r) && 
             Math.round(currentColor.g) === Math.round(targetColor.g) && 
             Math.round(currentColor.b) === Math.round(targetColor.b)) {
@@ -119,13 +179,11 @@ function addColor(color) {
                 highestStreak = currentStreak;
             }
             updateStreakDisplay(); // Update streak display
-
             const statusContainer = document.getElementById('status-container');
             statusContainer.classList.add('status-flash');
             setTimeout(() => {
                 statusContainer.classList.remove('status-flash');
             }, 1000); // Flash for 1 second
-
             setTimeout(() => {
                 maxMixes++;
                 maxMixesAllowed++;
@@ -145,6 +203,32 @@ function addColor(color) {
     }
 }
 
+function getEffectiveColors(colors) {
+    let yellowCount = colors.filter(c => c === 'yellow').length;
+    let blueCount = colors.filter(c => c === 'blue').length;
+
+    let effectiveColors = [...colors];
+    if (yellowCount > 0 && blueCount > 0) {
+        // Ensure to only add one green per pair of yellow and blue
+        let greenCount = Math.min(yellowCount, blueCount);
+        effectiveColors = effectiveColors.filter((c, i) => {
+            if (c === 'yellow' && yellowCount > 0) {
+                yellowCount--;
+                return false;
+            }
+            if (c === 'blue' && blueCount > 0) {
+                blueCount--;
+                return false;
+            }
+            return true;
+        });
+        for (let i = 0; i < greenCount; i++) {
+            effectiveColors.push('green');
+        }
+    }
+    return effectiveColors;
+}
+
 function updateStreakDisplay() {
     document.getElementById('current-streak').textContent = `Current: ${currentStreak}`;
     document.getElementById('highest-streak').textContent = `Highest: ${highestStreak}`;
@@ -153,10 +237,8 @@ function updateStreakDisplay() {
 function updateDisplay() {
     // Update mixing area background
     document.getElementById('mixing-area').style.backgroundColor = `rgb(${Math.round(currentColor.r)}, ${Math.round(currentColor.g)}, ${Math.round(currentColor.b)})`;
-
     // Update body background
     document.body.style.backgroundColor = `rgb(${Math.round(targetColor.r)}, ${Math.round(targetColor.g)}, ${Math.round(targetColor.b)})`;
-
     // Toggle class for black dots to change to white when background is black
     const mixIndicator = document.querySelector('.mix-indicator');
     if (targetColor.r === 0 && targetColor.g === 0 && targetColor.b === 0) {
@@ -164,7 +246,6 @@ function updateDisplay() {
     } else {
         document.body.classList.remove('background-black');
     }
-
     // Toggle class for white border on color display when background is white
     const colorDisplay = document.querySelector('.color-display');
     if (targetColor.r === 255 && targetColor.g === 255 && targetColor.b === 255) {
@@ -172,7 +253,6 @@ function updateDisplay() {
     } else {
         colorDisplay.classList.remove('white-background');
     }
-
     updateMixIndicator();
     updateColorCounts();
     updateHeartsDisplay();
@@ -200,15 +280,16 @@ function updateMixIndicator() {
         for (let i = 0; i < maxMixesAllowed; i++) {
             let dot = document.createElement('div');
             dot.className = 'dot';
+
             if (i < chosenColors.length) {
-                dot.style.backgroundColor = `rgb(${chosenColors[i].r}, ${chosenColors[i].g}, ${chosenColors[i].b})`;
+                let color = chosenColors[i];
+                dot.style.backgroundColor = `rgb(${colorValues[color].r}, ${colorValues[color].g}, ${colorValues[color].b})`;
             }
             indicator.appendChild(dot);
         }
     } else {
         // New square layout
         const colors = ['blue', 'red', 'yellow', 'white', 'black'];
-
         colors.forEach(color => {
             let square = document.createElement('div');
             square.className = 'square';
@@ -216,7 +297,6 @@ function updateMixIndicator() {
             square.textContent = colorClicks[color];
             indicator.appendChild(square);
         });
-
         let remainingClicks = document.createElement('div');
         remainingClicks.className = 'square';
         remainingClicks.style.backgroundColor = 'gray';
@@ -243,11 +323,10 @@ function updateHeartsDisplay() {
     }
 }
 
-
 window.onload = function () {
     resetGame(); // Setup initial game state
     updateHeartsDisplay(); // Display initial hearts
-    
+
     // Add event listeners for touchstart and touchend to simulate hover on mobile
     document.querySelectorAll('#color-buttons button').forEach(button => {
         button.addEventListener('touchstart', function() {
@@ -257,8 +336,6 @@ window.onload = function () {
             button.classList.remove('active');
         });
     });
-    
-    
 }
 
 document.getElementById('reset-button').addEventListener('click', function () {
@@ -268,7 +345,6 @@ document.getElementById('reset-button').addEventListener('click', function () {
     chosenColors = []; // Reset chosen colors
     currentStreak = 0; // Reset current streak
     resetGame();
-
     // Add a class to change the button color temporarily
     this.classList.add('pressed');
     setTimeout(() => {
