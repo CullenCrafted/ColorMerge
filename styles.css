@@ -159,6 +159,21 @@ body.background-black .mix-indicator .dot {
     color: black;
 }
 
+/* Styling for the NICE popup */
+.nice-popup {
+    position: fixed;
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #32cd32;
+    color: white;
+    padding: 8%;
+    border-radius: 10px;
+    font-size: 26px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 1);
+    z-index: 1000; /* Ensure it is above other elements */
+}
+
 /* Styling for the OK button in the result popup */
 #ok-button {
     padding: 10px 20px;
@@ -239,6 +254,18 @@ body.background-black .mix-indicator .dot {
     clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
     margin-right: 8px;
     border: 2px solid black;
+}
+
+/* Styling for the heart counter */
+.heart-counter {
+    font-size: 25px; /* Adjust font size as needed */
+    font-weight: bold;
+    color: red; /* Color for the heart */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 10px;
+    border-radius: 10px;
 }
 
 /* Styling for the reset button inside the status container */
@@ -354,7 +381,7 @@ body.background-black .mix-indicator .dot {
     }
 
     #streaks {
-        align-items: center;
+        align-items: left;
         margin-bottom: 0px;
     }
 
@@ -367,8 +394,8 @@ body.background-black .mix-indicator .dot {
     }
 
     .heart {
-        width: 20px;
-        height: 20px;
+        width: 40px;
+        height: 40px;
     }
 
     #reset-button {

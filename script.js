@@ -165,6 +165,26 @@ function addColor(color) {
         currentColor = { r: r, g: g, b: b };
 
         updateDisplay();
+
+        // Check for immediate match with target color but remaining colors to add
+        if (Math.round(currentColor.r) === Math.round(targetColor.r) && 
+            Math.round(currentColor.g) === Math.round(targetColor.g) && 
+            Math.round(currentColor.b) === Math.round(targetColor.b) && 
+            mixCount < maxMixesAllowed) {
+            // Ensure no repeated colors in chosen colors
+            let uniqueColors = new Set(chosenColors);
+            if (uniqueColors.size === chosenColors.length) {
+                hearts++; // Add an extra heart
+            }
+            showNicePopup();
+            setTimeout(() => {
+                maxMixes++;
+                maxMixesAllowed++;
+                mixCount = 0; // Reset mixCount for the next round
+                chosenColors = []; // Reset chosen colors
+                resetGame(); // Reset game for next round
+            }, 1000); // Wait for 1 second before moving to the next round
+        }
     }
 
     // Ensure the game only checks for a match after all mixes have been done
@@ -227,6 +247,18 @@ function getEffectiveColors(colors) {
         }
     }
     return effectiveColors;
+}
+
+function showNicePopup() {
+    const nicePopup = document.createElement('div');
+    nicePopup.id = 'nice-popup';
+    nicePopup.textContent = 'NICE +1';
+    nicePopup.classList.add('nice-popup'); // Add the CSS class
+    document.body.appendChild(nicePopup);
+
+    setTimeout(() => {
+        nicePopup.remove();
+    }, 1000); // Display the "NICE" popup for 1 second
 }
 
 function updateStreakDisplay() {
@@ -316,11 +348,10 @@ function updateColorCounts() {
 function updateHeartsDisplay() {
     const heartsContainer = document.getElementById('hearts-container');
     heartsContainer.innerHTML = '';
-    for (let i = 0; i < hearts; i++) {
-        let heart = document.createElement('div');
-        heart.className = 'heart';
-        heartsContainer.appendChild(heart);
-    }
+    let heartCounter = document.createElement('div');
+    heartCounter.className = 'heart-counter';
+    heartCounter.textContent = `❤️ ${hearts}`;
+    heartsContainer.appendChild(heartCounter);
 }
 
 window.onload = function () {
