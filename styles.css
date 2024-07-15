@@ -103,7 +103,8 @@ body, html {
 .mix-indicator {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+    margin-top: 0%;
 }
 
 /* Styling for dots in the mix indicator */
@@ -167,9 +168,7 @@ body.background-black .mix-indicator .dot {
 /* Styling for the NICE popup */
 .nice-popup {
     position: fixed;
-    top: 25%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 115%;
     color: #32cd32;
     padding: 0%;
     border-radius: 10px;
@@ -177,6 +176,7 @@ body.background-black .mix-indicator .dot {
     font: bold;
     box-shadow: 1px solid white;
     z-index: 1000; /* Ensure it is above other elements */
+    top: 150px;
 }
 
 /* Styling for the correct counts container */
@@ -188,6 +188,8 @@ body.background-black .mix-indicator .dot {
     background-color: #38e038;
     padding: 3px; /* Add padding for visual separation */
     border-radius: 5px; /* Rounded corners for the container */
+    margin-top: 8%;
+    margin-bottom:0%;
 }
 
 /* Styling for squares in the correct counts container */
@@ -214,6 +216,20 @@ body.background-black .mix-indicator .dot {
     color: white;
 }
 
+/* Change the look of level one */
+.level-indicator {
+    font-size: 42px;
+    font-weight: bold;
+    color: whitesmoke;
+    text-align: center;
+    margin-bottom: 10%;
+    top: 25%; /* Adjust the spacing below the level indicator */
+}
+
+#result-popup {
+    transform: translate(0%, -30%);
+}
+
 /* Styling for the OK button in the result popup */
 #ok-button {
     padding: 10px 20px;
@@ -226,8 +242,8 @@ body.background-black .mix-indicator .dot {
     display: none; /* Hidden by default */
     border: 2px solid black;
     position: absolute; /* Positioning */
-    bottom: 23%; /* Adjust based on your layout */
-    right: 10%; /* Adjust based on your layout */
+    bottom: -250%; /* Adjust based on your layout */
+    right: -20%; /* Adjust based on your layout */
 }
 
 #ok-button:hover {
@@ -254,11 +270,12 @@ body.background-black .mix-indicator .dot {
     justify-content: space-between;
     align-items: center;
     background-color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0px;
     padding: 10px;
     border-radius: 15px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     position: absolute;
-    top: 10px;
+    top: 5px;
     left: 50%;
     transform: translateX(-50%);
     width: 90%; /* Adjust width to be responsive */
@@ -343,7 +360,7 @@ body.background-black .mix-indicator .dot {
 
 /* Add borders for correct and incorrect colors */
 .indicator-box.correct {
-    border-color: green;
+    border-color: #38e038;
 }
 
 .indicator-box.incorrect {
@@ -370,9 +387,8 @@ body.background-black .mix-indicator .dot {
     justify-content: space-between;
     width: 100%;
     position: absolute;
-    bottom: 20%;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: -250%;
+    left: 0%;
 }
 
 /* Styling for the +❤️ button */
@@ -385,7 +401,7 @@ body.background-black .mix-indicator .dot {
     color: white; /* White text */
     cursor: pointer;
     border: 2px solid black;
-    margin-right: 10px;
+    margin-right: -40px;
 }
 
 #extra-heart-button:hover {
@@ -402,7 +418,7 @@ body.background-black .mix-indicator .dot {
     color: white; /* White text */
     cursor: pointer;
     border: 2px solid black;
-    margin-left: 10px;
+    margin-left: -40px;
 }
 
 #restart-button:hover {
@@ -455,6 +471,7 @@ body.background-black .mix-indicator .dot {
     .color-display {
         width: 45vw;
         height: 45vw;
+        display: fixed;
     }
 
     #color-buttons button {
@@ -477,6 +494,7 @@ body.background-black .mix-indicator .dot {
     #result-popup {
         font-size: 24px;
         padding: 1px;
+        top:0%;
     }
 
     #result-popup .square {
@@ -499,6 +517,7 @@ body.background-black .mix-indicator .dot {
         flex-direction: row;
         align-items: center;
         padding: 7%;
+        top: 5px;
     }
 
     #streaks {

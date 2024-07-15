@@ -1,6 +1,7 @@
 let currentColor = { r: 255, g: 255, b: 255 };
 let targetColor, recipe, mixCount, maxMixes = 1, maxMixesAllowed = 1, hearts = 2, chosenColors = [], colorClicks = { red: 0, yellow: 0, blue: 0, white: 0, black: 0 };
 let currentStreak = 0, highestStreak = 0;
+let currentLevel = 1;
 let transitioningToNextRound = false;
 
 const colorValues = {
@@ -42,46 +43,41 @@ function showResultPopup(isFinal) {
     const indicator = document.getElementById('mix-indicator');
     indicator.innerHTML = '';
 
-    if (maxMixesAllowed < 10) {
-        let remainingRecipe = { ...recipe };
-        let correctCount = 0;
-        let incorrectIndices = [];
+    displayLevelIndicator(squaresContainer);
+    displayMixIndicator(indicator);
+    showCorrectCountsInPopup(squaresContainer);
 
-        chosenColors.forEach((color, index) => {
-            if (remainingRecipe[color] > 0) {
-                correctCount++;
-                remainingRecipe[color]--;
-            } else {
-                incorrectIndices.push(index);
-            }
-        });
+    // Adding a delay to ensure popup has correct colors
+    setTimeout(() => {
+        popup.style.backgroundColor = `rgb(${Math.round(targetColor.r)}, ${Math.round(targetColor.g)}, ${Math.round(targetColor.b)})`;
+        popup.style.display = 'flex';
+        document.getElementById('reset-button').disabled = true; // Disable reset button
 
-        displayDots(indicator, correctCount, incorrectIndices, remainingRecipe);
-        fillRemainingSlots(indicator);
-    } else {
-        displayMixIndicator(indicator);
-        showCorrectCountsInPopup(squaresContainer);
-    }
-
-    popup.style.backgroundColor = `rgb(${Math.round(targetColor.r)}, ${Math.round(targetColor.g)}, ${Math.round(targetColor.b)})`;
-    popup.style.display = 'flex';
-
-    if (hearts === 0) {
-        showExtraHeartOption(popup);
-    } else {
-        okButton.style.display = 'block';
-        okButton.onclick = () => {
-            popup.style.display = 'none';
-            if (isFinal) {
-                resetGame(true);
-            } else {
-                resetGame();
-            }
-        };
-    }
+        if (hearts === 0) {
+            showExtraHeartOption(popup);
+            okButton.style.display = 'none';  // Hide OK button when hearts are 0
+        } else {
+            hideExtraHeartOption();  // Hide Restart and +heart buttons when hearts are not 0
+            okButton.style.display = 'block';
+            okButton.onclick = () => {
+                popup.style.display = 'none';
+                document.getElementById('reset-button').disabled = false; // Enable reset button
+                if (isFinal) {
+                    resetGame(true);
+                } else {
+                    resetGame();
+                }
+            };
+        }
+    }, 100); // Adjust this delay if necessary
 }
 
 function showExtraHeartOption(popup) {
+    const existingButtons = document.querySelector('.button-container');
+    if (existingButtons) {
+        existingButtons.remove();  // Ensure no duplicate button containers are present
+    }
+
     const extraHeartButton = document.createElement('button');
     extraHeartButton.id = 'extra-heart-button';
     extraHeartButton.textContent = '+❤️';
@@ -105,12 +101,16 @@ function showExtraHeartOption(popup) {
 
     popup.appendChild(buttonContainer);
 
-    // Hide the OK button and disable the reset button
+    // Hide the OK button
     const okButton = document.getElementById('ok-button');
     okButton.style.display = 'none';
+}
 
-    const resetButton = document.getElementById('reset-button');
-    resetButton.disabled = true;
+function hideExtraHeartOption() {
+    const existingButtons = document.querySelector('.button-container');
+    if (existingButtons) {
+        existingButtons.remove();  // Remove the button container if it exists
+    }
 }
 
 function showAdPage() {
@@ -145,7 +145,7 @@ function showCorrectCountsInPopup(container) {
     const correctCountsContainer = document.createElement('div');
     correctCountsContainer.className = 'correct-counts-container';
 
-    const colorOrder = ['red', 'yellow', 'blue', 'white', 'black'];
+    const colorOrder = ['blue', 'red', 'yellow', 'white', 'black'];
 
     colorOrder.forEach(color => {
         let correctSquare = document.createElement('div');
@@ -165,7 +165,7 @@ function showCorrectCountsInPopup(container) {
 }
 
 function displayMixIndicator(indicator) {
-    const colorOrder = ['red', 'yellow', 'blue', 'white', 'black'];
+    const colorOrder = ['blue', 'red', 'yellow', 'white', 'black'];
 
     colorOrder.forEach(color => {
         let square = document.createElement('div');
@@ -180,6 +180,13 @@ function displayMixIndicator(indicator) {
     remainingClicks.style.backgroundColor = 'gray';
     remainingClicks.textContent = maxMixesAllowed - mixCount;
     indicator.appendChild(remainingClicks);
+}
+
+function displayLevelIndicator(container) {
+    const levelIndicator = document.createElement('div');
+    levelIndicator.className = 'level-indicator';
+    levelIndicator.textContent = `LEVEL ${currentLevel}`;
+    container.appendChild(levelIndicator);
 }
 
 function displayDots(indicator, correctCount, incorrectIndices, remainingRecipe) {
@@ -225,36 +232,6 @@ function fillRemainingSlots(indicator) {
         indicatorBox.appendChild(dot);
         indicator.appendChild(indicatorBox);
     }
-}
-
-function displayDots(indicator, correctCount, incorrectIndices, remainingRecipe) {
-    for (let i = 0; i < correctCount; i++) {
-        let indicatorBox = createIndicatorBox('correct', chosenColors[i]);
-        indicator.appendChild(indicatorBox);
-    }
-
-    incorrectIndices.forEach(index => {
-        let indicatorBox = createIndicatorBox('incorrect', chosenColors[index]);
-        let correctColor = findCorrectColor(remainingRecipe);
-        if (correctColor) {
-            let correctDot = document.createElement('div');
-            correctDot.className = 'correct-dot';
-            correctDot.style.backgroundColor = `rgb(${colorValues[correctColor].r}, ${colorValues[correctColor].g}, ${colorValues[correctColor].b})`;
-            indicatorBox.appendChild(correctDot);
-            remainingRecipe[correctColor]--;
-        }
-        indicator.appendChild(indicatorBox);
-    });
-}
-
-function createIndicatorBox(type, color) {
-    let indicatorBox = document.createElement('div');
-    indicatorBox.className = `indicator-box ${type}`;
-    let dot = document.createElement('div');
-    dot.className = 'dot';
-    dot.style.backgroundColor = `rgb(${colorValues[color].r}, ${colorValues[color].g}, ${colorValues[color].b})`;
-    indicatorBox.appendChild(dot);
-    return indicatorBox;
 }
 
 function findCorrectColor(remainingRecipe) {
@@ -281,23 +258,43 @@ function addColor(color) {
 
     updateCurrentColor();
     updateDisplay();
+    updateMixIndicator();
 
     // Check if current color matches target color and the number of mixes used is less than allowed
     if (colorsMatch() && mixCount < maxMixesAllowed) {
         hearts++;
+        currentStreak++; // Update current streak
+        highestStreak = Math.max(currentStreak, highestStreak); // Update highest streak
         updateHeartsDisplay();
+        updateStreakDisplay(); // Update streak display
         showNicePopup(); // Show +1 pop-up
 
         // Move to the next round immediately
         transitioningToNextRound = true;
-        setTimeout(nextRound, 1000);
+        setTimeout(nextRound, 100);
         return;
     }
 
-    // Ensure the game only checks for a match after all mixes have been done
-    if (mixCount === maxMixesAllowed) {
-        checkFinalMatch();
+     // Ensure the game only checks for a match after all mixes have been done
+     if (mixCount === maxMixesAllowed) {
+        // Adding a delay to ensure all updates are completed before showing the popup
+        setTimeout(() => {
+            checkFinalMatch();
+        }, 100); // Adjust this delay if necessary
     }
+}
+
+function handleImmediateMatch() {
+    if (new Set(chosenColors).size === chosenColors.length) {
+        hearts++;
+        currentStreak++; // Update current streak
+        highestStreak = Math.max(currentStreak, highestStreak); // Update highest streak
+        updateHeartsDisplay();
+        updateStreakDisplay(); // Update streak display
+    }
+    transitioningToNextRound = true;
+    showNicePopup();
+    setTimeout(nextRound, 1000);
 }
 
 function nextRound() {
@@ -305,6 +302,7 @@ function nextRound() {
     maxMixesAllowed++;
     mixCount = 0;
     chosenColors = [];
+    currentLevel++;
     resetGame();
     transitioningToNextRound = false;
 }
@@ -326,25 +324,6 @@ function colorsMatch() {
     return Math.round(currentColor.r) === Math.round(targetColor.r) && Math.round(currentColor.g) === Math.round(targetColor.g) && Math.round(currentColor.b) === Math.round(targetColor.b);
 }
 
-function handleImmediateMatch() {
-    if (new Set(chosenColors).size === chosenColors.length) {
-        hearts++;
-        updateHeartsDisplay();
-    }
-    transitioningToNextRound = true;
-    showNicePopup();
-    setTimeout(nextRound, 1000);
-}
-
-function nextRound() {
-    maxMixes++;
-    maxMixesAllowed++;
-    mixCount = 0;
-    chosenColors = [];
-    resetGame();
-    transitioningToNextRound = false;
-}
-
 function checkFinalMatch() {
     if (colorsMatch()) {
         currentStreak++;
@@ -353,11 +332,14 @@ function checkFinalMatch() {
         flashStatus();
 
         transitioningToNextRound = true;
-        setTimeout(nextRound, 400);
+        setTimeout(nextRound, 300);
     } else {
         hearts--;
         updateHeartsDisplay();
-        showResultPopup(hearts === 0);
+        // Adding a delay to ensure all updates are completed before showing the popup
+        setTimeout(() => {
+            showResultPopup(hearts === 0);
+        }, 100); // Adjust this delay if necessary
     }
 }
 
@@ -412,6 +394,7 @@ function resetGame(isFinal = false) {
         maxMixesAllowed = 1;
         hearts = 2;
         currentStreak = 0;
+        currentLevel = 1;
     }
     const { targetColor: newTargetColor, recipe: newRecipe } = generateTargetColorAndRecipe();
     targetColor = newTargetColor;
@@ -488,6 +471,9 @@ window.onload = function () {
 }
 
 document.getElementById('reset-button').addEventListener('click', function () {
+    if (this.disabled) {
+        return; // Do nothing if the reset button is disabled
+    }
     maxMixes = 1;
     maxMixesAllowed = 1;
     hearts = 2;
