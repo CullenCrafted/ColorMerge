@@ -14,6 +14,7 @@ body, html {
     -ms-user-select: none;       /* Disable text selection for Internet Explorer/Edge */
     user-select: none;           /* Disable text selection for modern browsers */
     -webkit-tap-highlight-color: rgba(0,0,0,0); /* Remove tap highlight */
+    transition: background-color 1.5s;
 }
 
 /* Hide the color counts container */
@@ -27,8 +28,8 @@ body, html {
     padding: 0;
     border-radius: 0;
     box-shadow: 0 4px 8px rgba(0,0,0,0); /* Soft shadow for depth */
-    width: 99%;
-    height: 99%;
+    width: 100%;
+    height: 100%;
     margin: 0; /* Remove margin */
     display: flex;
     flex-direction: column;
@@ -218,9 +219,9 @@ body.background-black .mix-indicator .dot {
 
 /* Change the look of level one */
 .level-indicator {
-    font-size: 42px;
+    font-size: 36px;
     font-weight: bold;
-    color: whitesmoke;
+    color: rgb(173, 173, 173);
     text-align: center;
     margin-bottom: 10%;
     top: 25%; /* Adjust the spacing below the level indicator */
@@ -242,7 +243,7 @@ body.background-black .mix-indicator .dot {
     display: none; /* Hidden by default */
     border: 2px solid black;
     position: absolute; /* Positioning */
-    bottom: -250%; /* Adjust based on your layout */
+    bottom: -150%; /* Adjust based on your layout */
     right: -20%; /* Adjust based on your layout */
 }
 
@@ -381,13 +382,22 @@ body.background-black .mix-indicator .dot {
     box-shadow: 0 3px 5px white;
 }
 
+/* Styling for the -❤️ indicator */
+.heart-loss-indicator {
+    font-size: 32px;
+    font-weight: bold;
+    color: rgb(145, 145, 145);
+    text-align: center;
+    margin-bottom: 10px;
+}
+
 /* Styling for the +❤️ and Restart buttons container */
 .button-container {
     display: flex;
     justify-content: space-between;
     width: 100%;
     position: absolute;
-    bottom: -250%;
+    bottom: -150%;
     left: 0%;
 }
 
@@ -410,7 +420,7 @@ body.background-black .mix-indicator .dot {
 
 /* Styling for the Restart button */
 #restart-button {
-    padding: 10px 20px;
+    padding: 8px 15px;
     font-size: 18px;
     border: none;
     border-radius: 5px;

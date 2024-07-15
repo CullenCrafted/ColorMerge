@@ -43,7 +43,11 @@ function showResultPopup(isFinal) {
     const indicator = document.getElementById('mix-indicator');
     indicator.innerHTML = '';
 
-    displayLevelIndicator(squaresContainer);
+    if (hearts === 0) {
+        displayLevelIndicator(squaresContainer, true); // Display level number on last popup
+    } else {
+        displayHeartLossIndicator(squaresContainer); // Display "-❤️" on all prior popups
+    }
     displayMixIndicator(indicator);
     showCorrectCountsInPopup(squaresContainer);
 
@@ -182,11 +186,18 @@ function displayMixIndicator(indicator) {
     indicator.appendChild(remainingClicks);
 }
 
-function displayLevelIndicator(container) {
+function displayLevelIndicator(container, isFinal) {
     const levelIndicator = document.createElement('div');
     levelIndicator.className = 'level-indicator';
     levelIndicator.textContent = `LEVEL ${currentLevel}`;
     container.appendChild(levelIndicator);
+}
+
+function displayHeartLossIndicator(container) {
+    const heartLossIndicator = document.createElement('div');
+    heartLossIndicator.className = 'heart-loss-indicator';
+    heartLossIndicator.textContent = `-1❤️`;
+    container.appendChild(heartLossIndicator);
 }
 
 function displayDots(indicator, correctCount, incorrectIndices, remainingRecipe) {
@@ -271,7 +282,7 @@ function addColor(color) {
 
         // Move to the next round immediately
         transitioningToNextRound = true;
-        setTimeout(nextRound, 100);
+        setTimeout(nextRound, 200);
         return;
     }
 
@@ -280,7 +291,7 @@ function addColor(color) {
         // Adding a delay to ensure all updates are completed before showing the popup
         setTimeout(() => {
             checkFinalMatch();
-        }, 100); // Adjust this delay if necessary
+        }, 200); // Adjust this delay if necessary
     }
 }
 
