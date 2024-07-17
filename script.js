@@ -347,7 +347,14 @@ function updateProgressMap() {
 
         let levelDot = document.createElement('div');
         levelDot.className = 'level-dot';
-        levelDot.textContent = i;
+        
+        if (i % 10 === 0) {
+            levelDot.innerHTML = '❤️';
+            levelDot.classList.add('heart-icon');
+        } else {
+            levelDot.textContent = i;
+        }
+        
         if (i < currentLevel) {
             levelDot.classList.add('completed');
         } else if (i === currentLevel) {
@@ -364,6 +371,11 @@ function nextRound() {
     chosenColors = [];
     if (colorsMatch() || mixCount === maxMixesAllowed) {
         currentLevel++;
+        // Gain a heart every 10 levels
+        if (currentLevel % 10 === 0) {
+            hearts++;
+            updateHeartsDisplay();
+        }
         updateProgressMap();
     }
     resetGame();
