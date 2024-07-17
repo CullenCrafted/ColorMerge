@@ -17,6 +17,65 @@ body, html {
     transition: background-color 1.5s;
 }
 
+/* Styling for the Instructions button */
+#instructions-button {
+    position: absolute;
+    font-size: 26px;
+    left: 4%;
+    bottom:20%;
+    border: none;
+    border-radius: 40%;
+    background-color: rgba(0, 255, 255, 0.8); /* Green background */
+    color: black; /* White text */
+    cursor: pointer;
+    box-shadow: 0 8px 8px rgba(0, 0, 0, 0.2);
+    border: 2px solid black;
+    z-index: 1001; /* Ensure it is above other elements */
+}
+
+#instructions-button:hover {
+    background-color: rgba(0, 153, 255, 0.8); /* Darker green on hover */
+}
+
+/* Styling for the Instructions popup */
+#instructions-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 500px;
+    background-color: rgba(253, 200, 255, 0.95); /* Light background */
+    border: 2px solid black;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1002; /* Ensure it is above other elements */
+    display: none; /* Hidden by default */
+}
+
+/* Styling for the popup close button */
+#close-instructions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+#close-instructions:hover {
+    color: red; /* Red color on hover */
+}
+
+/* Additional styling for the popup content */
+#instructions-content {
+    text-align: center;
+    font-size: 18px;
+    color: black;
+}
+
 /* Hide the color counts container */
 #color-counts {
     display: none;
@@ -150,7 +209,7 @@ body.background-black .mix-indicator .dot {
     justify-content: center;
     align-items: center;
     margin: 2px;
-    border: 1px solid black;
+    border: 5px solid #38e038;
     border-radius: 50%; /* Rounded corners */
     font-weight: bold;
     font-size: 16px; /* Font size for the number */
@@ -160,6 +219,11 @@ body.background-black .mix-indicator .dot {
 .mix-indicator .square:last-child {
     padding: 5px;
     color: black;
+}
+
+/* Set the font color of the first square to white */
+.mix-indicator .square:first-child {
+    color: white;
 }
 
 .mix-indicator .square:nth-last-child(2) {
@@ -177,20 +241,19 @@ body.background-black .mix-indicator .dot {
     font: bold;
     box-shadow: 1px solid white;
     z-index: 1000; /* Ensure it is above other elements */
-    top: 150px;
+    top: 200px;
 }
 
 /* Styling for the correct counts container */
 .correct-counts-container {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px; /* Space between correct counts and chosen colors */
-    box-shadow: 0 4px 8px #38e038;
+    margin-bottom: 0px; /* Space between correct counts and chosen colors */
+    box-shadow: 0 4px 12px black;
     background-color: #38e038;
     padding: 3px; /* Add padding for visual separation */
-    border-radius: 5px; /* Rounded corners for the container */
+    border-radius: 10px; /* Rounded corners for the container */
     margin-top: 8%;
-    margin-bottom:0%;
 }
 
 /* Styling for squares in the correct counts container */
@@ -217,14 +280,68 @@ body.background-black .mix-indicator .dot {
     color: white;
 }
 
+.correct-counts-container .square:first-child {
+    color: white;
+}
+
 /* Change the look of level one */
 .level-indicator {
-    font-size: 36px;
+    font-size: 32px;
     font-weight: bold;
-    color: rgb(173, 173, 173);
+    color: black;
+    background-color: rgba(0, 255, 255, 0.8);
+    box-shadow: 0px 4px 8px black;
+    border-radius: 10px;
     text-align: center;
-    margin-bottom: 10%;
+    margin-bottom: 5px;
     top: 25%; /* Adjust the spacing below the level indicator */
+}
+
+#progress-map {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    position: absolute;
+    width: 100%;
+    top: 15%; /* Adjust this value to position the progress map vertically */
+}
+
+.level-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: gray;
+    color: white;
+    border: 3px solid rgba(0, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin: 0 5px;
+    transition: opacity 3s ease;
+}
+
+.level-dot.completed {
+    background-color: #38e038;
+    color: black;
+}
+
+.level-dot.current {
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+    background-color: white;
+    color: black;
+    border: 2px solid black;
+    transition: opacity 3s ease;
+}
+
+.connector {
+    width: 30px;
+    height: 2px;
+    background-color: gray;
+    transition: opacity 3s ease;
 }
 
 #result-popup {
@@ -267,6 +384,7 @@ body.background-black .mix-indicator .dot {
 
 /* Styling for the unified status container */
 #status-container {
+    position: absolute;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -275,10 +393,7 @@ body.background-black .mix-indicator .dot {
     padding: 10px;
     border-radius: 15px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    position: absolute;
     top: 5px;
-    left: 50%;
-    transform: translateX(-50%);
     width: 90%; /* Adjust width to be responsive */
     max-width: 600px; /* Maximum width for larger screens */
 }
@@ -359,6 +474,10 @@ body.background-black .mix-indicator .dot {
     position: relative;
 }
 
+.square.incorrect {
+    border: 5px solid rgba(255, 152, 152, 0.8);
+}
+
 /* Add borders for correct and incorrect colors */
 .indicator-box.correct {
     border-color: #38e038;
@@ -386,7 +505,10 @@ body.background-black .mix-indicator .dot {
 .heart-loss-indicator {
     font-size: 32px;
     font-weight: bold;
-    color: rgb(145, 145, 145);
+    color: black;
+    background-color: rgba(255, 152, 152, 0.8);
+    box-shadow:  0px 4px 8px black;
+    border-radius: 8px;
     text-align: center;
     margin-bottom: 10px;
 }
@@ -403,6 +525,7 @@ body.background-black .mix-indicator .dot {
 
 /* Styling for the +❤️ button */
 #extra-heart-button {
+    display: relative;
     padding: 10px 20px;
     font-size: 18px;
     border: none;

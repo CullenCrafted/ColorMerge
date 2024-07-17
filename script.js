@@ -161,6 +161,24 @@ function showCorrectCountsInPopup(container) {
 
     container.appendChild(correctCountsContainer);
 
+    // Calculate the quantities of chosen colors
+    let chosenColorCounts = { red: 0, yellow: 0, blue: 0, white: 0, black: 0 };
+    chosenColors.forEach(color => {
+        if (color in chosenColorCounts) {
+            chosenColorCounts[color]++;
+        }
+    });
+
+    // Highlight incorrect chosen colors with a red border
+    colorOrder.forEach((color, index) => {
+        if (chosenColorCounts[color] !== recipe[color]) {
+            let incorrectSquare = document.querySelectorAll('.mix-indicator .square')[index];
+            if (incorrectSquare) {
+                incorrectSquare.classList.add('incorrect');
+            }
+        }
+    });
+
     // Hide the last square in the mix indicator when correct counts appear
     const remainingClicksSquare = document.querySelector('.mix-indicator .square:last-child');
     if (remainingClicksSquare) {
@@ -308,12 +326,46 @@ function handleImmediateMatch() {
     setTimeout(nextRound, 1000);
 }
 
+function updateProgressMap() {
+    const progressMap = document.getElementById('progress-map');
+    progressMap.innerHTML = ''; // Clear previous progress map
+
+    const totalDots = 5; // Fixed number of dots in the progress map
+    const halfDots = Math.floor(totalDots / 2);
+
+    // Calculate start and end levels
+    const startLevel = Math.max(1, currentLevel - halfDots);
+    const endLevel = currentLevel + halfDots;
+
+    // Add dots and connectors to the progress map
+    for (let i = startLevel; i <= endLevel; i++) {
+        if (i > startLevel) {
+            let connector = document.createElement('div');
+            connector.className = 'connector';
+            progressMap.appendChild(connector);
+        }
+
+        let levelDot = document.createElement('div');
+        levelDot.className = 'level-dot';
+        levelDot.textContent = i;
+        if (i < currentLevel) {
+            levelDot.classList.add('completed');
+        } else if (i === currentLevel) {
+            levelDot.classList.add('current');
+        }
+        progressMap.appendChild(levelDot);
+    }
+}
+
 function nextRound() {
     maxMixes++;
     maxMixesAllowed++;
     mixCount = 0;
     chosenColors = [];
-    currentLevel++;
+    if (colorsMatch() || mixCount === maxMixesAllowed) {
+        currentLevel++;
+        updateProgressMap();
+    }
     resetGame();
     transitioningToNextRound = false;
 }
@@ -380,7 +432,6 @@ function showNicePopup() {
 }
 
 function updateStreakDisplay() {
-    document.getElementById('current-streak').textContent = `Current: ${currentStreak}`;
     document.getElementById('highest-streak').textContent = `Highest: ${highestStreak}`;
 }
 
@@ -399,13 +450,14 @@ function toggleClass(className, condition, selector = 'body') {
     condition ? element.classList.add(className) : element.classList.remove(className);
 }
 
+// Function to reset the game state
 function resetGame(isFinal = false) {
     if (isFinal) {
         maxMixes = 1;
         maxMixesAllowed = 1;
         hearts = 2;
         currentStreak = 0;
-        currentLevel = 1;
+        currentLevel = 1; // Reset the current level to 1
     }
     const { targetColor: newTargetColor, recipe: newRecipe } = generateTargetColorAndRecipe();
     targetColor = newTargetColor;
@@ -417,6 +469,7 @@ function resetGame(isFinal = false) {
     updateDisplay();
     updateStreakDisplay();
     updateHeartsDisplay();
+    updateProgressMap(); // Reset the progress map
 }
 
 function updateMixIndicator() {
@@ -473,13 +526,22 @@ function flashStatus() {
 }
 
 window.onload = function () {
-    resetGame();
+    resetGame(true);
     updateHeartsDisplay();
+    updateProgressMap();
     document.querySelectorAll('#color-buttons button').forEach(button => {
         button.addEventListener('touchstart', () => button.classList.add('active'));
         button.addEventListener('touchend', () => button.classList.remove('active'));
     });
 }
+
+document.getElementById('instructions-button').addEventListener('click', function () {
+    document.getElementById('instructions-popup').style.display = 'block';
+});
+
+document.getElementById('close-instructions').addEventListener('click', function () {
+    document.getElementById('instructions-popup').style.display = 'none';
+});
 
 document.getElementById('reset-button').addEventListener('click', function () {
     if (this.disabled) {
@@ -489,7 +551,7 @@ document.getElementById('reset-button').addEventListener('click', function () {
     maxMixesAllowed = 1;
     hearts = 2;
     currentStreak = 0;
-    resetGame();
+    resetGame(true);
     this.classList.add('pressed');
     setTimeout(() => this.classList.remove('pressed'), 200);
 });

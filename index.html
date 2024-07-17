@@ -8,16 +8,35 @@
 </head>
 <body>
     <div id="game-container">
+        <button id="instructions-button">i</button>
+
+        <div id="instructions-popup">
+            <button id="close-instructions">&times;</button>
+            <div id="instructions-content">
+                <h2>How to Play</h2>
+                <p>1. There are 5 color buttons below; Blue, Red, Yellow, White, & Black</p>
+                <p>2. Try to match the background by mixing these colors</p>
+                <p>3. Each color button press will add that color to the mix (center circle)</p>
+                <p>4. The small gray dots and the quantities of them (the Level), represent the number of colors that mixed to make the background</p>
+                <p>5. You'll start with 1 color, if correct, then 2 colors, and so on</p>
+                <p>5. In some scenarios it's possible to match the background in fewer tries; you'll recieve an additional heart</p>
+                <p>6. Lose a heart for every incorrect match, and gain a heart every 10 levels</p>
+                <p>7. Have fun!</p>
+            </div>
+        </div>
+
+        <div id="progress-map-container"></div>
+            <div id="progress-map"></div>
         <div id="status-container">
             <div id="streaks">
                 <p id="highest-streak">Highest 0</p>
-                <p id="current-streak">Current 0</p>
+                <p id="current-streak"></p>
             </div>
             <div id="hearts-container">
                 <div class="heart"></div>
                 <div class="heart"></div>
             </div>
-            <button onclick="resetGame()" id="reset-button">Reset</button>
+            <button onclick="resetGame()" id="reset-button">Restart</button>
         </div>
         <div id="result-popup">
             <div class="squares-container"></div>
