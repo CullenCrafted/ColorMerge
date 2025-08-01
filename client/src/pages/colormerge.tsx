@@ -1,17 +1,22 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import GameHeader from "@/components/game-header";
-import GameStats from "@/components/game-stats";
-import InstructionsModal from "@/components/instructions-modal";
+import { HelpCircle, RotateCcw, Pause, Volume2, VolumeX, Trophy, Heart } from "lucide-react";
 import { ColorMergeLogic } from "@/lib/colormerge-logic";
 import { useGameStats } from "@/hooks/use-game-stats";
 import { useToast } from "@/hooks/use-toast";
+import InstructionsModal from "@/components/instructions-modal";
+import GameOverModal from "@/components/game-over-modal";
+import LevelCompleteModal from "@/components/level-complete-modal";
 
 export default function ColorMerge() {
   const [showInstructions, setShowInstructions] = useState(false);
+  const [showGameOver, setShowGameOver] = useState(false);
+  const [showLevelComplete, setShowLevelComplete] = useState(false);
   const [gameLogic, setGameLogic] = useState<ColorMergeLogic>(new ColorMergeLogic());
   const [gameState, setGameState] = useState(gameLogic.getState());
+  const [isPaused, setIsPaused] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [pulseTarget, setPulseTarget] = useState(false);
   const { stats, updateStats } = useGameStats("colormerge");
   const { toast } = useToast();
 
@@ -23,15 +28,24 @@ export default function ColorMerge() {
     }
   }, [stats]);
 
+  // Pulse target color when level starts
+  useEffect(() => {
+    setPulseTarget(true);
+    const timer = setTimeout(() => setPulseTarget(false), 2000);
+    return () => clearTimeout(timer);
+  }, [gameState.currentLevel]);
+
   const handleColorClick = (color: string) => {
+    if (isPaused) return;
+    
     const result = gameLogic.addColor(color);
     const newState = gameLogic.getState();
     setGameState(newState);
 
     if (result.bonusHeart) {
       toast({
-        title: "Bonus Heart! 🎉",
-        description: "You solved it early and earned an extra heart!",
+        title: "Perfect! Bonus Heart Earned",
+        description: "You solved it with extra moves remaining!",
       });
     }
 
@@ -43,6 +57,7 @@ export default function ColorMerge() {
         streak: newState.currentStreak,
         totalPlays: (stats?.totalPlays || 0) + 1,
       });
+      setShowLevelComplete(true);
     }
 
     if (result.gameOver) {
@@ -52,11 +67,7 @@ export default function ColorMerge() {
         streak: 0,
         totalPlays: (stats?.totalPlays || 0) + 1,
       });
-      toast({
-        title: "Game Over",
-        description: "No more hearts left! Starting over...",
-        variant: "destructive",
-      });
+      setShowGameOver(true);
     }
   };
 
@@ -66,120 +77,193 @@ export default function ColorMerge() {
   };
 
   const colorButtons = [
-    { color: 'blue', bgColor: 'bg-blue-500' },
-    { color: 'red', bgColor: 'bg-red-500' },
-    { color: 'yellow', bgColor: 'bg-yellow-400' },
-    { color: 'white', bgColor: 'bg-white border-2 border-gray-400' },
-    { color: 'black', bgColor: 'bg-black' },
+    { color: 'blue', bgColor: 'from-blue-400 to-blue-600', shadowColor: 'shadow-blue-500/50' },
+    { color: 'red', bgColor: 'from-red-400 to-red-600', shadowColor: 'shadow-red-500/50' },
+    { color: 'yellow', bgColor: 'from-yellow-300 to-yellow-500', shadowColor: 'shadow-yellow-500/50' },
+    { color: 'white', bgColor: 'from-gray-100 to-white', shadowColor: 'shadow-gray-500/50', textColor: 'text-gray-800' },
+    { color: 'black', bgColor: 'from-gray-800 to-black', shadowColor: 'shadow-gray-900/50' },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 to-pink-100">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <GameHeader
-          title="ColorMerge"
-          onInstructions={() => setShowInstructions(true)}
-        />
+    <>
+      {/* Dynamic Background */}
+      <div 
+        className="fixed inset-0 transition-all duration-1000 ease-out"
+        style={{ 
+          background: `linear-gradient(135deg, ${gameLogic.getTargetColorString()}15 0%, ${gameLogic.getTargetColorString()}05 50%, transparent 100%)`
+        }}
+      />
+      
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Floating Particles */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {Array.from({ length: 6 }, (_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-white/20 rounded-full animate-bounce-gentle"
+              style={{
+                left: `${20 + i * 15}%`,
+                top: `${10 + (i % 3) * 30}%`,
+                animationDelay: `${i * 0.5}s`,
+                animationDuration: `${3 + i * 0.5}s`
+              }}
+            />
+          ))}
+        </div>
 
-        <GameStats stats={{
-          level: gameState.currentLevel,
-          streak: gameState.currentStreak,
-          bestLevel: stats?.bestLevel || 0,
-          hearts: gameState.hearts,
-        }} />
-
-        {/* Level Progress */}
-        <Card className="bg-white rounded-xl p-4 mb-8 shadow-lg">
-          <CardContent className="pt-0">
-            <div className="flex items-center justify-center space-x-2">
-              {Array.from({ length: 5 }, (_, i) => {
-                const level = gameState.currentLevel + i - 2;
-                const isCurrent = i === 2;
-                const isCompleted = level < gameState.currentLevel;
-                const isHeartLevel = level % 10 === 0;
-                
-                return (
-                  <div
-                    key={i}
-                    className={`
-                      w-3 h-3 rounded-full transition-all duration-300
-                      ${isCurrent ? 'w-4 h-4 bg-white border-2 border-game-primary' : ''}
-                      ${isCompleted ? 'bg-game-success' : 'bg-gray-300'}
-                      ${isHeartLevel && level > 0 ? 'bg-red-500' : ''}
-                    `}
-                  >
-                    {isCurrent && (
-                      <div className="w-2 h-2 bg-game-primary rounded-full"></div>
-                    )}
-                  </div>
-                );
-              })}
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 relative z-10">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              ColorMerge
+            </h1>
+            <div className="flex items-center space-x-2">
+              <Trophy className="w-5 h-5 text-yellow-500" />
+              <span className="text-lg font-semibold text-gray-700">{stats?.bestLevel || 0}</span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              variant="ghost"
+              size="sm"
+              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
+            >
+              {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+            </Button>
+            <Button
+              onClick={() => setIsPaused(!isPaused)}
+              variant="ghost"
+              size="sm"
+              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
+            >
+              <Pause className="w-5 h-5" />
+            </Button>
+            <Button
+              onClick={() => setShowInstructions(true)}
+              variant="ghost"
+              size="sm"
+              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
+            >
+              <HelpCircle className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
 
-        {/* Game Area */}
-        <Card className="bg-white rounded-2xl p-8 shadow-xl">
-          <CardContent className="pt-0">
-            {/* Target Display */}
-            <div className="text-center mb-8">
-              <p className="text-lg text-gray-600 mb-4">Match this color:</p>
-              <div
-                className="w-48 h-48 mx-auto rounded-full shadow-xl border-4 border-white"
-                style={{ backgroundColor: gameLogic.getTargetColorString() }}
+        {/* Game Stats */}
+        <div className="flex items-center justify-center space-x-8 mb-8 relative z-10">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-gray-800">{gameState.currentLevel}</div>
+            <div className="text-sm text-gray-600">Level</div>
+          </div>
+          
+          <div className="text-center">
+            <div className="text-2xl font-bold text-purple-600">{gameState.currentStreak}</div>
+            <div className="text-sm text-gray-600">Streak</div>
+          </div>
+          
+          <div className="flex items-center space-x-1">
+            {Array.from({ length: 3 }, (_, i) => (
+              <Heart
+                key={i}
+                className={`w-8 h-8 ${i < gameState.hearts ? 'text-red-500 fill-current' : 'text-gray-300'} transition-all duration-300`}
               />
-            </div>
+            ))}
+          </div>
+        </div>
 
-            {/* Current Mix Display */}
-            <div className="text-center mb-8">
-              <p className="text-lg text-gray-600 mb-4">Your mix:</p>
+        {/* Main Game Area */}
+        <div className="flex flex-col items-center px-6 relative z-10">
+          {/* Target Color Display */}
+          <div className="text-center mb-12">
+            <p className="text-lg text-gray-700 mb-6 font-medium">Match this color</p>
+            <div className="relative">
               <div
-                className="w-32 h-32 mx-auto rounded-full shadow-lg border-4 border-white"
-                style={{ backgroundColor: gameLogic.getCurrentColorString() }}
+                className={`w-64 h-64 rounded-full shadow-2xl border-4 border-white/50 backdrop-blur-sm transition-all duration-500 ${pulseTarget ? 'animate-pulse scale-110' : ''}`}
+                style={{ 
+                  backgroundColor: gameLogic.getTargetColorString(),
+                  boxShadow: `0 20px 40px ${gameLogic.getTargetColorString()}40, inset 0 0 20px rgba(255,255,255,0.2)`
+                }}
               />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent"></div>
             </div>
+          </div>
 
-            {/* Mix Indicator */}
-            <div className="flex justify-center mb-8">
-              <div className="flex items-center space-x-2 bg-gray-100 rounded-xl p-4">
-                {colorButtons.map(({ color, bgColor }) => (
-                  <div
-                    key={color}
-                    className={`mix-indicator-dot ${bgColor} ${color === 'yellow' ? 'text-black' : 'text-white'}`}
-                  >
-                    {gameState.colorClicks[color]}
-                  </div>
-                ))}
-                <div className="mix-indicator-dot bg-gray-400">
-                  {gameLogic.getRemainingMixes()}
+          {/* Current Mix Display */}
+          <div className="text-center mb-8">
+            <p className="text-lg text-gray-700 mb-4 font-medium">Your mix</p>
+            <div className="relative">
+              <div
+                className="w-40 h-40 rounded-full shadow-xl border-4 border-white/50 transition-all duration-300 hover:scale-105"
+                style={{ 
+                  backgroundColor: gameLogic.getCurrentColorString(),
+                  boxShadow: `0 15px 30px ${gameLogic.getCurrentColorString()}30, inset 0 0 15px rgba(255,255,255,0.2)`
+                }}
+              />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent"></div>
+            </div>
+          </div>
+
+          {/* Mix Progress Indicator */}
+          <div className="flex items-center justify-center space-x-3 mb-12 bg-white/30 backdrop-blur-lg rounded-2xl p-4 border border-white/40">
+            {colorButtons.map(({ color }) => (
+              <div
+                key={color}
+                className="relative flex items-center justify-center w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30"
+              >
+                <div
+                  className={`w-8 h-8 rounded-full ${color === 'white' ? 'border-2 border-gray-300' : ''}`}
+                  style={{ backgroundColor: color }}
+                />
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  {gameState.colorClicks[color]}
                 </div>
               </div>
+            ))}
+            <div className="w-px h-8 bg-white/30 mx-2"></div>
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-500/30 backdrop-blur-sm border-2 border-white/30">
+              <span className="text-white font-bold">{gameLogic.getRemainingMixes()}</span>
             </div>
+          </div>
 
-            {/* Color Buttons */}
-            <div className="flex justify-center space-x-4 mb-8">
-              {colorButtons.map(({ color, bgColor }) => (
-                <Button
-                  key={color}
-                  onClick={() => handleColorClick(color)}
-                  className={`color-button ${bgColor}`}
-                  disabled={gameLogic.getRemainingMixes() <= 0}
-                />
-              ))}
-            </div>
-
-            {/* Reset Button */}
-            <div className="text-center">
+          {/* Color Buttons */}
+          <div className="flex items-center justify-center space-x-6 mb-8">
+            {colorButtons.map(({ color, bgColor, shadowColor, textColor = 'text-white' }) => (
               <Button
-                onClick={handleResetLevel}
-                variant="outline"
-                className="bg-gray-500 text-white hover:bg-gray-600"
+                key={color}
+                onClick={() => handleColorClick(color)}
+                disabled={gameLogic.getRemainingMixes() <= 0 || isPaused}
+                className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${bgColor} ${shadowColor} shadow-lg hover:shadow-xl transform hover:scale-110 active:scale-95 transition-all duration-200 border-2 border-white/30 disabled:opacity-50 disabled:cursor-not-allowed ${textColor}`}
+              />
+            ))}
+          </div>
+
+          {/* Reset Button */}
+          <Button
+            onClick={handleResetLevel}
+            variant="ghost"
+            className="bg-white/20 backdrop-blur-sm hover:bg-white/30 border border-white/30 rounded-xl px-6 py-3 transition-all duration-200 hover:scale-105"
+          >
+            <RotateCcw className="w-5 h-5 mr-2" />
+            Reset Level
+          </Button>
+        </div>
+
+        {/* Pause Overlay */}
+        {isPaused && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white/90 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
+              <h2 className="text-2xl font-bold text-center mb-4">Game Paused</h2>
+              <Button
+                onClick={() => setIsPaused(false)}
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
               >
-                Reset Level
+                Resume Game
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        )}
       </div>
 
       <InstructionsModal
@@ -187,6 +271,27 @@ export default function ColorMerge() {
         onOpenChange={setShowInstructions}
         game="colormerge"
       />
-    </div>
+
+      <GameOverModal
+        open={showGameOver}
+        onOpenChange={setShowGameOver}
+        finalLevel={gameState.currentLevel}
+        bestLevel={stats?.bestLevel || 0}
+        onPlayAgain={() => {
+          gameLogic.resetGame();
+          setGameState(gameLogic.getState());
+          setShowGameOver(false);
+        }}
+      />
+
+      <LevelCompleteModal
+        open={showLevelComplete}
+        onOpenChange={setShowLevelComplete}
+        level={gameState.currentLevel}
+        streak={gameState.currentStreak}
+        hearts={gameState.hearts}
+        onContinue={() => setShowLevelComplete(false)}
+      />
+    </>
   );
 }

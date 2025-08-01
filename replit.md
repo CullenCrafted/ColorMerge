@@ -1,8 +1,8 @@
-# Game Hub Application
+# ColorMerge - Premium Mobile Game Application
 
 ## Overview
 
-This is a multi-game web application featuring five different puzzle/word games. Built with a modern stack using React, TypeScript, Express.js, and PostgreSQL with Drizzle ORM. The application serves as a game hub where users can play various games, track their statistics, and engage with daily challenges.
+This is a professional, App Store-ready ColorMerge game application designed for iOS and Android deployment. Built with React, TypeScript, Express.js, and in-memory storage for optimal performance. The application features premium UI/UX with smooth animations, glassmorphism effects, and a clean, modern design focused on the original color-mixing gameplay mechanics.
 
 ## User Preferences
 
@@ -31,20 +31,22 @@ The application follows a full-stack architecture with clear separation between 
 
 ## Key Components
 
-### Games
-The application includes five distinct games:
-1. **ColorMerge** - Color mixing puzzle game with target matching
-2. **Connect Lines** - Dot connection game to form words and images
-3. **Stretch Words** - Text manipulation puzzle with distorted words
-4. **Word Scramble** - Letter unscrambling game
-5. **Letter Path** - Grid-based word finding game
+### Game Features
+The ColorMerge application includes:
+1. **Premium Ad Screen** - New York Times style advertisement on app launch with countdown timer
+2. **Advanced Color Mixing** - 5-color mixing system (blue, red, yellow, white, black) with target matching
+3. **Hearts System** - 3-heart life system with bonus heart rewards for efficient play
+4. **Progressive Difficulty** - Levels get increasingly challenging with more complex color combinations
+5. **Streak Tracking** - Consecutive level completion tracking with milestone rewards
+6. **Professional UI** - Glassmorphism effects, smooth animations, and responsive design
 
 ### Game Logic
-- Each game has its own dedicated page and logic implementation
-- Shared game utilities for level generation and scoring
-- Real-time stats tracking and persistence
-- Progressive difficulty scaling
-- Heart/life system with bonus mechanics
+- Single-focus ColorMerge implementation with enhanced visual design
+- Advanced color mixing algorithm with RGB color space calculations
+- Real-time color blending feedback with dynamic background adaptation
+- Progressive difficulty scaling with increasing complexity
+- Heart/life system with bonus heart rewards for efficient completion
+- Streak tracking with milestone celebrations
 
 ### Database Schema
 - **Users**: Basic user authentication and identification
