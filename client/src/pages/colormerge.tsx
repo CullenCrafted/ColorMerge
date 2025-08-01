@@ -17,6 +17,8 @@ export default function ColorMerge() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showSuccessFlash, setShowSuccessFlash] = useState(false);
   const [showHeartLoss, setShowHeartLoss] = useState(false);
+  const [showHeartGain, setShowHeartGain] = useState(false);
+  const [previousHearts, setPreviousHearts] = useState(3);
   const { stats, updateStats } = useGameStats("colormerge");
   const { toast } = useToast();
 
@@ -62,15 +64,47 @@ export default function ColorMerge() {
     if (isPaused) return;
     
     triggerHaptic('light');
+    const previousHeartCount = gameState.hearts;
     const result = gameLogic.addColor(color);
     const newState = gameLogic.getState();
     setGameState(newState);
+
+    // Check for heart changes
+    if (newState.hearts < previousHeartCount) {
+      // Heart lost
+      triggerHaptic('medium');
+      setShowHeartLoss(true);
+      setTimeout(() => setShowHeartLoss(false), 1000);
+    } else if (newState.hearts > previousHeartCount) {
+      // Heart gained
+      setShowHeartGain(true);
+      setTimeout(() => setShowHeartGain(false), 1000);
+    }
 
     if (result.levelComplete) {
       // Success haptic and flash title
       triggerHaptic('heavy');
       setShowSuccessFlash(true);
       
+      // Auto-advance to next level after brief flash
+      setTimeout(() => {
+        setShowSuccessFlash(false);
+        const prevHearts = gameLogic.getState().hearts;
+        gameLogic.nextLevel();
+        const nextState = gameLogic.getState();
+        setGameState(nextState);
+        
+        // Check if heart was gained during level progression
+        if (nextState.hearts > prevHearts) {
+          setShowHeartGain(true);
+          setTimeout(() => setShowHeartGain(false), 1000);
+          toast({
+            title: "Bonus Heart!",
+            description: "Level 10 milestone reached!",
+          });
+        }
+      }, 800);
+
       // Update stats with proper streak increment
       const newStreak = newState.currentStreak;
       updateStats({
@@ -81,26 +115,12 @@ export default function ColorMerge() {
         totalPlays: ((stats as any)?.totalPlays || 0) + 1,
       });
 
-      // Auto-advance to next level after brief flash
-      setTimeout(() => {
-        setShowSuccessFlash(false);
-        gameLogic.nextLevel();
-        setGameState(gameLogic.getState());
-      }, 800);
-
       if (result.bonusHeart) {
         toast({
           title: "Perfect! Bonus Heart Earned",
           description: "Solved with extra moves!",
         });
       }
-    }
-
-    if (result.levelFailed) {
-      // Show heart loss animation
-      triggerHaptic('medium');
-      setShowHeartLoss(true);
-      setTimeout(() => setShowHeartLoss(false), 1000);
     }
 
     if (result.gameOver) {
@@ -214,7 +234,7 @@ export default function ColorMerge() {
           </div>
           
           <div className="flex items-center space-x-1 relative">
-            {Array.from({ length: 3 }, (_, i) => (
+            {Array.from({ length: Math.max(5, gameState.hearts) }, (_, i) => (
               <Heart
                 key={i}
                 className={`w-6 h-6 ${i < gameState.hearts ? 'text-red-400 fill-current' : 'text-white/30'} transition-all duration-300 drop-shadow-lg`}
@@ -223,6 +243,11 @@ export default function ColorMerge() {
             {showHeartLoss && (
               <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
                 <span className="text-2xl text-red-500 font-bold drop-shadow-lg">-❤️</span>
+              </div>
+            )}
+            {showHeartGain && (
+              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+                <span className="text-2xl text-green-500 font-bold drop-shadow-lg">+❤️</span>
               </div>
             )}
           </div>
