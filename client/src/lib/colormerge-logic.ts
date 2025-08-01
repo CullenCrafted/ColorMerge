@@ -157,7 +157,7 @@ export class ColorMergeLogic {
            Math.round(this.state.currentColor.b) === Math.round(this.state.targetColor.b);
   }
 
-  private nextLevel(): void {
+  public nextLevel(): void {
     this.state.currentLevel++;
     this.state.maxMixes++;
     
