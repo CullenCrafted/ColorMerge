@@ -16,6 +16,7 @@ export default function ColorMerge() {
   const [isPaused, setIsPaused] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showSuccessFlash, setShowSuccessFlash] = useState(false);
+  const [showHeartLoss, setShowHeartLoss] = useState(false);
   const { stats, updateStats } = useGameStats("colormerge");
   const { toast } = useToast();
 
@@ -29,6 +30,19 @@ export default function ColorMerge() {
       };
       navigator.vibrate(patterns[type]);
     }
+  };
+
+  // Calculate text color based on background brightness
+  const getContrastTextColor = (backgroundColor: string): string => {
+    // Extract RGB values from rgb() string
+    const rgbMatch = backgroundColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    if (!rgbMatch) return 'text-white';
+    
+    const [, r, g, b] = rgbMatch.map(Number);
+    // Calculate brightness using relative luminance formula
+    const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
+    
+    return brightness > 128 ? 'text-black' : 'text-white';
   };
 
   useEffect(() => {
@@ -53,7 +67,7 @@ export default function ColorMerge() {
     setGameState(newState);
 
     if (result.levelComplete) {
-      // Success haptic and flash
+      // Success haptic and flash title
       triggerHaptic('heavy');
       setShowSuccessFlash(true);
       
@@ -72,7 +86,7 @@ export default function ColorMerge() {
         setShowSuccessFlash(false);
         gameLogic.nextLevel();
         setGameState(gameLogic.getState());
-      }, 500);
+      }, 800);
 
       if (result.bonusHeart) {
         toast({
@@ -80,6 +94,13 @@ export default function ColorMerge() {
           description: "Solved with extra moves!",
         });
       }
+    }
+
+    if (result.levelFailed) {
+      // Show heart loss animation
+      triggerHaptic('medium');
+      setShowHeartLoss(true);
+      setTimeout(() => setShowHeartLoss(false), 1000);
     }
 
     if (result.gameOver) {
@@ -106,6 +127,10 @@ export default function ColorMerge() {
     { color: 'white', bgColor: 'from-gray-100 to-white', shadowColor: 'shadow-gray-500/50', textColor: 'text-gray-800' },
     { color: 'black', bgColor: 'from-gray-800 to-black', shadowColor: 'shadow-gray-900/50' },
   ];
+
+  // Get dynamic text color based on background
+  const targetColor = gameLogic.getTargetColorString();
+  const textColorClass = getContrastTextColor(targetColor);
 
   return (
     <>
@@ -137,12 +162,14 @@ export default function ColorMerge() {
         {/* Header */}
         <div className="flex items-center justify-between p-4 relative z-20">
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-white drop-shadow-lg">
+            <h1 className={`text-2xl font-bold drop-shadow-lg transition-all duration-300 ${
+              showSuccessFlash ? 'text-green-400 scale-110' : textColorClass
+            }`}>
               ColorMerge
             </h1>
             <div className="flex items-center space-x-2">
               <Trophy className="w-5 h-5 text-yellow-300" />
-              <span className="text-lg font-semibold text-white">{(stats as any)?.bestLevel || 0}</span>
+              <span className={`text-lg font-semibold ${textColorClass}`}>{(stats as any)?.bestLevel || 0}</span>
             </div>
           </div>
           
@@ -153,7 +180,7 @@ export default function ColorMerge() {
               size="sm"
               className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
             >
-              {soundEnabled ? <Volume2 className="w-5 h-5 text-white" /> : <VolumeX className="w-5 h-5 text-white" />}
+              {soundEnabled ? <Volume2 className={`w-5 h-5 ${textColorClass}`} /> : <VolumeX className={`w-5 h-5 ${textColorClass}`} />}
             </Button>
             <Button
               onClick={() => setIsPaused(!isPaused)}
@@ -161,7 +188,7 @@ export default function ColorMerge() {
               size="sm"
               className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
             >
-              <Pause className="w-5 h-5 text-white" />
+              <Pause className={`w-5 h-5 ${textColorClass}`} />
             </Button>
             <Button
               onClick={() => setShowInstructions(true)}
@@ -169,7 +196,7 @@ export default function ColorMerge() {
               size="sm"
               className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
             >
-              <HelpCircle className="w-5 h-5 text-white" />
+              <HelpCircle className={`w-5 h-5 ${textColorClass}`} />
             </Button>
           </div>
         </div>
@@ -177,22 +204,27 @@ export default function ColorMerge() {
         {/* Game Stats */}
         <div className="flex items-center justify-center space-x-8 mb-4 relative z-20">
           <div className="text-center">
-            <div className="text-xl font-bold text-white drop-shadow-lg">{gameState.currentLevel}</div>
-            <div className="text-sm text-white/80">Level</div>
+            <div className={`text-xl font-bold ${textColorClass} drop-shadow-lg`}>{gameState.currentLevel}</div>
+            <div className={`text-sm ${textColorClass} opacity-80`}>Level</div>
           </div>
           
           <div className="text-center">
-            <div className="text-xl font-bold text-white drop-shadow-lg">{gameState.currentStreak}</div>
-            <div className="text-sm text-white/80">Streak</div>
+            <div className={`text-xl font-bold ${textColorClass} drop-shadow-lg`}>{gameState.currentStreak}</div>
+            <div className={`text-sm ${textColorClass} opacity-80`}>Streak</div>
           </div>
           
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-1 relative">
             {Array.from({ length: 3 }, (_, i) => (
               <Heart
                 key={i}
                 className={`w-6 h-6 ${i < gameState.hearts ? 'text-red-400 fill-current' : 'text-white/30'} transition-all duration-300 drop-shadow-lg`}
               />
             ))}
+            {showHeartLoss && (
+              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+                <span className="text-2xl text-red-500 font-bold drop-shadow-lg">-❤️</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -231,7 +263,7 @@ export default function ColorMerge() {
             ))}
             <div className="w-px h-6 bg-white/30 mx-2"></div>
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-500/30 backdrop-blur-sm border-2 border-white/30">
-              <span className="text-white font-bold text-sm">{gameLogic.getRemainingMixes()}</span>
+              <span className={`${textColorClass} font-bold text-sm`}>{gameLogic.getRemainingMixes()}</span>
             </div>
           </div>
 
@@ -252,17 +284,14 @@ export default function ColorMerge() {
           <Button
             onClick={handleResetLevel}
             variant="ghost"
-            className="bg-black/20 backdrop-blur-sm hover:bg-black/30 border border-white/30 rounded-xl px-4 py-2 transition-all duration-200 hover:scale-105 relative z-20 pointer-events-auto text-white"
+            className={`bg-black/20 backdrop-blur-sm hover:bg-black/30 border border-white/30 rounded-xl px-4 py-2 transition-all duration-200 hover:scale-105 relative z-20 pointer-events-auto ${textColorClass}`}
           >
-            <RotateCcw className="w-4 h-4 mr-2" />
+            <RotateCcw className={`w-4 h-4 mr-2`} />
             Reset
           </Button>
         </div>
 
-        {/* Success Flash Effect */}
-        {showSuccessFlash && (
-          <div className="fixed inset-0 bg-green-400/30 backdrop-blur-sm z-40 animate-pulse" />
-        )}
+
 
         {/* Pause Overlay */}
         {isPaused && (

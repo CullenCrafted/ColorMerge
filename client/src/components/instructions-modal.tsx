@@ -11,7 +11,7 @@ interface InstructionsModalProps {
 export default function InstructionsModal({ open, onOpenChange, game }: InstructionsModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-gradient-to-br from-purple-50 to-pink-50 border-0 shadow-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-purple-50 to-pink-50 border-0 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="text-3xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             How to Play ColorMerge
