@@ -141,6 +141,21 @@
       opacity: 1; 
     }
   }
+
+  @keyframes smooth-appear {
+    0% { 
+      transform: translate(-50%, -50%) scale(0); 
+      opacity: 0; 
+    }
+    40% { 
+      transform: translate(-50%, -50%) scale(0.2); 
+      opacity: 0.8; 
+    }
+    100% { 
+      transform: translate(-50%, -50%) scale(1); 
+      opacity: 1; 
+    }
+  }
 }
 
 @layer utilities {
