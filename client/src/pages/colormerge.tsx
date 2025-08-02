@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, RotateCcw, Pause, Volume2, VolumeX, Trophy, Heart } from "lucide-react";
+import { HelpCircle, RotateCcw, Pause, Volume2, VolumeX, Trophy, Heart, Zap } from "lucide-react";
 import { ColorMergeLogic } from "@/lib/colormerge-logic";
 import { useGameStats } from "@/hooks/use-game-stats";
 import { useToast } from "@/hooks/use-toast";
@@ -18,18 +18,26 @@ export default function ColorMerge() {
   const [showSuccessFlash, setShowSuccessFlash] = useState(false);
   const [showHeartLoss, setShowHeartLoss] = useState(false);
   const [showHeartGain, setShowHeartGain] = useState(false);
-  const [previousHearts, setPreviousHearts] = useState(3);
+  const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
+  const [lastGuess, setLastGuess] = useState<string[]>([]);
+  const [enhancedHaptics, setEnhancedHaptics] = useState(false);
   const { stats, updateStats } = useGameStats("colormerge");
   const { toast } = useToast();
 
   // Haptic feedback function
   const triggerHaptic = (type: 'light' | 'medium' | 'heavy' = 'light') => {
     if ('vibrate' in navigator) {
-      const patterns = {
+      const basePatterns = {
         light: [10],
         medium: [20],
         heavy: [50]
       };
+      const enhancedPatterns = {
+        light: [15, 5, 15],
+        medium: [30, 10, 30],
+        heavy: [80, 20, 80, 20, 80]
+      };
+      const patterns = enhancedHaptics ? enhancedPatterns : basePatterns;
       navigator.vibrate(patterns[type]);
     }
   };
@@ -65,28 +73,36 @@ export default function ColorMerge() {
     
     triggerHaptic('light');
     const previousHeartCount = gameState.hearts;
+    
+    // Store the guess before adding the color
+    const currentGuess = [...Object.entries(gameState.colorClicks)
+      .filter(([_, count]) => count > 0)
+      .flatMap(([color, count]) => Array(count).fill(color))];
+    currentGuess.push(color);
+    setLastGuess(currentGuess);
+    
     const result = gameLogic.addColor(color);
     const newState = gameLogic.getState();
     setGameState(newState);
 
     // Check for heart changes
     if (newState.hearts < previousHeartCount) {
-      // Heart lost
-      triggerHaptic('medium');
+      // Heart lost - show failure state with pie charts
+      triggerHaptic('heavy');
       setShowHeartLoss(true);
-      setTimeout(() => setShowHeartLoss(false), 1000);
-    } else if (newState.hearts > previousHeartCount) {
-      // Heart gained
-      setShowHeartGain(true);
-      setTimeout(() => setShowHeartGain(false), 1000);
+      setShowCorrectAnswer(true);
+      setTimeout(() => {
+        setShowHeartLoss(false);
+        setShowCorrectAnswer(false);
+      }, 2500);
     }
 
     if (result.levelComplete) {
-      // Success haptic and flash title
+      // Success haptic and flash
       triggerHaptic('heavy');
       setShowSuccessFlash(true);
       
-      // Auto-advance to next level after brief flash
+      // Stay on success screen longer
       setTimeout(() => {
         setShowSuccessFlash(false);
         const prevHearts = gameLogic.getState().hearts;
@@ -103,15 +119,14 @@ export default function ColorMerge() {
             description: "Level 10 milestone reached!",
           });
         }
-      }, 800);
+      }, 1500); // Increased from 800ms
 
       // Update stats with proper streak increment
-      const newStreak = newState.currentStreak;
       updateStats({
         currentLevel: newState.currentLevel,
         bestLevel: Math.max((stats as any)?.bestLevel || 0, newState.currentLevel),
         hearts: newState.hearts,
-        streak: newStreak,
+        streak: newState.currentStreak,
         totalPlays: ((stats as any)?.totalPlays || 0) + 1,
       });
 
@@ -152,6 +167,68 @@ export default function ColorMerge() {
   const targetColor = gameLogic.getTargetColorString();
   const textColorClass = getContrastTextColor(targetColor);
 
+  // Pie chart component for showing color mixtures
+  const ColorPieChart = ({ colors, size = 80 }: { colors: string[]; size?: number }) => {
+    const colorCounts = colors.reduce((acc, color) => {
+      acc[color] = (acc[color] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const total = colors.length;
+    let currentAngle = 0;
+
+    const segments = Object.entries(colorCounts).map(([color, count]) => {
+      const percentage = count / total;
+      const angle = percentage * 360;
+      const startAngle = currentAngle;
+      const endAngle = currentAngle + angle;
+      currentAngle += angle;
+
+      const startX = Math.cos((startAngle - 90) * Math.PI / 180) * (size/2);
+      const startY = Math.sin((startAngle - 90) * Math.PI / 180) * (size/2);
+      const endX = Math.cos((endAngle - 90) * Math.PI / 180) * (size/2);
+      const endY = Math.sin((endAngle - 90) * Math.PI / 180) * (size/2);
+      
+      const largeArcFlag = angle > 180 ? 1 : 0;
+      
+      const pathData = [
+        `M ${size/2} ${size/2}`,
+        `L ${size/2 + startX} ${size/2 + startY}`,
+        `A ${size/2} ${size/2} 0 ${largeArcFlag} 1 ${size/2 + endX} ${size/2 + endY}`,
+        'Z'
+      ].join(' ');
+
+      return { color, count, pathData };
+    });
+
+    return (
+      <div className="flex flex-col items-center">
+        <svg width={size} height={size} className="drop-shadow-lg">
+          {segments.map(({ color, count, pathData }, index) => (
+            <path
+              key={index}
+              d={pathData}
+              fill={color}
+              stroke="white"
+              strokeWidth="2"
+            />
+          ))}
+        </svg>
+        <div className="mt-2 flex flex-wrap justify-center gap-1">
+          {Object.entries(colorCounts).map(([color, count]) => (
+            <div key={color} className="flex items-center text-xs bg-black/20 backdrop-blur rounded px-2 py-1">
+              <div 
+                className="w-3 h-3 rounded-full mr-1 border border-white/50" 
+                style={{ backgroundColor: color }}
+              />
+              <span className={textColorClass}>{count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       {/* Full Background with Target Color */}
@@ -162,7 +239,9 @@ export default function ColorMerge() {
         }}
       />
       
-      <div className="h-screen flex flex-col relative z-10 overflow-hidden">
+      <div className={`h-screen flex flex-col relative z-10 overflow-hidden transition-all duration-300 ${
+        showSuccessFlash ? 'ring-8 ring-green-400/50' : showHeartLoss ? 'ring-8 ring-red-500/50' : ''
+      }`}>
         {/* Floating Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {Array.from({ length: 6 }, (_, i) => (
@@ -180,78 +259,108 @@ export default function ColorMerge() {
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between p-4 relative z-20">
-          <div className="flex items-center space-x-4">
-            <h1 className={`text-2xl font-bold drop-shadow-lg transition-all duration-300 ${
-              showSuccessFlash ? 'text-green-400 scale-110' : textColorClass
-            }`}>
-              ColorMerge
-            </h1>
+        <div className="flex items-center justify-center p-4 relative z-20">
+          <div className="flex items-center space-x-6">
+            {/* Left side buttons */}
             <div className="flex items-center space-x-2">
-              <Trophy className="w-5 h-5 text-yellow-300" />
-              <span className={`text-lg font-semibold ${textColorClass}`}>{(stats as any)?.bestLevel || 0}</span>
+              <Button
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                variant="ghost"
+                size="sm"
+                className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
+              >
+                {soundEnabled ? <Volume2 className={`w-5 h-5 ${textColorClass}`} /> : <VolumeX className={`w-5 h-5 ${textColorClass}`} />}
+              </Button>
+              <Button
+                onClick={() => setEnhancedHaptics(!enhancedHaptics)}
+                variant="ghost"
+                size="sm"
+                className={`w-10 h-10 rounded-full backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto ${
+                  enhancedHaptics ? 'bg-yellow-500/30' : 'bg-black/20'
+                }`}
+              >
+                <Zap className={`w-5 h-5 ${textColorClass}`} />
+              </Button>
             </div>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Button
-              onClick={() => setSoundEnabled(!soundEnabled)}
-              variant="ghost"
-              size="sm"
-              className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
-            >
-              {soundEnabled ? <Volume2 className={`w-5 h-5 ${textColorClass}`} /> : <VolumeX className={`w-5 h-5 ${textColorClass}`} />}
-            </Button>
-            <Button
-              onClick={() => setIsPaused(!isPaused)}
-              variant="ghost"
-              size="sm"
-              className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
-            >
-              <Pause className={`w-5 h-5 ${textColorClass}`} />
-            </Button>
-            <Button
-              onClick={() => setShowInstructions(true)}
-              variant="ghost"
-              size="sm"
-              className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
-            >
-              <HelpCircle className={`w-5 h-5 ${textColorClass}`} />
-            </Button>
+
+            {/* Center - Title and Stats */}
+            <div className="flex flex-col items-center space-y-2">
+              <h1 className={`text-2xl font-bold drop-shadow-lg transition-all duration-300 ${
+                showSuccessFlash ? 'text-green-400 scale-110' : textColorClass
+              }`}>
+                ColorMerge
+              </h1>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-1">
+                  <Trophy className="w-4 h-4 text-yellow-300" />
+                  <span className={`text-sm font-semibold ${textColorClass}`}>{(stats as any)?.bestLevel || 0}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span className={`text-sm ${textColorClass}`}>Level {gameState.currentLevel}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span className={`text-sm ${textColorClass}`}>Streak {gameState.currentStreak}</span>
+                </div>
+                <div className="flex items-center space-x-1 relative">
+                  <Heart className="w-5 h-5 text-red-400 fill-current" />
+                  <span className={`text-sm font-semibold ${textColorClass}`}>{gameState.hearts}</span>
+                  {showHeartLoss && (
+                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 animate-bounce">
+                      <span className="text-lg text-red-500 font-bold drop-shadow-lg">-1</span>
+                    </div>
+                  )}
+                  {showHeartGain && (
+                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 animate-bounce">
+                      <span className="text-lg text-green-500 font-bold drop-shadow-lg">+1</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right side buttons */}
+            <div className="flex items-center space-x-2">
+              <Button
+                onClick={() => setIsPaused(!isPaused)}
+                variant="ghost"
+                size="sm"
+                className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
+              >
+                <Pause className={`w-5 h-5 ${textColorClass}`} />
+              </Button>
+              <Button
+                onClick={handleResetLevel}
+                variant="ghost"
+                size="sm"
+                className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
+              >
+                <RotateCcw className={`w-5 h-5 ${textColorClass}`} />
+              </Button>
+              <Button
+                onClick={() => setShowInstructions(true)}
+                variant="ghost"
+                size="sm"
+                className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
+              >
+                <HelpCircle className={`w-5 h-5 ${textColorClass}`} />
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Game Stats */}
-        <div className="flex items-center justify-center space-x-8 mb-4 relative z-20">
-          <div className="text-center">
-            <div className={`text-xl font-bold ${textColorClass} drop-shadow-lg`}>{gameState.currentLevel}</div>
-            <div className={`text-sm ${textColorClass} opacity-80`}>Level</div>
+        {/* Correct Answer Comparison - Show when heart is lost */}
+        {showCorrectAnswer && (
+          <div className="flex items-center justify-center space-x-8 mb-6 relative z-20">
+            <div className="text-center">
+              <h3 className={`text-lg font-bold ${textColorClass} mb-2`}>Your Guess</h3>
+              <ColorPieChart colors={lastGuess} size={100} />
+            </div>
+            <div className="text-center">
+              <h3 className={`text-lg font-bold ${textColorClass} mb-2`}>Correct Answer</h3>
+              <ColorPieChart colors={gameLogic.getCurrentTargetColorArray()} size={100} />
+            </div>
           </div>
-          
-          <div className="text-center">
-            <div className={`text-xl font-bold ${textColorClass} drop-shadow-lg`}>{gameState.currentStreak}</div>
-            <div className={`text-sm ${textColorClass} opacity-80`}>Streak</div>
-          </div>
-          
-          <div className="flex items-center space-x-1 relative">
-            {Array.from({ length: Math.max(5, gameState.hearts) }, (_, i) => (
-              <Heart
-                key={i}
-                className={`w-6 h-6 ${i < gameState.hearts ? 'text-red-400 fill-current' : 'text-white/30'} transition-all duration-300 drop-shadow-lg`}
-              />
-            ))}
-            {showHeartLoss && (
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-                <span className="text-2xl text-red-500 font-bold drop-shadow-lg">-❤️</span>
-              </div>
-            )}
-            {showHeartGain && (
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-                <span className="text-2xl text-green-500 font-bold drop-shadow-lg">+❤️</span>
-              </div>
-            )}
-          </div>
-        </div>
+        )}
 
         {/* Main Game Area - Centered Mixing Circle */}
         <div className="flex-1 flex flex-col items-center justify-center relative z-20">
@@ -304,19 +413,7 @@ export default function ColorMerge() {
               />
             ))}
           </div>
-
-          {/* Reset Button */}
-          <Button
-            onClick={handleResetLevel}
-            variant="ghost"
-            className={`bg-black/20 backdrop-blur-sm hover:bg-black/30 border border-white/30 rounded-xl px-4 py-2 transition-all duration-200 hover:scale-105 relative z-20 pointer-events-auto ${textColorClass}`}
-          >
-            <RotateCcw className={`w-4 h-4 mr-2`} />
-            Reset
-          </Button>
         </div>
-
-
 
         {/* Pause Overlay */}
         {isPaused && (

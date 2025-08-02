@@ -194,4 +194,31 @@ export class ColorMergeLogic {
     const { r, g, b } = this.state.currentColor;
     return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
   }
+
+  public getCurrentTargetColorArray(): string[] {
+    // Return the target color combination for the current level
+    let targetColors: string[] = [];
+    const level = this.state.currentLevel;
+    
+    // Simple algorithm to generate target colors based on level
+    if (level <= 3) {
+      const options = [['red'], ['blue'], ['yellow']];
+      targetColors = options[level - 1];
+    } else if (level <= 6) {
+      const options = [['red', 'blue'], ['yellow', 'blue'], ['red', 'yellow']];
+      targetColors = options[level - 4];
+    } else if (level <= 10) {
+      const options = [['red', 'blue', 'yellow'], ['red', 'red', 'blue'], ['yellow', 'yellow', 'blue'], ['red', 'yellow', 'white']];
+      targetColors = options[level - 7];
+    } else {
+      // More complex combinations for higher levels
+      const baseColors = ['red', 'blue', 'yellow', 'white', 'black'];
+      const numColors = Math.min(2 + Math.floor(level / 5), 5);
+      for (let i = 0; i < numColors; i++) {
+        targetColors.push(baseColors[i % baseColors.length]);
+      }
+    }
+    
+    return targetColors;
+  }
 }
