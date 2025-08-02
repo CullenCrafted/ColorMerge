@@ -152,13 +152,13 @@ export default function GameOverModal({
             </Button>
           </div>
 
-          {/* Incorrect Guesses Summary - Compact */}
+          {/* Incorrect Guesses Summary - All Mistakes */}
           {incorrectGuesses.length > 0 && (
             <div className="border-t border-gray-200 pt-4">
-              <h3 className="text-lg font-bold text-gray-900 mb-3">Recent Mistakes</h3>
-              <div className="max-h-48 overflow-y-auto bg-white/30 rounded-xl p-3">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">All Mistakes ({incorrectGuesses.length})</h3>
+              <div className="max-h-64 overflow-y-auto bg-white/30 rounded-xl p-3">
                 <div className="grid grid-cols-1 gap-3">
-                  {incorrectGuesses.slice(-3).map((mistake, index) => (
+                  {incorrectGuesses.map((mistake, index) => (
                     <div key={index} className="bg-white/50 rounded-lg p-2">
                       <div className="text-xs font-medium text-gray-700 mb-1">Level {mistake.level}</div>
                       <div className="flex justify-between items-center space-x-3">
