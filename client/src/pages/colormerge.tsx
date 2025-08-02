@@ -109,28 +109,24 @@ export default function ColorMerge() {
       triggerHaptic('heavy');
       setShowSuccessFlash(true);
       
-      // Smooth transition to next level
+      // Stay on success screen longer
       setTimeout(() => {
         setShowSuccessFlash(false);
+        const prevHearts = gameLogic.getState().hearts;
+        gameLogic.nextLevel();
+        const nextState = gameLogic.getState();
+        setGameState(nextState);
         
-        // Small delay to ensure smooth transition
-        setTimeout(() => {
-          const prevHearts = gameLogic.getState().hearts;
-          gameLogic.nextLevel();
-          const nextState = gameLogic.getState();
-          setGameState(nextState);
-          
-          // Check if heart was gained during level progression
-          if (nextState.hearts > prevHearts) {
-            setShowHeartGain(true);
-            setTimeout(() => setShowHeartGain(false), 1000);
-            toast({
-              title: "Bonus Heart!",
-              description: "Level 10 milestone reached!",
-            });
-          }
-        }, 100); // Small buffer to prevent stutter
-      }, 1300); // Reduced timing for smoother flow
+        // Check if heart was gained during level progression
+        if (nextState.hearts > prevHearts) {
+          setShowHeartGain(true);
+          setTimeout(() => setShowHeartGain(false), 1000);
+          toast({
+            title: "Bonus Heart!",
+            description: "Level 10 milestone reached!",
+          });
+        }
+      }, 1500); // Increased from 800ms
 
       // Update stats with current level and all-time best
       updateStats({
@@ -252,9 +248,9 @@ export default function ColorMerge() {
 
   return (
     <>
-      {/* Full Background with Target Color - Smooth transition */}
+      {/* Full Background with Target Color */}
       <div 
-        className="fixed inset-0 transition-all duration-700 ease-in-out"
+        className="fixed inset-0 transition-all duration-1000 ease-out"
         style={{ 
           backgroundColor: gameLogic.getTargetColorString()
         }}
@@ -423,28 +419,30 @@ export default function ColorMerge() {
           <div className="text-center mb-8">
             <div className="relative">
               <div
-                className={`w-48 h-48 rounded-full transition-all ease-out ${
+                className={`w-48 h-48 rounded-full transition-all ${
                   showSuccessFlash 
-                    ? 'duration-700' 
+                    ? 'duration-1000' 
                     : showHeartLoss 
                       ? 'duration-300 scale-50 opacity-60' 
-                      : 'duration-200 scale-100 opacity-100'
+                      : 'duration-300 scale-100 opacity-100'
                 }`}
                 style={{ 
                   backgroundColor: showSuccessFlash 
-                    ? gameLogic.getTargetColorString() // First become target color
+                    ? gameLogic.getTargetColorString() // Blend completely with background
                     : gameLogic.getCurrentColorString(),
-                  opacity: showSuccessFlash ? 0 : 1, // Then fade to completely transparent
-                  transform: showSuccessFlash ? 'scale(1.05)' : 'scale(1)'
+                  opacity: showSuccessFlash ? 0 : 1,
+                  transform: showSuccessFlash ? 'scale(1.1)' : 'scale(1)'
                 }}
               />
-              {/* New white circle that appears from center after complete blend */}
+              {/* New blank circle that appears from center after blending */}
               {showSuccessFlash && (
                 <div
-                  className="absolute top-1/2 left-1/2 w-48 h-48 rounded-full transform -translate-x-1/2 -translate-y-1/2 bg-white opacity-0"
+                  className="absolute top-1/2 left-1/2 w-48 h-48 rounded-full transform -translate-x-1/2 -translate-y-1/2 bg-white"
                   style={{ 
-                    animation: 'smooth-appear 600ms ease-out forwards',
-                    animationDelay: '700ms'
+                    animation: 'appear-from-center 800ms ease-out forwards',
+                    animationDelay: '800ms',
+                    transform: 'translate(-50%, -50%) scale(0)',
+                    opacity: 0
                   }}
                 />
               )}
@@ -533,7 +531,7 @@ export default function ColorMerge() {
       <GameOverModal
         open={showGameOver}
         onOpenChange={setShowGameOver}
-        finalLevel={Math.max(1, gameState.currentLevel)}
+        finalLevel={gameState.currentLevel}
         bestLevel={(stats as any)?.bestLevel || 0}
         incorrectGuesses={allIncorrectGuesses}
         onPlayAgain={handleNewGame}
