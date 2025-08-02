@@ -275,10 +275,20 @@ export default function ColorMerge() {
           ))}
         </div>
 
-        {/* Header */}
-        <div className="flex items-center justify-center p-4 relative z-20">
-          <div className="flex items-center space-x-6">
-            {/* Left side buttons */}
+        {/* Header with Centered Title */}
+        <div className="relative p-4 z-20">
+          {/* Title centered on entire screen */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <h1 className={`text-4xl font-bold drop-shadow-lg transition-all duration-300 ${
+              showSuccessFlash ? 'text-green-400 scale-110' : textColorClass
+            }`}>
+              ColorMerge
+            </h1>
+          </div>
+          
+          {/* Controls on left and right */}
+          <div className="flex items-center justify-between">
+            {/* Left side controls */}
             <div className="flex items-center space-x-2">
               <Button
                 onClick={() => setSoundEnabled(!soundEnabled)}
@@ -300,52 +310,7 @@ export default function ColorMerge() {
               </Button>
             </div>
 
-            {/* Center - Title and Stats */}
-            <div className="flex flex-col items-center space-y-3">
-              <h1 className={`text-3xl font-bold drop-shadow-lg transition-all duration-300 ${
-                showSuccessFlash ? 'text-green-400 scale-110' : textColorClass
-              }`}>
-                ColorMerge
-              </h1>
-              <div className="flex items-center space-x-6">
-                {/* Best Score */}
-                <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/20">
-                  <Trophy className="w-5 h-5 text-yellow-400 mb-1" />
-                  <span className={`text-xs ${textColorClass} opacity-70`}>Best</span>
-                  <span className={`text-lg font-bold ${textColorClass}`}>{(stats as any)?.bestLevel || 0}</span>
-                </div>
-                
-                {/* Current Level */}
-                <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/20">
-                  <div className="w-5 h-5 bg-blue-400 rounded-full mb-1 flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">{gameState.currentLevel}</span>
-                  </div>
-                  <span className={`text-xs ${textColorClass} opacity-70`}>Level</span>
-                  <span className={`text-lg font-bold ${textColorClass}`}>{gameState.currentLevel}</span>
-                </div>
-                
-
-                
-                {/* Hearts */}
-                <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/20 relative">
-                  <Heart className="w-5 h-5 text-red-400 fill-current mb-1" />
-                  <span className={`text-xs ${textColorClass} opacity-70`}>Hearts</span>
-                  <span className={`text-lg font-bold ${textColorClass}`}>{gameState.hearts}</span>
-                  {showHeartLoss && (
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-                      <span className="text-xl text-red-500 font-bold drop-shadow-lg bg-black/50 rounded-full px-2 py-1">-1</span>
-                    </div>
-                  )}
-                  {showHeartGain && (
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-                      <span className="text-xl text-green-500 font-bold drop-shadow-lg bg-black/50 rounded-full px-2 py-1">+1</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Right side buttons */}
+            {/* Right side controls */}
             <div className="flex items-center space-x-2">
               <Button
                 onClick={() => setIsPaused(!isPaused)}
@@ -353,7 +318,15 @@ export default function ColorMerge() {
                 size="sm"
                 className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
               >
-                <Pause className={`w-5 h-5 ${textColorClass}`} />
+                <Pause className={`w-4 h-4 ${textColorClass}`} />
+              </Button>
+              <Button
+                onClick={() => setShowInstructions(true)}
+                variant="ghost"
+                size="sm"
+                className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
+              >
+                <HelpCircle className={`w-4 h-4 ${textColorClass}`} />
               </Button>
               <Button
                 onClick={handleResetLevel}
@@ -363,17 +336,43 @@ export default function ColorMerge() {
               >
                 <RotateCcw className={`w-5 h-5 ${textColorClass}`} />
               </Button>
-              <Button
-                onClick={() => setShowInstructions(true)}
-                variant="ghost"
-                size="sm"
-                className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
-              >
-                <HelpCircle className={`w-5 h-5 ${textColorClass}`} />
-              </Button>
             </div>
-
-
+          </div>
+          
+          {/* Stats Row Below Title */}
+          <div className="flex items-center justify-center space-x-4 mt-4">
+            {/* Best Score */}
+            <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-3 py-2 border border-white/20">
+              <Trophy className="w-4 h-4 text-yellow-400 mb-1" />
+              <span className={`text-xs ${textColorClass} opacity-70`}>Best</span>
+              <span className={`text-lg font-bold ${textColorClass}`}>{(stats as any)?.bestLevel || 0}</span>
+            </div>
+            
+            {/* Current Level */}
+            <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-3 py-2 border border-white/20">
+              <div className="w-4 h-4 bg-blue-400 rounded-full mb-1 flex items-center justify-center">
+                <span className="text-xs font-bold text-white">{gameState.currentLevel}</span>
+              </div>
+              <span className={`text-xs ${textColorClass} opacity-70`}>Level</span>
+              <span className={`text-lg font-bold ${textColorClass}`}>{gameState.currentLevel}</span>
+            </div>
+            
+            {/* Hearts */}
+            <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-3 py-2 border border-white/20 relative">
+              <Heart className="w-4 h-4 text-red-400 fill-current mb-1" />
+              <span className={`text-xs ${textColorClass} opacity-70`}>Hearts</span>
+              <span className={`text-lg font-bold ${textColorClass}`}>{gameState.hearts}</span>
+              {showHeartLoss && (
+                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+                  <span className="text-xl text-red-500 font-bold drop-shadow-lg bg-black/50 rounded-full px-2 py-1">-1</span>
+                </div>
+              )}
+              {showHeartGain && (
+                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+                  <span className="text-xl text-green-500 font-bold drop-shadow-lg bg-black/50 rounded-full px-2 py-1">+1</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -381,40 +380,60 @@ export default function ColorMerge() {
 
         {/* Main Game Area - Centered Mixing Circle */}
         <div className="flex-1 flex flex-col items-center justify-center relative z-20">
-          {/* Current Mix Display - Only circle, hidden when matched */}
+          {/* Current Mix Display - Circle that expands on success, collapses on failure */}
           <div className="text-center mb-8">
             <div className="relative">
               <div
-                className={`w-48 h-48 rounded-full shadow-2xl transition-all duration-300 ${
-                  showSuccessFlash ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
+                className={`w-48 h-48 rounded-full transition-all duration-500 ${
+                  showSuccessFlash ? 'scale-150 opacity-80' : showHeartLoss ? 'scale-50 opacity-60' : 'scale-100 opacity-100'
                 }`}
                 style={{ 
-                  backgroundColor: gameLogic.getCurrentColorString(),
-                  boxShadow: `0 20px 40px rgba(0,0,0,0.3)`
+                  backgroundColor: gameLogic.getCurrentColorString()
                 }}
               />
             </div>
           </div>
 
-          {/* Mix Progress Indicator */}
+          {/* Mix Progress Indicator - Real-time color matching */}
           <div className="flex items-center justify-center space-x-3 mb-8 bg-black/20 backdrop-blur-lg rounded-2xl p-3 border border-white/20">
-            {colorButtons.map(({ color }) => (
-              <div
-                key={color}
-                className="relative flex items-center justify-center w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm border-2 border-white/30"
-              >
+            {colorButtons.map(({ color }) => {
+              const count = gameState.colorClicks[color] || 0;
+              const currentMixColor = gameLogic.getCurrentColorString();
+              return (
                 <div
-                  className={`w-6 h-6 rounded-full ${color === 'white' ? 'border-2 border-gray-400' : ''}`}
-                  style={{ backgroundColor: color }}
-                />
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-white text-black rounded-full flex items-center justify-center text-xs font-bold">
-                  {gameState.colorClicks[color]}
+                  key={color}
+                  className="relative flex items-center justify-center w-10 h-10 rounded-full border-2 border-white/30 transition-all duration-300"
+                  style={{ backgroundColor: currentMixColor }}
+                >
+                  <div
+                    className={`w-6 h-6 rounded-full ${color === 'white' ? 'border-2 border-gray-400' : ''}`}
+                    style={{ backgroundColor: color }}
+                  />
+                  <div 
+                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold border border-white/50"
+                    style={{ 
+                      backgroundColor: currentMixColor,
+                      color: getContrastTextColor(currentMixColor) === 'text-white' ? 'white' : 'black'
+                    }}
+                  >
+                    {count}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <div className="w-px h-6 bg-white/30 mx-2"></div>
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-500/30 backdrop-blur-sm border-2 border-white/30">
-              <span className={`${textColorClass} font-bold text-sm`}>{gameLogic.getRemainingMixes()}</span>
+            <div 
+              className="flex items-center justify-center w-10 h-10 rounded-full backdrop-blur-sm border-2 border-white/30 transition-all duration-300"
+              style={{ backgroundColor: gameLogic.getCurrentColorString() }}
+            >
+              <span 
+                className="font-bold text-sm"
+                style={{ 
+                  color: getContrastTextColor(gameLogic.getCurrentColorString()) === 'text-white' ? 'white' : 'black'
+                }}
+              >
+                {gameLogic.getRemainingMixes()}
+              </span>
             </div>
           </div>
 
