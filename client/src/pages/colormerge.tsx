@@ -20,6 +20,7 @@ export default function ColorMerge() {
   const [showHeartGain, setShowHeartGain] = useState(false);
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
   const [lastGuess, setLastGuess] = useState<string[]>([]);
+  const [allIncorrectGuesses, setAllIncorrectGuesses] = useState<Array<{guess: string[], correct: string[], level: number}>>([]);
   const [enhancedHaptics, setEnhancedHaptics] = useState(false);
   const { stats, updateStats } = useGameStats("colormerge");
   const { toast } = useToast();
@@ -87,14 +88,20 @@ export default function ColorMerge() {
 
     // Check for heart changes
     if (newState.hearts < previousHeartCount) {
-      // Heart lost - show failure state with pie charts
+      // Heart lost - store incorrect guess for final summary
       triggerHaptic('heavy');
       setShowHeartLoss(true);
-      setShowCorrectAnswer(true);
+      
+      const newIncorrectGuess = {
+        guess: currentGuess,
+        correct: gameLogic.getCurrentTargetColorArray(),
+        level: gameState.currentLevel
+      };
+      setAllIncorrectGuesses(prev => [...prev, newIncorrectGuess]);
+      
       setTimeout(() => {
         setShowHeartLoss(false);
-        setShowCorrectAnswer(false);
-      }, 2500);
+      }, 1500);
     }
 
     if (result.levelComplete) {
@@ -153,6 +160,13 @@ export default function ColorMerge() {
   const handleResetLevel = () => {
     gameLogic.resetLevel();
     setGameState(gameLogic.getState());
+  };
+
+  const handleNewGame = () => {
+    gameLogic.resetGame();
+    setGameState(gameLogic.getState());
+    setAllIncorrectGuesses([]);
+    setShowGameOver(false);
   };
 
   const colorButtons = [
@@ -284,34 +298,51 @@ export default function ColorMerge() {
             </div>
 
             {/* Center - Title and Stats */}
-            <div className="flex flex-col items-center space-y-2">
-              <h1 className={`text-2xl font-bold drop-shadow-lg transition-all duration-300 ${
+            <div className="flex flex-col items-center space-y-3">
+              <h1 className={`text-3xl font-bold drop-shadow-lg transition-all duration-300 ${
                 showSuccessFlash ? 'text-green-400 scale-110' : textColorClass
               }`}>
                 ColorMerge
               </h1>
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-1">
-                  <Trophy className="w-4 h-4 text-yellow-300" />
-                  <span className={`text-sm font-semibold ${textColorClass}`}>{(stats as any)?.bestLevel || 0}</span>
+              <div className="flex items-center space-x-6">
+                {/* Best Score */}
+                <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/20">
+                  <Trophy className="w-5 h-5 text-yellow-400 mb-1" />
+                  <span className={`text-xs ${textColorClass} opacity-70`}>Best</span>
+                  <span className={`text-lg font-bold ${textColorClass}`}>{(stats as any)?.bestLevel || 0}</span>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <span className={`text-sm ${textColorClass}`}>Level {gameState.currentLevel}</span>
+                
+                {/* Current Level */}
+                <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/20">
+                  <div className="w-5 h-5 bg-blue-400 rounded-full mb-1 flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">{gameState.currentLevel}</span>
+                  </div>
+                  <span className={`text-xs ${textColorClass} opacity-70`}>Level</span>
+                  <span className={`text-lg font-bold ${textColorClass}`}>{gameState.currentLevel}</span>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <span className={`text-sm ${textColorClass}`}>Streak {gameState.currentStreak}</span>
+                
+                {/* Streak */}
+                <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/20">
+                  <div className="w-5 h-5 bg-purple-400 rounded-full mb-1 flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">🔥</span>
+                  </div>
+                  <span className={`text-xs ${textColorClass} opacity-70`}>Streak</span>
+                  <span className={`text-lg font-bold ${textColorClass}`}>{gameState.currentStreak}</span>
                 </div>
-                <div className="flex items-center space-x-1 relative">
-                  <Heart className="w-5 h-5 text-red-400 fill-current" />
-                  <span className={`text-sm font-semibold ${textColorClass}`}>{gameState.hearts}</span>
+                
+                {/* Hearts */}
+                <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/20 relative">
+                  <Heart className="w-5 h-5 text-red-400 fill-current mb-1" />
+                  <span className={`text-xs ${textColorClass} opacity-70`}>Hearts</span>
+                  <span className={`text-lg font-bold ${textColorClass}`}>{gameState.hearts}</span>
                   {showHeartLoss && (
-                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 animate-bounce">
-                      <span className="text-lg text-red-500 font-bold drop-shadow-lg">-1</span>
+                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+                      <span className="text-xl text-red-500 font-bold drop-shadow-lg bg-black/50 rounded-full px-2 py-1">-1</span>
                     </div>
                   )}
                   {showHeartGain && (
-                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 animate-bounce">
-                      <span className="text-lg text-green-500 font-bold drop-shadow-lg">+1</span>
+                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+                      <span className="text-xl text-green-500 font-bold drop-shadow-lg bg-black/50 rounded-full px-2 py-1">+1</span>
                     </div>
                   )}
                 </div>
@@ -348,19 +379,7 @@ export default function ColorMerge() {
           </div>
         </div>
 
-        {/* Correct Answer Comparison - Show when heart is lost */}
-        {showCorrectAnswer && (
-          <div className="flex items-center justify-center space-x-8 mb-6 relative z-20">
-            <div className="text-center">
-              <h3 className={`text-lg font-bold ${textColorClass} mb-2`}>Your Guess</h3>
-              <ColorPieChart colors={lastGuess} size={100} />
-            </div>
-            <div className="text-center">
-              <h3 className={`text-lg font-bold ${textColorClass} mb-2`}>Correct Answer</h3>
-              <ColorPieChart colors={gameLogic.getCurrentTargetColorArray()} size={100} />
-            </div>
-          </div>
-        )}
+
 
         {/* Main Game Area - Centered Mixing Circle */}
         <div className="flex-1 flex flex-col items-center justify-center relative z-20">
@@ -442,11 +461,8 @@ export default function ColorMerge() {
         onOpenChange={setShowGameOver}
         finalLevel={gameState.currentLevel}
         bestLevel={(stats as any)?.bestLevel || 0}
-        onPlayAgain={() => {
-          gameLogic.resetGame();
-          setGameState(gameLogic.getState());
-          setShowGameOver(false);
-        }}
+        incorrectGuesses={allIncorrectGuesses}
+        onPlayAgain={handleNewGame}
       />
 
 
