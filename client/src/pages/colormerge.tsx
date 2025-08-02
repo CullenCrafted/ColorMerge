@@ -415,30 +415,34 @@ export default function ColorMerge() {
 
         {/* Main Game Area - Centered Mixing Circle */}
         <div className="flex-1 flex flex-col items-center justify-center relative z-20">
-          {/* Current Mix Display - Circle that blends and disappears on success, collapses on failure */}
+          {/* Current Mix Display - Circle that blends completely into background on success */}
           <div className="text-center mb-8">
             <div className="relative">
               <div
                 className={`w-48 h-48 rounded-full transition-all ${
                   showSuccessFlash 
-                    ? 'duration-700 opacity-0' 
+                    ? 'duration-1000' 
                     : showHeartLoss 
                       ? 'duration-300 scale-50 opacity-60' 
                       : 'duration-300 scale-100 opacity-100'
                 }`}
                 style={{ 
-                  backgroundColor: gameLogic.getCurrentColorString()
+                  backgroundColor: showSuccessFlash 
+                    ? gameLogic.getTargetColorString() // Blend completely with background
+                    : gameLogic.getCurrentColorString(),
+                  opacity: showSuccessFlash ? 0 : 1,
+                  transform: showSuccessFlash ? 'scale(1.1)' : 'scale(1)'
                 }}
               />
-              {/* New circle that appears from dot to full size */}
+              {/* New blank circle that appears from center after blending */}
               {showSuccessFlash && (
                 <div
-                  className="absolute top-1/2 left-1/2 w-48 h-48 rounded-full transform -translate-x-1/2 -translate-y-1/2"
+                  className="absolute top-1/2 left-1/2 w-48 h-48 rounded-full transform -translate-x-1/2 -translate-y-1/2 bg-white"
                   style={{ 
-                    backgroundColor: '#ffffff',
-                    animation: 'scale-from-dot 600ms ease-out forwards',
-                    animationDelay: '500ms',
-                    transform: 'translate(-50%, -50%) scale(0)'
+                    animation: 'appear-from-center 800ms ease-out forwards',
+                    animationDelay: '800ms',
+                    transform: 'translate(-50%, -50%) scale(0)',
+                    opacity: 0
                   }}
                 />
               )}

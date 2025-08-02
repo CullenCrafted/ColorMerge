@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { RotateCcw, Trophy, TrendingUp } from "lucide-react";
 
@@ -95,6 +95,7 @@ export default function GameOverModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-purple-400 via-pink-500 via-red-500 via-orange-500 via-yellow-500 via-green-500 via-blue-500 to-purple-600 border-0 shadow-2xl opacity-100 transition-opacity duration-500">
+        <DialogTitle className="sr-only">Game Over</DialogTitle>
         <div className="text-center p-6 bg-white/90 backdrop-blur-sm rounded-xl mx-2 my-2 flex flex-col">
           {/* Icon */}
           <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-red-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
