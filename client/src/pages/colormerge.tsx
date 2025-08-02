@@ -533,7 +533,7 @@ export default function ColorMerge() {
       <GameOverModal
         open={showGameOver}
         onOpenChange={setShowGameOver}
-        finalLevel={gameState.currentLevel}
+        finalLevel={Math.max(1, gameState.currentLevel)}
         bestLevel={(stats as any)?.bestLevel || 0}
         incorrectGuesses={allIncorrectGuesses}
         onPlayAgain={handleNewGame}

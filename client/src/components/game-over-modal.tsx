@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { RotateCcw, Trophy, TrendingUp } from "lucide-react";
 
@@ -89,14 +89,16 @@ export default function GameOverModal({
   incorrectGuesses,
   onPlayAgain 
 }: GameOverModalProps) {
-  const actualFinalLevel = Math.max(1, finalLevel - 1); // The level the user actually reached
+  const actualFinalLevel = finalLevel; // Show the actual level they reached
   const isNewRecord = actualFinalLevel > bestLevel;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-purple-400 via-pink-500 via-red-500 via-orange-500 via-yellow-500 via-green-500 via-blue-500 to-purple-600 border-0 shadow-2xl opacity-100 transition-opacity duration-500">
-        <DialogTitle className="sr-only">Game Over</DialogTitle>
-        <div className="text-center p-6 bg-white/90 backdrop-blur-sm rounded-xl mx-2 my-2 flex flex-col">
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <DialogContent className="max-w-md w-full bg-gradient-to-br from-purple-500/30 via-pink-500/30 to-orange-500/30 backdrop-blur-xl border-0 shadow-2xl rounded-3xl transition-all duration-500 transform scale-100 relative">
+          <DialogTitle className="sr-only">Game Over</DialogTitle>
+          <DialogDescription className="sr-only">Your game statistics and performance summary</DialogDescription>
+          <div className="text-center p-6 bg-white/85 backdrop-blur-sm rounded-2xl mx-2 my-2 flex flex-col border border-white/40">
           {/* Icon */}
           <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-red-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
             {isNewRecord ? (
@@ -112,57 +114,62 @@ export default function GameOverModal({
           </h2>
 
           {/* Stats */}
-          <div className="space-y-4 mb-6">
-            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-2xl font-bold text-gray-900">{actualFinalLevel}</div>
-              <div className="text-sm text-gray-600">Level Achieved</div>
+          <div className="space-y-3 mb-6">
+            <div className="bg-white/50 backdrop-blur-sm rounded-xl p-3">
+              <div className="text-xl font-bold text-gray-900">{actualFinalLevel}</div>
+              <div className="text-xs text-gray-600">Level Achieved</div>
+            </div>
+
+            <div className="bg-white/50 backdrop-blur-sm rounded-xl p-3">
+              <div className="text-lg font-bold text-yellow-600">{bestLevel}</div>
+              <div className="text-xs text-gray-600">Personal Best</div>
             </div>
 
             {isNewRecord && (
-              <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl p-4 border-2 border-yellow-300">
-                <div className="text-lg font-bold text-orange-800">Previous Best: {bestLevel}</div>
-                <div className="text-sm text-orange-600">You improved by {actualFinalLevel - bestLevel} levels!</div>
+              <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl p-3 border border-yellow-300">
+                <div className="text-sm font-bold text-orange-800">New Record!</div>
+                <div className="text-xs text-orange-600">+{actualFinalLevel - bestLevel} levels better</div>
               </div>
             )}
           </div>
 
           {/* Motivational Message */}
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 text-sm mb-4">
             {isNewRecord 
-              ? "Incredible! You've set a new personal record. Keep pushing your limits!"
-              : "Great effort! Every game makes you better. Ready for another challenge?"
+              ? "New personal record! Keep pushing your limits!"
+              : "Great effort! Ready for another challenge?"
             }
           </p>
 
           {/* Action Button - Always Visible */}
-          <div className="mb-6">
+          <div className="mb-4">
             <Button
               onClick={onPlayAgain}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-2.5 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
             >
-              <RotateCcw className="w-5 h-5 mr-2" />
+              <RotateCcw className="w-4 h-4 mr-2" />
               Play Again
             </Button>
           </div>
 
-          {/* Incorrect Guesses Summary - Scrollable */}
+          {/* Incorrect Guesses Summary - Compact */}
           {incorrectGuesses.length > 0 && (
-            <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Your Incorrect Guesses</h3>
-              <div className="max-h-80 overflow-y-auto bg-white/40 rounded-xl p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {incorrectGuesses.map((mistake, index) => (
-                    <div key={index} className="bg-white/60 rounded-lg p-3">
-                      <div className="text-sm font-medium text-gray-700 mb-2">Level {mistake.level}</div>
-                      <div className="flex justify-between items-center space-x-4">
+            <div className="border-t border-gray-200 pt-4">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">Recent Mistakes</h3>
+              <div className="max-h-48 overflow-y-auto bg-white/30 rounded-xl p-3">
+                <div className="grid grid-cols-1 gap-3">
+                  {incorrectGuesses.slice(-3).map((mistake, index) => (
+                    <div key={index} className="bg-white/50 rounded-lg p-2">
+                      <div className="text-xs font-medium text-gray-700 mb-1">Level {mistake.level}</div>
+                      <div className="flex justify-between items-center space-x-3">
                         <div className="text-center">
                           <div className="text-xs text-gray-600 mb-1">Your Guess</div>
-                          <ColorPieChart colors={mistake.guess} size={50} />
+                          <ColorPieChart colors={mistake.guess} size={40} />
                         </div>
                         <div className="text-xs text-gray-500">vs</div>
                         <div className="text-center">
                           <div className="text-xs text-gray-600 mb-1">Correct</div>
-                          <ColorPieChart colors={mistake.correct} size={50} />
+                          <ColorPieChart colors={mistake.correct} size={40} />
                         </div>
                       </div>
                     </div>
@@ -171,8 +178,9 @@ export default function GameOverModal({
               </div>
             </div>
           )}
-        </div>
-      </DialogContent>
+          </div>
+        </DialogContent>
+      </div>
     </Dialog>
   );
 }
