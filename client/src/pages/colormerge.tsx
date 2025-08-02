@@ -237,7 +237,7 @@ export default function ColorMerge() {
         </svg>
         <div className="mt-2 flex flex-wrap justify-center gap-1">
           {Object.entries(colorCounts).map(([color, count]) => (
-            <div key={color} className="flex items-center text-xs bg-black/20 rounded px-2 py-1">
+            <div key={color} className="flex items-center text-xs bg-black/20 backdrop-blur rounded px-2 py-1">
               <div 
                 className="w-3 h-3 rounded-full mr-1 border border-white/50" 
                 style={{ backgroundColor: color }}
@@ -289,7 +289,7 @@ export default function ColorMerge() {
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 variant="ghost"
                 size="sm"
-                className={`w-10 h-10 rounded-full hover:bg-black/30 relative z-30 pointer-events-auto transition-all duration-300 ${
+                className={`w-10 h-10 rounded-full backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto transition-all duration-300 ${
                   showSuccessFlash ? 'bg-green-500/80 ring-2 ring-green-400' : 'bg-black/20'
                 }`}
               >
@@ -299,7 +299,7 @@ export default function ColorMerge() {
                 onClick={() => setEnhancedHaptics(!enhancedHaptics)}
                 variant="ghost"
                 size="sm"
-                className={`w-10 h-10 rounded-full hover:bg-black/30 relative z-30 pointer-events-auto transition-all duration-300 ${
+                className={`w-10 h-10 rounded-full backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto transition-all duration-300 ${
                   showSuccessFlash 
                     ? 'bg-green-500/80 ring-2 ring-green-400' 
                     : enhancedHaptics 
@@ -327,7 +327,7 @@ export default function ColorMerge() {
                 onClick={() => setShowInstructions(true)}
                 variant="ghost"
                 size="sm"
-                className={`w-10 h-10 rounded-full hover:bg-black/30 relative z-30 pointer-events-auto transition-all duration-300 ${
+                className={`w-10 h-10 rounded-full backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto transition-all duration-300 ${
                   showSuccessFlash ? 'bg-green-500/80 ring-2 ring-green-400' : 'bg-black/20'
                 }`}
               >
@@ -337,7 +337,7 @@ export default function ColorMerge() {
                 onClick={handleResetLevel}
                 variant="ghost"
                 size="sm"
-                className={`w-10 h-10 rounded-full hover:bg-black/30 relative z-30 pointer-events-auto transition-all duration-300 ${
+                className={`w-10 h-10 rounded-full backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto transition-all duration-300 ${
                   showSuccessFlash ? 'bg-green-500/80 ring-2 ring-green-400' : 'bg-black/20'
                 }`}
               >
@@ -349,7 +349,7 @@ export default function ColorMerge() {
           {/* Stats Row Below Title */}
           <div className="flex items-center justify-center space-x-4 mt-4">
             {/* Best Score */}
-            <div className={`flex flex-col items-center rounded-2xl px-3 py-2 border transition-all duration-300 ${
+            <div className={`flex flex-col items-center backdrop-blur-sm rounded-2xl px-3 py-2 border transition-all duration-300 ${
               showSuccessFlash 
                 ? 'bg-green-500/80 border-green-400 ring-2 ring-green-400' 
                 : 'bg-black/20 border-white/20'
@@ -366,7 +366,7 @@ export default function ColorMerge() {
             </div>
             
             {/* Current Level */}
-            <div className={`flex flex-col items-center rounded-2xl px-3 py-2 border transition-all duration-300 ${
+            <div className={`flex flex-col items-center backdrop-blur-sm rounded-2xl px-3 py-2 border transition-all duration-300 ${
               showSuccessFlash 
                 ? 'bg-green-500/80 border-green-400 ring-2 ring-green-400' 
                 : 'bg-black/20 border-white/20'
@@ -387,7 +387,7 @@ export default function ColorMerge() {
             </div>
             
             {/* Hearts */}
-            <div className={`flex flex-col items-center rounded-2xl px-3 py-2 border relative transition-all duration-300 ${
+            <div className={`flex flex-col items-center backdrop-blur-sm rounded-2xl px-3 py-2 border relative transition-all duration-300 ${
               showSuccessFlash 
                 ? 'bg-green-500/80 border-green-400 ring-2 ring-green-400' 
                 : 'bg-black/20 border-white/20'
@@ -452,7 +452,7 @@ export default function ColorMerge() {
           </div>
 
           {/* Mix Progress Indicator - Real-time color matching */}
-          <div className="flex items-center justify-center space-x-3 mb-8 bg-black/20 rounded-2xl p-3 border border-white/20">
+          <div className="flex items-center justify-center space-x-3 mb-8 bg-black/20 backdrop-blur-lg rounded-2xl p-3 border border-white/20">
             {colorButtons.map(({ color }) => {
               const count = gameState.colorClicks[color] || 0;
               const currentMixColor = gameLogic.getCurrentColorString();
@@ -480,7 +480,7 @@ export default function ColorMerge() {
             })}
             <div className="w-px h-6 bg-white/30 mx-2"></div>
             <div 
-              className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-white/30 transition-all duration-300"
+              className="flex items-center justify-center w-10 h-10 rounded-full backdrop-blur-sm border-2 border-white/30 transition-all duration-300"
               style={{ backgroundColor: gameLogic.getCurrentColorString() }}
             >
               <span 
@@ -510,8 +510,8 @@ export default function ColorMerge() {
 
         {/* Pause Overlay */}
         {isPaused && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white/90 rounded-2xl p-8 shadow-2xl">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white/90 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
               <h2 className="text-2xl font-bold text-center mb-4 text-gray-900">Game Paused</h2>
               <Button
                 onClick={() => setIsPaused(false)}
