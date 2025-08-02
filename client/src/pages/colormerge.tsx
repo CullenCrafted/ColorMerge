@@ -128,12 +128,11 @@ export default function ColorMerge() {
         }
       }, 1500); // Increased from 800ms
 
-      // Update stats with proper streak increment
+      // Update stats with current level and all-time best
       updateStats({
         currentLevel: newState.currentLevel,
         bestLevel: Math.max((stats as any)?.bestLevel || 0, newState.currentLevel),
         hearts: newState.hearts,
-        streak: newState.currentStreak,
         totalPlays: ((stats as any)?.totalPlays || 0) + 1,
       });
 
@@ -150,10 +149,11 @@ export default function ColorMerge() {
       const finalLevel = gameState.currentLevel;
       const currentBest = (stats as any)?.bestLevel || 0;
       
+      // Update all-time best only if current level is higher
       updateStats({
-        currentLevel: 1,
-        hearts: 3,
-        bestLevel: Math.max(finalLevel, currentBest), // Update all-time best
+        currentLevel: 1, // Reset to level 1 for new game
+        hearts: 3, // Reset hearts for new game
+        bestLevel: Math.max(finalLevel, currentBest), // Keep all-time best
         totalPlays: ((stats as any)?.totalPlays || 0) + 1,
       });
       setShowGameOver(true);

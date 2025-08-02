@@ -13,7 +13,6 @@ interface ColorMergeState {
   hearts: number;
   chosenColors: string[];
   colorClicks: { [key: string]: number };
-  currentStreak: number;
   currentLevel: number;
 }
 
@@ -39,7 +38,6 @@ export class ColorMergeLogic {
       hearts: initialHearts,
       chosenColors: [],
       colorClicks: { red: 0, yellow: 0, blue: 0, white: 0, black: 0 },
-      currentStreak: 0,
       currentLevel: initialLevel,
     };
     this.generateNewTarget();
@@ -92,19 +90,16 @@ export class ColorMergeLogic {
     // Check for immediate match (bonus heart scenario)
     if (this.colorsMatch() && this.state.mixCount < this.state.maxMixes) {
       this.state.hearts++;
-      this.state.currentStreak++;
       return { success: true, gameOver: false, levelComplete: true, bonusHeart: true };
     }
 
     // Check for final match
     if (this.state.mixCount === this.state.maxMixes) {
       if (this.colorsMatch()) {
-        this.state.currentStreak++;
         this.nextLevel();
         return { success: true, gameOver: false, levelComplete: true, bonusHeart: false };
       } else {
         this.state.hearts--;
-        this.state.currentStreak = 0;
         const gameOver = this.state.hearts <= 0;
         if (!gameOver) {
           this.generateNewTarget();
@@ -177,7 +172,6 @@ export class ColorMergeLogic {
     this.state.currentLevel = 1;
     this.state.maxMixes = 1;
     this.state.hearts = 3;
-    this.state.currentStreak = 0;
     this.generateNewTarget();
   }
 
