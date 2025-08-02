@@ -398,12 +398,12 @@ export default function ColorMerge() {
                 showSuccessFlash ? 'text-white' : textColorClass
               }`}>{gameState.hearts}</span>
               {showHeartLoss && (
-                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+                <div className="absolute top-16 left-1/2 transform -translate-x-1/2 animate-bounce">
                   <span className="text-xl text-red-500 font-bold drop-shadow-lg bg-black/50 rounded-full px-2 py-1">-1</span>
                 </div>
               )}
               {showHeartGain && (
-                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+                <div className="absolute top-16 left-1/2 transform -translate-x-1/2 animate-bounce">
                   <span className="text-xl text-green-500 font-bold drop-shadow-lg bg-black/50 rounded-full px-2 py-1">+1</span>
                 </div>
               )}
@@ -415,13 +415,13 @@ export default function ColorMerge() {
 
         {/* Main Game Area - Centered Mixing Circle */}
         <div className="flex-1 flex flex-col items-center justify-center relative z-20">
-          {/* Current Mix Display - Circle that expands infinitely on success, collapses on failure */}
+          {/* Current Mix Display - Circle that blends and disappears on success, collapses on failure */}
           <div className="text-center mb-8">
-            <div className="relative overflow-hidden">
+            <div className="relative">
               <div
                 className={`w-48 h-48 rounded-full transition-all ${
                   showSuccessFlash 
-                    ? 'duration-1000 scale-[20] opacity-0' 
+                    ? 'duration-700 opacity-0' 
                     : showHeartLoss 
                       ? 'duration-300 scale-50 opacity-60' 
                       : 'duration-300 scale-100 opacity-100'
@@ -430,15 +430,15 @@ export default function ColorMerge() {
                   backgroundColor: gameLogic.getCurrentColorString()
                 }}
               />
-              {/* New circle that appears after expansion */}
+              {/* New circle that appears from dot to full size */}
               {showSuccessFlash && (
                 <div
-                  className="absolute top-0 left-0 w-48 h-48 rounded-full scale-0 animate-scale-in"
+                  className="absolute top-1/2 left-1/2 w-48 h-48 rounded-full transform -translate-x-1/2 -translate-y-1/2"
                   style={{ 
                     backgroundColor: '#ffffff',
-                    animationDelay: '800ms',
-                    animationDuration: '400ms',
-                    animationFillMode: 'forwards'
+                    animation: 'scale-from-dot 600ms ease-out forwards',
+                    animationDelay: '500ms',
+                    transform: 'translate(-50%, -50%) scale(0)'
                   }}
                 />
               )}

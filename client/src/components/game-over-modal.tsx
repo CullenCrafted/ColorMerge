@@ -89,11 +89,12 @@ export default function GameOverModal({
   incorrectGuesses,
   onPlayAgain 
 }: GameOverModalProps) {
-  const isNewRecord = finalLevel > bestLevel;
+  const actualFinalLevel = Math.max(1, finalLevel - 1); // The level the user actually reached
+  const isNewRecord = actualFinalLevel > bestLevel;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-purple-400 via-pink-500 via-red-500 via-orange-500 via-yellow-500 via-green-500 via-blue-500 to-purple-600 animate-gradient-x border-0 shadow-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-purple-400 via-pink-500 via-red-500 via-orange-500 via-yellow-500 via-green-500 via-blue-500 to-purple-600 border-0 shadow-2xl opacity-100 transition-opacity duration-500">
         <div className="text-center p-6 bg-white/90 backdrop-blur-sm rounded-xl mx-2 my-2 flex flex-col">
           {/* Icon */}
           <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-red-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
@@ -112,14 +113,14 @@ export default function GameOverModal({
           {/* Stats */}
           <div className="space-y-4 mb-6">
             <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-2xl font-bold text-gray-900">{finalLevel}</div>
-              <div className="text-sm text-gray-600">Final Level</div>
+              <div className="text-2xl font-bold text-gray-900">{actualFinalLevel}</div>
+              <div className="text-sm text-gray-600">Level Achieved</div>
             </div>
 
             {isNewRecord && (
               <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl p-4 border-2 border-yellow-300">
                 <div className="text-lg font-bold text-orange-800">Previous Best: {bestLevel}</div>
-                <div className="text-sm text-orange-600">You improved by {finalLevel - bestLevel} levels!</div>
+                <div className="text-sm text-orange-600">You improved by {actualFinalLevel - bestLevel} levels!</div>
               </div>
             )}
           </div>
