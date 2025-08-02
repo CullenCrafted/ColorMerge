@@ -236,6 +236,21 @@
   animation: bounce-gentle 3s ease-in-out infinite;
 }
 
+@keyframes gradient-x {
+  0%, 100% {
+    background-size: 200% 200%;
+    background-position: left center;
+  }
+  50% {
+    background-size: 200% 200%;
+    background-position: right center;
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 8s ease infinite;
+}
+
 .animate-bounce-once {
   animation: bounce-once 0.6s ease-out;
 }

@@ -147,10 +147,13 @@ export default function ColorMerge() {
 
     if (result.gameOver) {
       triggerHaptic('heavy');
+      const finalLevel = gameState.currentLevel;
+      const currentBest = (stats as any)?.bestLevel || 0;
+      
       updateStats({
         currentLevel: 1,
         hearts: 3,
-        streak: 0,
+        bestLevel: Math.max(finalLevel, currentBest), // Update all-time best
         totalPlays: ((stats as any)?.totalPlays || 0) + 1,
       });
       setShowGameOver(true);
@@ -321,14 +324,7 @@ export default function ColorMerge() {
                   <span className={`text-lg font-bold ${textColorClass}`}>{gameState.currentLevel}</span>
                 </div>
                 
-                {/* Streak */}
-                <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/20">
-                  <div className="w-5 h-5 bg-purple-400 rounded-full mb-1 flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">🔥</span>
-                  </div>
-                  <span className={`text-xs ${textColorClass} opacity-70`}>Streak</span>
-                  <span className={`text-lg font-bold ${textColorClass}`}>{gameState.currentStreak}</span>
-                </div>
+
                 
                 {/* Hearts */}
                 <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/20 relative">
@@ -376,6 +372,8 @@ export default function ColorMerge() {
                 <HelpCircle className={`w-5 h-5 ${textColorClass}`} />
               </Button>
             </div>
+
+
           </div>
         </div>
 
