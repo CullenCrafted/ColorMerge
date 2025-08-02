@@ -275,17 +275,8 @@ export default function ColorMerge() {
           ))}
         </div>
 
-        {/* Header with Centered Title */}
+        {/* Header without Title */}
         <div className="relative p-4 z-20">
-          {/* Title centered on entire screen */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <h1 className={`text-4xl font-bold drop-shadow-lg transition-all duration-300 ${
-              showSuccessFlash ? 'text-green-400 scale-110' : textColorClass
-            }`}>
-              ColorMerge
-            </h1>
-          </div>
-          
           {/* Controls on left and right */}
           <div className="flex items-center justify-between">
             {/* Left side controls */}
@@ -294,19 +285,25 @@ export default function ColorMerge() {
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 variant="ghost"
                 size="sm"
-                className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
+                className={`w-10 h-10 rounded-full backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto transition-all duration-300 ${
+                  showSuccessFlash ? 'bg-green-500/80 ring-2 ring-green-400' : 'bg-black/20'
+                }`}
               >
-                {soundEnabled ? <Volume2 className={`w-5 h-5 ${textColorClass}`} /> : <VolumeX className={`w-5 h-5 ${textColorClass}`} />}
+                {soundEnabled ? <Volume2 className={`w-5 h-5 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`} /> : <VolumeX className={`w-5 h-5 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`} />}
               </Button>
               <Button
                 onClick={() => setEnhancedHaptics(!enhancedHaptics)}
                 variant="ghost"
                 size="sm"
-                className={`w-10 h-10 rounded-full backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto ${
-                  enhancedHaptics ? 'bg-yellow-500/30' : 'bg-black/20'
+                className={`w-10 h-10 rounded-full backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto transition-all duration-300 ${
+                  showSuccessFlash 
+                    ? 'bg-green-500/80 ring-2 ring-green-400' 
+                    : enhancedHaptics 
+                      ? 'bg-yellow-500/30' 
+                      : 'bg-black/20'
                 }`}
               >
-                <Zap className={`w-5 h-5 ${textColorClass}`} />
+                <Zap className={`w-5 h-5 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`} />
               </Button>
             </div>
 
@@ -316,25 +313,31 @@ export default function ColorMerge() {
                 onClick={() => setIsPaused(!isPaused)}
                 variant="ghost"
                 size="sm"
-                className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
+                className={`w-10 h-10 rounded-full backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto transition-all duration-300 ${
+                  showSuccessFlash ? 'bg-green-500/80 ring-2 ring-green-400' : 'bg-black/20'
+                }`}
               >
-                <Pause className={`w-4 h-4 ${textColorClass}`} />
+                <Pause className={`w-4 h-4 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`} />
               </Button>
               <Button
                 onClick={() => setShowInstructions(true)}
                 variant="ghost"
                 size="sm"
-                className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
+                className={`w-10 h-10 rounded-full backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto transition-all duration-300 ${
+                  showSuccessFlash ? 'bg-green-500/80 ring-2 ring-green-400' : 'bg-black/20'
+                }`}
               >
-                <HelpCircle className={`w-4 h-4 ${textColorClass}`} />
+                <HelpCircle className={`w-4 h-4 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`} />
               </Button>
               <Button
                 onClick={handleResetLevel}
                 variant="ghost"
                 size="sm"
-                className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto"
+                className={`w-10 h-10 rounded-full backdrop-blur-sm hover:bg-black/30 relative z-30 pointer-events-auto transition-all duration-300 ${
+                  showSuccessFlash ? 'bg-green-500/80 ring-2 ring-green-400' : 'bg-black/20'
+                }`}
               >
-                <RotateCcw className={`w-5 h-5 ${textColorClass}`} />
+                <RotateCcw className={`w-5 h-5 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`} />
               </Button>
             </div>
           </div>
@@ -342,26 +345,58 @@ export default function ColorMerge() {
           {/* Stats Row Below Title */}
           <div className="flex items-center justify-center space-x-4 mt-4">
             {/* Best Score */}
-            <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-3 py-2 border border-white/20">
-              <Trophy className="w-4 h-4 text-yellow-400 mb-1" />
-              <span className={`text-xs ${textColorClass} opacity-70`}>Best</span>
-              <span className={`text-lg font-bold ${textColorClass}`}>{(stats as any)?.bestLevel || 0}</span>
+            <div className={`flex flex-col items-center backdrop-blur-sm rounded-2xl px-3 py-2 border transition-all duration-300 ${
+              showSuccessFlash 
+                ? 'bg-green-500/80 border-green-400 ring-2 ring-green-400' 
+                : 'bg-black/20 border-white/20'
+            }`}>
+              <Trophy className={`w-4 h-4 mb-1 transition-colors duration-300 ${
+                showSuccessFlash ? 'text-white' : 'text-yellow-400'
+              }`} />
+              <span className={`text-xs opacity-70 transition-colors duration-300 ${
+                showSuccessFlash ? 'text-white' : textColorClass
+              }`}>Best</span>
+              <span className={`text-lg font-bold transition-colors duration-300 ${
+                showSuccessFlash ? 'text-white' : textColorClass
+              }`}>{(stats as any)?.bestLevel || 0}</span>
             </div>
             
             {/* Current Level */}
-            <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-3 py-2 border border-white/20">
-              <div className="w-4 h-4 bg-blue-400 rounded-full mb-1 flex items-center justify-center">
-                <span className="text-xs font-bold text-white">{gameState.currentLevel}</span>
+            <div className={`flex flex-col items-center backdrop-blur-sm rounded-2xl px-3 py-2 border transition-all duration-300 ${
+              showSuccessFlash 
+                ? 'bg-green-500/80 border-green-400 ring-2 ring-green-400' 
+                : 'bg-black/20 border-white/20'
+            }`}>
+              <div className={`w-4 h-4 rounded-full mb-1 flex items-center justify-center transition-colors duration-300 ${
+                showSuccessFlash ? 'bg-white' : 'bg-blue-400'
+              }`}>
+                <span className={`text-xs font-bold transition-colors duration-300 ${
+                  showSuccessFlash ? 'text-green-500' : 'text-white'
+                }`}>{gameState.currentLevel}</span>
               </div>
-              <span className={`text-xs ${textColorClass} opacity-70`}>Level</span>
-              <span className={`text-lg font-bold ${textColorClass}`}>{gameState.currentLevel}</span>
+              <span className={`text-xs opacity-70 transition-colors duration-300 ${
+                showSuccessFlash ? 'text-white' : textColorClass
+              }`}>Level</span>
+              <span className={`text-lg font-bold transition-colors duration-300 ${
+                showSuccessFlash ? 'text-white' : textColorClass
+              }`}>{gameState.currentLevel}</span>
             </div>
             
             {/* Hearts */}
-            <div className="flex flex-col items-center bg-black/20 backdrop-blur-sm rounded-2xl px-3 py-2 border border-white/20 relative">
-              <Heart className="w-4 h-4 text-red-400 fill-current mb-1" />
-              <span className={`text-xs ${textColorClass} opacity-70`}>Hearts</span>
-              <span className={`text-lg font-bold ${textColorClass}`}>{gameState.hearts}</span>
+            <div className={`flex flex-col items-center backdrop-blur-sm rounded-2xl px-3 py-2 border relative transition-all duration-300 ${
+              showSuccessFlash 
+                ? 'bg-green-500/80 border-green-400 ring-2 ring-green-400' 
+                : 'bg-black/20 border-white/20'
+            }`}>
+              <Heart className={`w-4 h-4 fill-current mb-1 transition-colors duration-300 ${
+                showSuccessFlash ? 'text-white' : 'text-red-400'
+              }`} />
+              <span className={`text-xs opacity-70 transition-colors duration-300 ${
+                showSuccessFlash ? 'text-white' : textColorClass
+              }`}>Hearts</span>
+              <span className={`text-lg font-bold transition-colors duration-300 ${
+                showSuccessFlash ? 'text-white' : textColorClass
+              }`}>{gameState.hearts}</span>
               {showHeartLoss && (
                 <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
                   <span className="text-xl text-red-500 font-bold drop-shadow-lg bg-black/50 rounded-full px-2 py-1">-1</span>
@@ -380,17 +415,33 @@ export default function ColorMerge() {
 
         {/* Main Game Area - Centered Mixing Circle */}
         <div className="flex-1 flex flex-col items-center justify-center relative z-20">
-          {/* Current Mix Display - Circle that expands on success, collapses on failure */}
+          {/* Current Mix Display - Circle that expands infinitely on success, collapses on failure */}
           <div className="text-center mb-8">
-            <div className="relative">
+            <div className="relative overflow-hidden">
               <div
-                className={`w-48 h-48 rounded-full transition-all duration-500 ${
-                  showSuccessFlash ? 'scale-150 opacity-80' : showHeartLoss ? 'scale-50 opacity-60' : 'scale-100 opacity-100'
+                className={`w-48 h-48 rounded-full transition-all ${
+                  showSuccessFlash 
+                    ? 'duration-1000 scale-[20] opacity-0' 
+                    : showHeartLoss 
+                      ? 'duration-300 scale-50 opacity-60' 
+                      : 'duration-300 scale-100 opacity-100'
                 }`}
                 style={{ 
                   backgroundColor: gameLogic.getCurrentColorString()
                 }}
               />
+              {/* New circle that appears after expansion */}
+              {showSuccessFlash && (
+                <div
+                  className="absolute top-0 left-0 w-48 h-48 rounded-full scale-0 animate-scale-in"
+                  style={{ 
+                    backgroundColor: '#ffffff',
+                    animationDelay: '800ms',
+                    animationDuration: '400ms',
+                    animationFillMode: 'forwards'
+                  }}
+                />
+              )}
             </div>
           </div>
 
