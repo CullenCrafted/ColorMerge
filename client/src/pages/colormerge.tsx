@@ -546,13 +546,15 @@ export default function ColorMerge() {
             <div className="relative">
               {/* Base circle starts white each round */}
               <div 
-                className="w-48 h-48 rounded-full bg-white relative overflow-hidden transition-all duration-300"
+                className={`rounded-full bg-white relative overflow-hidden transition-all duration-300 ${
+                  showSuccessFlash ? 'w-48 h-48' : 'w-48 h-48 border-4'
+                }`}
                 style={{
-                  border: showSuccessFlash 
-                    ? 'none' 
+                  borderColor: showSuccessFlash 
+                    ? 'transparent'
                     : gameLogic.getCurrentColorString() === 'rgb(255, 255, 255)' && gameState.mixCount === gameState.maxMixes
-                      ? '4px solid rgba(0, 0, 0, 0.6)' 
-                      : '4px solid rgba(255, 255, 255, 0.4)'
+                      ? 'rgba(0, 0, 0, 0.6)' 
+                      : 'rgba(255, 255, 255, 0.4)'
                 }}
               >
                 {/* Fill progress with mixed color */}
