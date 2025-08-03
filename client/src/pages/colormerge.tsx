@@ -110,17 +110,16 @@ export default function ColorMerge() {
       triggerHaptic('heavy');
       setShowSuccessFlash(true);
       
-      // CRITICAL: Use the BACKGROUND color that was successfully matched
-      // The background shows the current mixed color, which is what user matched to win
+      // CRITICAL: Get the EXACT background color the user successfully matched
+      // This is the background color displayed when they win the level
       const backgroundElement = document.querySelector('.color-display-center');
       const computedStyle = backgroundElement ? window.getComputedStyle(backgroundElement) : null;
-      const actualBackgroundColor = computedStyle ? computedStyle.backgroundColor : null;
+      const exactMatchedBackgroundColor = computedStyle ? computedStyle.backgroundColor : gameLogic.getTargetColorString();
       
-      // Fallback to target color if we can't get background
-      const matchedColor = actualBackgroundColor || gameLogic.getTargetColorString();
+      console.log('EXACT matched background color for bubbles:', exactMatchedBackgroundColor);
       
-      console.log('Background color from DOM:', actualBackgroundColor);
-      console.log('Using bubble color:', matchedColor);
+      // Bubbles will ONLY EVER be this exact background color - no other color is allowed
+      const bubbleColor = exactMatchedBackgroundColor;
       
       // Create smooth swooping bubble explosion
       const primaryBubbles = Array.from({ length: 12 }, (_, i) => {
@@ -131,7 +130,7 @@ export default function ColorMerge() {
           x: Math.cos(angle) * distance,
           y: Math.sin(angle) * distance,
           size: Math.random() * 25 + 30, // 30-55px primary bubbles
-          color: matchedColor,
+          color: bubbleColor,
           delay: Math.random() * 100,
           type: 'primary' as const
         };
@@ -146,7 +145,7 @@ export default function ColorMerge() {
           x: Math.cos(angle) * distance,
           y: Math.sin(angle) * distance,
           size: Math.random() * 15 + 15, // 15-30px secondary bubbles
-          color: matchedColor,
+          color: bubbleColor,
           delay: 200 + Math.random() * 150, // Delayed start
           type: 'secondary' as const
         };
