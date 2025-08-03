@@ -154,11 +154,11 @@ export default function ColorMerge() {
       
       setBubbles([...primaryBubbles, ...secondaryBubbles]);
       
-      // Quick green flash, then transition
+      // Extended time to appreciate the successful match, then transition
       setTimeout(() => {
         setShowSuccessFlash(false);
         
-        // Start next level immediately as background transitions
+        // Start next level after showing the matched result longer
         const prevHearts = gameLogic.getState().hearts;
         gameLogic.nextLevel();
         const nextState = gameLogic.getState();
@@ -176,7 +176,7 @@ export default function ColorMerge() {
         
         // Clear bubbles after all animations complete
         setTimeout(() => setBubbles([]), 3000);
-      }, 400); // Quick green flash
+      }, 1500); // Extended time to see the successful match
 
       // Update stats with current level and all-time best
       updateStats({
