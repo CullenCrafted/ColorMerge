@@ -161,20 +161,9 @@ export default function ColorMerge() {
         const nextState = gameLogic.getState();
         setGameState(nextState);
         
-        // Start bubble explosion with audio and enhanced vibration
+        // Start bubble explosion
         setBubbles([...primaryBubbles, ...secondaryBubbles]);
         setShowSuccessFlash(false);
-        
-        // Play bubble sound
-        if (soundEnabled) {
-          playBubbleSound();
-        }
-        
-        // Enhanced vibration for bubble explosion
-        if ('vibrate' in navigator) {
-          // Multiple vibration bursts for bubble explosion effect
-          navigator.vibrate([100, 50, 100, 50, 150]);
-        }
         
         // Check for heart bonus
         if (nextState.hearts > prevHearts) {
@@ -189,6 +178,17 @@ export default function ColorMerge() {
           hearts: nextState.hearts,
           totalPlays: ((stats as any)?.totalPlays || 0) + 1,
         });
+        
+        // Play bubble sound and vibration for all bubble explosions
+        if (soundEnabled) {
+          playBubbleSound();
+        }
+        
+        // Enhanced vibration for bubble explosion
+        if ('vibrate' in navigator) {
+          // Multiple vibration bursts for bubble explosion effect
+          navigator.vibrate([100, 50, 100, 50, 150]);
+        }
         
         // Clear bubbles after animation
         setTimeout(() => setBubbles([]), 3000);
