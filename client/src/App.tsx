@@ -11,10 +11,10 @@ function App() {
 
   const handleAdClose = () => {
     setShowAd(false);
-    // Force a reflow to ensure any backdrop blur effects are cleared
-    document.body.style.transform = 'translateZ(0)';
+    // Force a reflow to ensure any rendering issues are cleared
+    document.body.style.overflow = 'hidden';
     setTimeout(() => {
-      document.body.style.transform = '';
+      document.body.style.overflow = '';
     }, 10);
   };
 
