@@ -110,9 +110,14 @@ export default function ColorMerge() {
       triggerHaptic('heavy');
       setShowSuccessFlash(true);
       
-      // IMPORTANT: Capture the matched color BEFORE any level transitions
-      const matchedColor = gameLogic.getCurrentColorString(); // Get current mixed color before it resets
-      console.log('Matched color for bubbles:', matchedColor); // Debug log
+      // IMPORTANT: Capture BOTH colors for debugging
+      const currentMixed = gameLogic.getCurrentColorString(); // What user mixed
+      const targetColor = gameLogic.getTargetColorString(); // What was the target
+      console.log('Current mixed color:', currentMixed);
+      console.log('Target color:', targetColor);
+      console.log('Level complete - using target color for bubbles:', targetColor);
+      
+      const matchedColor = targetColor; // Use the target color that was successfully matched
       
       // Create bubble burst effect immediately
       const newBubbles = Array.from({ length: 18 }, (_, i) => {
@@ -151,7 +156,7 @@ export default function ColorMerge() {
         }
         
         // Clear bubbles after animation completes
-        setTimeout(() => setBubbles([]), 3000);
+        setTimeout(() => setBubbles([]), 3500);
       }, 400); // Quick green flash
 
       // Update stats with current level and all-time best
@@ -192,10 +197,20 @@ export default function ColorMerge() {
   };
 
   const handleNewGame = () => {
-    gameLogic.resetGame();
-    setGameState(gameLogic.getState());
+    // Create completely new game logic starting from level 1
+    const newLogic = new ColorMergeLogic(1, 3);
+    setGameLogic(newLogic);
+    setGameState(newLogic.getState());
     setAllIncorrectGuesses([]);
     setShowGameOver(false);
+    
+    // Update stats to reflect level 1 restart
+    updateStats({
+      currentLevel: 1,
+      hearts: 3,
+      bestLevel: (stats as any)?.bestLevel || 0, // Keep best level
+      totalPlays: ((stats as any)?.totalPlays || 0) + 1,
+    });
   };
 
   const colorButtons = [
@@ -289,20 +304,21 @@ export default function ColorMerge() {
         {bubbles.map((bubble) => (
           <div
             key={bubble.id}
-            className="absolute rounded-full animate-[bubble-burst_2500ms_cubic-bezier(0.4,0,0.2,1)_forwards] shadow-lg"
+            className="absolute rounded-full animate-[bubble-burst_3000ms_cubic-bezier(0.25,0.1,0.25,1)_forwards]"
             style={{
               left: '50%',
               top: '50%',
               width: `${bubble.size}px`,
               height: `${bubble.size}px`,
-              backgroundColor: bubble.color, // Force the matched color
-              border: '1px solid rgba(255,255,255,0.2)',
+              backgroundColor: bubble.color, // The matched color from level completion
+              border: '1px solid rgba(255,255,255,0.15)',
               '--bubble-x': `${bubble.x}px`,
               '--bubble-y': `${bubble.y}px`,
               animationDelay: `${bubble.delay}ms`,
               marginLeft: `-${bubble.size/2}px`,
               marginTop: `-${bubble.size/2}px`,
-              boxShadow: `0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3)`,
+              boxShadow: `0 0 12px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.2)`,
+              willChange: 'transform, opacity',
             } as React.CSSProperties}
           />
         ))}
