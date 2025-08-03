@@ -111,78 +111,78 @@ export default function ColorMerge() {
       triggerHaptic('heavy');
       setShowSuccessFlash(true);
       
-      // CRITICAL: Get the EXACT background color the user successfully matched
-      // This is the background color displayed when they win the level
+      // IMMEDIATELY advance to next level for stats tracking (but don't update UI state yet)
+      const prevHearts = gameLogic.getState().hearts;
+      gameLogic.nextLevel();
+      const nextLevelState = gameLogic.getState();
+      
+      // Get the matched background color BEFORE any state changes
       const backgroundElement = document.querySelector('.color-display-center');
       const computedStyle = backgroundElement ? window.getComputedStyle(backgroundElement) : null;
       const exactMatchedBackgroundColor = computedStyle ? computedStyle.backgroundColor : gameLogic.getTargetColorString();
       
       console.log('EXACT matched background color for bubbles:', exactMatchedBackgroundColor);
       
-      // Bubbles will ONLY EVER be this exact background color - no other color is allowed
+      // Bubbles will ONLY EVER be this exact background color
       const bubbleColor = exactMatchedBackgroundColor;
       
-      // Create smooth swooping bubble explosion
+      // Create bubble explosion
       const primaryBubbles = Array.from({ length: 12 }, (_, i) => {
         const angle = (i / 12) * 2 * Math.PI + Math.random() * 0.3;
-        const distance = 400 + Math.random() * 300; // 400-700px for smooth exit
+        const distance = 400 + Math.random() * 300;
         return {
           id: `primary-${Date.now()}-${i}`,
           x: Math.cos(angle) * distance,
           y: Math.sin(angle) * distance,
-          size: Math.random() * 25 + 30, // 30-55px primary bubbles
+          size: Math.random() * 25 + 30,
           color: bubbleColor,
           delay: Math.random() * 100,
           type: 'primary' as const
         };
       });
       
-      // Secondary explosion bubbles for smoother effect
       const secondaryBubbles = Array.from({ length: 24 }, (_, i) => {
         const angle = (i / 24) * 2 * Math.PI + Math.random() * 0.4;
-        const distance = 200 + Math.random() * 150; // Shorter distance for secondary
+        const distance = 200 + Math.random() * 150;
         return {
           id: `secondary-${Date.now()}-${i}`,
           x: Math.cos(angle) * distance,
           y: Math.sin(angle) * distance,
-          size: Math.random() * 15 + 15, // 15-30px secondary bubbles
+          size: Math.random() * 15 + 15,
           color: bubbleColor,
-          delay: 200 + Math.random() * 150, // Delayed start
+          delay: 200 + Math.random() * 150,
           type: 'secondary' as const
         };
       });
       
-      // WAIT 1 FULL SECOND before doing ANYTHING - keep matched result visible
+      // WAIT 1 SECOND before updating the UI state and starting celebration
       setTimeout(() => {
-        // After 1 second, start bubble explosion AND background change together
+        // Now update the UI state to show the new level
+        setGameState(nextLevelState);
+        
+        // Start bubble explosion after the matched background has been displayed
         setBubbles([...primaryBubbles, ...secondaryBubbles]);
         setShowSuccessFlash(false);
         
-        // NOW advance to next level (this changes the background to new target)
-        const prevHearts = gameLogic.getState().hearts;
-        gameLogic.nextLevel();
-        const nextState = gameLogic.getState();
-        setGameState(nextState);
-        
-        // Check if heart was gained during level progression (every 10 levels)
-        if (nextState.hearts > prevHearts) {
+        // Check if heart was gained
+        if (nextLevelState.hearts > prevHearts) {
           setShowHeartGain(true);
           setTimeout(() => setShowHeartGain(false), 1000);
           toast({
             title: "Bonus Heart!",
-            description: `Level ${nextState.currentLevel} milestone reached!`,
+            description: `Level ${nextLevelState.currentLevel} milestone reached!`,
           });
         }
         
-        // Clear bubbles after all animations complete
+        // Clear bubbles after animations
         setTimeout(() => setBubbles([]), 3000);
-      }, 1000); // 1 second delay for background change as requested
+      }, 1000); // 1 second to see the successful match
 
-      // Update stats with current level and all-time best
+      // Update stats with the advanced level state
       updateStats({
-        currentLevel: newState.currentLevel,
-        bestLevel: Math.max((stats as any)?.bestLevel || 0, newState.currentLevel),
-        hearts: newState.hearts,
+        currentLevel: nextLevelState.currentLevel,
+        bestLevel: Math.max((stats as any)?.bestLevel || 0, nextLevelState.currentLevel),
+        hearts: nextLevelState.hearts,
         totalPlays: ((stats as any)?.totalPlays || 0) + 1,
       });
 
