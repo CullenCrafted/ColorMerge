@@ -162,10 +162,6 @@ export default function ColorMerge() {
         if (nextState.hearts > prevHearts) {
           setShowHeartGain(true);
           setTimeout(() => setShowHeartGain(false), 1000);
-          toast({
-            title: "Bonus Heart!",
-            description: `Level ${nextState.currentLevel} milestone reached!`,
-          });
         }
         
         // Update stats
@@ -510,8 +506,11 @@ export default function ColorMerge() {
                 </div>
               )}
               {showHeartGain && (
-                <div className="absolute top-16 left-1/2 transform -translate-x-1/2 animate-bounce">
-                  <span className="text-xl text-green-500 font-bold drop-shadow-lg bg-black/50 rounded-full px-2 py-1">+1</span>
+                <div 
+                  className="absolute top-16 left-1/2"
+                  style={{ animation: 'floatingHeart 1s ease-out forwards' }}
+                >
+                  <Heart className="w-8 h-8 text-green-500 fill-current drop-shadow-lg" />
                 </div>
               )}
             </div>
@@ -526,7 +525,14 @@ export default function ColorMerge() {
           <div className="text-center mb-8">
             <div className="relative">
               {/* Base circle starts white each round */}
-              <div className="w-48 h-48 rounded-full border-4 border-white/40 bg-white relative overflow-hidden">
+              <div 
+                className="w-48 h-48 rounded-full border-4 bg-white relative overflow-hidden transition-all duration-300"
+                style={{
+                  borderColor: gameLogic.getCurrentColorString() === 'rgb(255, 255, 255)' 
+                    ? 'rgba(0, 0, 0, 0.6)' 
+                    : 'rgba(255, 255, 255, 0.4)'
+                }}
+              >
                 {/* Fill progress with mixed color */}
                 <div
                   className="absolute bottom-0 left-0 right-0 transition-all duration-500 ease-out"
