@@ -18,118 +18,81 @@ export default function InstructionsModal({ open, onOpenChange, game }: Instruct
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6 p-4">
-          {/* Game Overview */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-white/40">
-            <div className="flex items-center mb-4">
-              <Target className="w-8 h-8 text-purple-600 mr-3" />
-              <h3 className="text-xl font-bold text-gray-900">Objective</h3>
-            </div>
-            <p className="text-gray-700 leading-relaxed">
-              Mix colors to match the target color shown at the top of the screen. 
-              Use the five color buttons (blue, red, yellow, white, black) to create the perfect blend.
-            </p>
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-semibold mb-2 flex items-center gap-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              Goal
+            </h3>
+            <p className="text-gray-600">Mix colors to match the target background color exactly. Fill the center circle completely to advance levels!</p>
+          </div>
+          
+          <div>
+            <h3 className="font-semibold mb-2 flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              How to Play
+            </h3>
+            <ul className="text-gray-600 space-y-1">
+              <li>• Tap color buttons to fill the center circle progressively</li>
+              <li>• Each level requires a specific number of color clicks</li>
+              <li>• The circle fills from bottom to top as you mix</li>
+              <li>• Match the exact background color to complete the level</li>
+              <li>• Wrong guesses restart the same target - no heart lost!</li>
+              <li>• Only lose hearts when you run out of attempts</li>
+            </ul>
           </div>
 
-          {/* How to Play */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-white/40">
-            <div className="flex items-center mb-4">
-              <Palette className="w-8 h-8 text-blue-600 mr-3" />
-              <h3 className="text-xl font-bold text-gray-900">How to Play</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <p className="text-gray-700">Tap color buttons to add them to your mix</p>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <p className="text-gray-700">Watch your current mix change in real-time</p>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <p className="text-gray-700">You have limited mixing attempts per level</p>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <p className="text-gray-700">Match the target color exactly to advance</p>
-              </div>
-            </div>
+          <div>
+            <h3 className="font-semibold mb-2 flex items-center gap-2">
+              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              Advanced Color Mixing
+            </h3>
+            <ul className="text-gray-600 space-y-1">
+              <li>• Blue + Yellow automatically creates Green</li>
+              <li>• Red + White = Pink/Light Red tones</li>
+              <li>• Multiple colors create complex blends</li>
+              <li>• White lightens any color significantly</li>
+              <li>• Black darkens and creates rich tones</li>
+              <li>• Order doesn't matter - only the final combination</li>
+            </ul>
           </div>
 
-          {/* Hearts System */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-white/40">
-            <div className="flex items-center mb-4">
-              <Heart className="w-8 h-8 text-red-500 mr-3" />
-              <h3 className="text-xl font-bold text-gray-900">Hearts & Lives</h3>
-            </div>
-            <div className="space-y-3">
-              <p className="text-gray-700">
-                You start with 3 hearts. Lose a heart when you fail a level.
-              </p>
-              <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-lg p-3 border border-yellow-300">
-                <p className="text-orange-800 font-medium">
-                  💡 <strong>Bonus Hearts:</strong> Complete levels with extra moves remaining to earn bonus hearts!
-                </p>
-              </div>
-              <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg p-3 border border-green-300">
-                <p className="text-green-800 font-medium">
-                  🎯 <strong>Heart Milestones:</strong> Earn an extra heart every 10 levels you complete!
-                </p>
-              </div>
-            </div>
+          <div>
+            <h3 className="font-semibold mb-2 flex items-center gap-2">
+              <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+              Visual Cues
+            </h3>
+            <ul className="text-gray-600 space-y-1">
+              <li>• White target backgrounds show black circle outline</li>
+              <li>• Circle border disappears on successful completion</li>
+              <li>• Bubble explosions celebrate correct matches</li>
+              <li>• Progress indicator shows color clicks in real-time</li>
+              <li>• Background music and haptic feedback enhance gameplay</li>
+            </ul>
           </div>
 
-          {/* Scoring & Streaks */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-white/40">
-            <div className="flex items-center mb-4">
-              <Zap className="w-8 h-8 text-purple-600 mr-3" />
-              <h3 className="text-xl font-bold text-gray-900">Streaks & Rewards</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <p className="text-gray-700">Build streaks by completing consecutive levels</p>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <p className="text-gray-700">Every 10th level rewards you with a bonus heart</p>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <p className="text-gray-700">Levels get progressively more challenging</p>
-              </div>
-            </div>
+          <div>
+            <h3 className="font-semibold mb-2 flex items-center gap-2">
+              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              Hearts & Progression
+            </h3>
+            <ul className="text-gray-600 space-y-1">
+              <li>• Start with 3 hearts per game</li>
+              <li>• Lose 1 heart only when completely out of attempts</li>
+              <li>• Gain bonus hearts every 10 levels</li>
+              <li>• Levels get progressively harder with more color clicks</li>
+              <li>• Game ends when hearts reach 0</li>
+            </ul>
           </div>
+        </div>
 
-          {/* Tips & Tricks */}
-          <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl p-6 border border-green-300">
-            <div className="flex items-center mb-4">
-              <Trophy className="w-8 h-8 text-green-600 mr-3" />
-              <h3 className="text-xl font-bold text-gray-900">Pro Tips</h3>
-            </div>
-            <div className="space-y-2">
-              <p className="text-green-800">
-                <strong>Start Light:</strong> Begin with lighter colors and gradually add darker ones
-              </p>
-              <p className="text-green-800">
-                <strong>Small Steps:</strong> Make incremental changes rather than big jumps
-              </p>
-              <p className="text-green-800">
-                <strong>Study Patterns:</strong> Learn how different color combinations affect the result
-              </p>
-            </div>
-          </div>
-
-          {/* Action Button */}
-          <div className="text-center pt-4">
-            <Button
-              onClick={() => onOpenChange(false)}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
-            >
-              Start Playing!
-            </Button>
-          </div>
+        <div className="flex justify-center pt-6">
+          <Button 
+            onClick={() => onOpenChange(false)}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-2 rounded-xl font-semibold shadow-lg transform hover:scale-105 transition-all duration-200"
+          >
+            Start Playing!
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
