@@ -23,6 +23,7 @@ export default function ColorMerge() {
   const [allIncorrectGuesses, setAllIncorrectGuesses] = useState<Array<{guess: string[], correct: string[], level: number}>>([]);
   const [enhancedHaptics, setEnhancedHaptics] = useState(false);
   const [bubbles, setBubbles] = useState<Array<{id: string, x: number, y: number, size: number, color: string, delay: number, type: 'primary' | 'secondary'}>>([]);
+  const [finalLevelReached, setFinalLevelReached] = useState(1);
   const { stats, updateStats } = useGameStats("colormerge");
   const { toast } = useToast();
 
@@ -197,6 +198,9 @@ export default function ColorMerge() {
       triggerHaptic('heavy');
       const finalLevel = gameState.currentLevel; // The level they reached before running out of hearts
       const currentBest = (stats as any)?.bestLevel || 0;
+      
+      // Store the final level reached for the modal
+      setFinalLevelReached(finalLevel);
       
       // Update all-time best only if current level is higher
       updateStats({
@@ -635,7 +639,7 @@ export default function ColorMerge() {
       <GameOverModal
         open={showGameOver}
         onOpenChange={setShowGameOver}
-        finalLevel={Math.max(1, gameState.currentLevel)}
+        finalLevel={finalLevelReached}
         bestLevel={(stats as any)?.bestLevel || 0}
         incorrectGuesses={allIncorrectGuesses}
         onPlayAgain={handleNewGame}

@@ -27,8 +27,34 @@ const ColorPieChart = ({ colors, size = 60 }: { colors: string[]; size?: number 
   }, {} as Record<string, number>);
 
   const total = colors.length;
-  let currentAngle = 0;
+  
+  // If only one color, show a solid circle
+  if (Object.keys(colorCounts).length === 1) {
+    const [singleColor] = Object.keys(colorCounts);
+    return (
+      <div className="flex flex-col items-center">
+        <div 
+          className="rounded-full drop-shadow-lg border-2 border-white" 
+          style={{ 
+            width: size, 
+            height: size, 
+            backgroundColor: singleColor 
+          }}
+        />
+        <div className="mt-1 flex justify-center">
+          <div className="flex items-center text-xs bg-black/10 rounded px-1">
+            <div 
+              className="w-2 h-2 rounded-full mr-1" 
+              style={{ backgroundColor: singleColor }}
+            />
+            <span className="text-gray-700">{colorCounts[singleColor]}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
+  let currentAngle = 0;
   const segments = Object.entries(colorCounts).map(([color, count]) => {
     const percentage = count / total;
     const angle = percentage * 360;
