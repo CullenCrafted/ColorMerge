@@ -324,12 +324,11 @@ export default function ColorMerge() {
           const isPrimary = bubble.type === 'primary';
           const animationName = isPrimary ? 'bubble-swoop' : 'bubble-explode';
           const duration = isPrimary ? '2500ms' : '1800ms';
-          const easing = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'; // Smooth natural easing
           
           return (
             <div
               key={bubble.id}
-              className={`absolute rounded-full animate-[${animationName}_${duration}_${easing}_forwards]`}
+              className={`absolute rounded-full`}
               style={{
                 left: '50%',
                 top: '50%',
@@ -339,15 +338,11 @@ export default function ColorMerge() {
                 border: '1px solid rgba(255,255,255,0.1)',
                 '--bubble-x': `${bubble.x}px`,
                 '--bubble-y': `${bubble.y}px`,
-                ...(isPrimary ? {} : {
-                  '--explode-x': `${bubble.x}px`,
-                  '--explode-y': `${bubble.y}px`,
-                }),
-                animationDelay: `${bubble.delay}ms`,
                 marginLeft: `-${bubble.size/2}px`,
                 marginTop: `-${bubble.size/2}px`,
                 boxShadow: `0 0 8px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.3)`,
-                willChange: 'transform, opacity, filter',
+                animation: `${animationName} ${duration} cubic-bezier(0.25, 0.46, 0.45, 0.94) ${bubble.delay}ms forwards`,
+                willChange: 'transform, opacity',
               } as React.CSSProperties}
             />
           );

@@ -359,11 +359,11 @@
     opacity: 0.8;
   }
   50% {
-    transform: scale(0.6) translate(calc(var(--explode-x) * 0.5), calc(var(--explode-y) * 0.5));
+    transform: scale(0.6) translate(calc(var(--bubble-x) * 0.5), calc(var(--bubble-y) * 0.5));
     opacity: 0.6;
   }
   100% {
-    transform: scale(0.2) translate(var(--explode-x), var(--explode-y));
+    transform: scale(0.2) translate(var(--bubble-x), var(--bubble-y));
     opacity: 0;
   }
 }
