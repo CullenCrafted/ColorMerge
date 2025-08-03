@@ -41,6 +41,8 @@ export class ColorMergeLogic {
       currentLevel: initialLevel,
     };
     this.generateNewTarget();
+    // Reset current color to white after generating target
+    this.state.currentColor = { r: 255, g: 255, b: 255 };
   }
 
   public getState(): ColorMergeState {
@@ -70,9 +72,10 @@ export class ColorMergeLogic {
 
     this.state.targetColor = simulatedColor;
     this.state.recipe = recipe;
-    this.state.currentColor = { r: 255, g: 255, b: 255 };
+    this.state.currentColor = { r: 255, g: 255, b: 255 }; // Always start mixing from white
     this.state.mixCount = 0;
     this.state.chosenColors = [];
+    this.state.colorClicks = { red: 0, yellow: 0, blue: 0, white: 0, black: 0 }; // Reset clicks
     this.state.colorClicks = { red: 0, yellow: 0, blue: 0, white: 0, black: 0 };
   }
 

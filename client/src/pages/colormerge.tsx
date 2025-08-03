@@ -111,24 +111,17 @@ export default function ColorMerge() {
       triggerHaptic('heavy');
       setShowSuccessFlash(true);
       
-      // CRITICAL: Store the EXACT matched background color BEFORE advancing level
-      const backgroundElement = document.querySelector('.color-display-center');
-      const computedStyle = backgroundElement ? window.getComputedStyle(backgroundElement) : null;
-      const exactMatchedBackgroundColor = computedStyle ? computedStyle.backgroundColor : gameLogic.getCurrentColorString();
-      
+      // CRITICAL: Store the EXACT matched background color BEFORE any changes
+      const exactMatchedBackgroundColor = gameLogic.getCurrentColorString();
       console.log('EXACT matched background color for bubbles:', exactMatchedBackgroundColor);
       
       // Store current state before advancing
-      const prevHearts = gameLogic.getState().hearts;
+      const currentLevelState = gameLogic.getState();
+      const prevHearts = currentLevelState.hearts;
       
-      // NOW advance to next level for stats tracking
-      gameLogic.nextLevel();
-      const nextLevelState = gameLogic.getState();
-      
-      // Bubbles will ONLY EVER be this exact matched background color
+      // Create bubble explosion with the EXACT matched color
       const bubbleColor = exactMatchedBackgroundColor;
       
-      // Create bubble explosion
       const primaryBubbles = Array.from({ length: 12 }, (_, i) => {
         const angle = (i / 12) * 2 * Math.PI + Math.random() * 0.3;
         const distance = 400 + Math.random() * 300;
@@ -157,12 +150,14 @@ export default function ColorMerge() {
         };
       });
       
-      // WAIT 1 SECOND before updating the UI state and starting celebration
+      // WAIT 1 SECOND before advancing level and starting celebration
       setTimeout(() => {
-        // Now update the UI state to show the new level
+        // NOW advance to next level AFTER showing the matched result
+        gameLogic.nextLevel();
+        const nextLevelState = gameLogic.getState();
         setGameState(nextLevelState);
         
-        // Start bubble explosion after the matched background has been displayed
+        // Start bubble explosion
         setBubbles([...primaryBubbles, ...secondaryBubbles]);
         setShowSuccessFlash(false);
         
@@ -178,15 +173,17 @@ export default function ColorMerge() {
         
         // Clear bubbles after animations
         setTimeout(() => setBubbles([]), 3000);
+        
+        // Update stats with the NEW level state
+        updateStats({
+          currentLevel: nextLevelState.currentLevel,
+          bestLevel: Math.max((stats as any)?.bestLevel || 0, nextLevelState.currentLevel),
+          hearts: nextLevelState.hearts,
+          totalPlays: ((stats as any)?.totalPlays || 0) + 1,
+        });
       }, 1000); // 1 second to see the successful match
 
-      // Update stats with the advanced level state
-      updateStats({
-        currentLevel: nextLevelState.currentLevel,
-        bestLevel: Math.max((stats as any)?.bestLevel || 0, nextLevelState.currentLevel),
-        hearts: nextLevelState.hearts,
-        totalPlays: ((stats as any)?.totalPlays || 0) + 1,
-      });
+
 
       if (result.bonusHeart) {
         toast({
@@ -376,7 +373,7 @@ export default function ColorMerge() {
               className={`absolute w-2 h-2 rounded-full transition-all duration-500 ${
                 showSuccessFlash 
                   ? 'bg-yellow-300/80 w-3 h-3 animate-bounce' 
-                  : 'bg-white/20 animate-bounce-gentle'
+                  : 'bg-transparent'
               }`}
               style={{
                 left: `${20 + i * 15}%`,
