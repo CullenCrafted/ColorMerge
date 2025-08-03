@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { HelpCircle, RotateCcw, Pause, Volume2, VolumeX, Trophy, Heart, Zap } from "lucide-react";
 import { ColorMergeLogic } from "@/lib/colormerge-logic";
+import { useAudio } from "@/hooks/use-audio";
 import { useGameStats } from "@/hooks/use-game-stats";
 import { useToast } from "@/hooks/use-toast";
 import InstructionsModal from "@/components/instructions-modal";
@@ -26,6 +27,7 @@ export default function ColorMerge() {
   const [finalLevelReached, setFinalLevelReached] = useState(1);
   const { stats, updateStats } = useGameStats("colormerge");
   const { toast } = useToast();
+  const { playBubbleSound, initializeAudio } = useAudio();
 
   // Haptic feedback function
   const triggerHaptic = (type: 'light' | 'medium' | 'heavy' = 'light') => {
@@ -65,6 +67,11 @@ export default function ColorMerge() {
       setGameState(newLogic.getState());
     }
   }, [stats]);
+
+  // Initialize audio on component mount
+  useEffect(() => {
+    initializeAudio();
+  }, [initializeAudio]);
 
   // Trigger haptic feedback when level changes
   useEffect(() => {
@@ -154,9 +161,20 @@ export default function ColorMerge() {
         const nextState = gameLogic.getState();
         setGameState(nextState);
         
-        // Start bubble explosion
+        // Start bubble explosion with audio and enhanced vibration
         setBubbles([...primaryBubbles, ...secondaryBubbles]);
         setShowSuccessFlash(false);
+        
+        // Play bubble sound
+        if (soundEnabled) {
+          playBubbleSound();
+        }
+        
+        // Enhanced vibration for bubble explosion
+        if ('vibrate' in navigator) {
+          // Multiple vibration bursts for bubble explosion effect
+          navigator.vibrate([100, 50, 100, 50, 150]);
+        }
         
         // Check for heart bonus
         if (nextState.hearts > prevHearts) {
