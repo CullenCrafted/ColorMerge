@@ -155,7 +155,7 @@ export default function GameOverModal({
           {incorrectGuesses.length > 0 && (
             <div className="border-t border-gray-200 pt-4">
               <h3 className="text-lg font-bold text-gray-900 mb-3">Recent Mistakes</h3>
-              <div className="max-h-48 overflow-y-auto bg-white/30 rounded-xl p-3">
+              <div className="max-h-48 overflow-y-auto bg-white/30 rounded-xl p-3 overscroll-contain touch-pan-y">
                 <div className="grid grid-cols-1 gap-3">
                   {incorrectGuesses.slice(-3).map((mistake, index) => (
                     <div key={index} className="bg-white/50 rounded-lg p-2">

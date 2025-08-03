@@ -130,7 +130,7 @@ export default function ColorMerge() {
             });
           }
         }, 100); // Small buffer to prevent stutter
-      }, 1300); // Reduced timing for smoother flow
+      }, 2500); // Extended duration for longer green flash and matched center display
 
       // Update stats with current level and all-time best
       updateStats({
@@ -260,8 +260,8 @@ export default function ColorMerge() {
         }}
       />
       
-      <div className={`h-screen flex flex-col relative z-10 overflow-hidden transition-all duration-300 isolate-layer ${
-        showSuccessFlash ? 'ring-8 ring-green-400/50' : showHeartLoss ? 'ring-8 ring-red-500/50' : ''
+      <div className={`h-screen flex flex-col relative z-10 overflow-hidden transition-all isolate-layer ${
+        showSuccessFlash ? 'ring-8 ring-green-400/50 animate-[fade-green-flash_2500ms_ease-out_forwards]' : showHeartLoss ? 'ring-8 ring-red-500/50' : ''
       }`}>
         {/* Floating Particles */}
         <div className="absolute inset-0 pointer-events-none z-0">
