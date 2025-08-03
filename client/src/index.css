@@ -336,38 +336,46 @@
   }
 }
 
-/* Bubble burst and fade animation - explosive spread */
+/* Smooth bubble burst animation - exits screen in all directions */
 @keyframes bubble-burst {
   0% {
     transform: scale(0) translate(0, 0);
     opacity: 0;
   }
-  5% {
-    transform: scale(1.5) translate(0, 0);
+  8% {
+    transform: scale(1.4) translate(0, 0);
     opacity: 1;
   }
-  15% {
-    transform: scale(1.2) translate(calc(var(--bubble-x) * 0.3), calc(var(--bubble-y) * 0.3));
+  12% {
+    transform: scale(1.1) translate(calc(var(--bubble-x) * 0.1), calc(var(--bubble-y) * 0.1));
+    opacity: 0.98;
+  }
+  20% {
+    transform: scale(1) translate(calc(var(--bubble-x) * 0.25), calc(var(--bubble-y) * 0.25));
     opacity: 0.95;
   }
-  30% {
-    transform: scale(1) translate(calc(var(--bubble-x) * 0.8), calc(var(--bubble-y) * 0.8));
+  35% {
+    transform: scale(0.9) translate(calc(var(--bubble-x) * 0.5), calc(var(--bubble-y) * 0.5));
     opacity: 0.9;
   }
   50% {
-    transform: scale(0.8) translate(calc(var(--bubble-x) * 1.2), calc(var(--bubble-y) * 1.2));
-    opacity: 0.7;
+    transform: scale(0.8) translate(calc(var(--bubble-x) * 0.75), calc(var(--bubble-y) * 0.75));
+    opacity: 0.8;
   }
-  70% {
-    transform: scale(0.6) translate(calc(var(--bubble-x) * 1.5), calc(var(--bubble-y) * 1.5));
-    opacity: 0.5;
+  65% {
+    transform: scale(0.7) translate(calc(var(--bubble-x) * 0.9), calc(var(--bubble-y) * 0.9));
+    opacity: 0.6;
   }
-  85% {
-    transform: scale(0.4) translate(calc(var(--bubble-x) * 1.8), calc(var(--bubble-y) * 1.8));
-    opacity: 0.3;
+  80% {
+    transform: scale(0.5) translate(calc(var(--bubble-x) * 1), calc(var(--bubble-y) * 1));
+    opacity: 0.4;
+  }
+  95% {
+    transform: scale(0.3) translate(calc(var(--bubble-x) * 1.1), calc(var(--bubble-y) * 1.1));
+    opacity: 0.1;
   }
   100% {
-    transform: scale(0.1) translate(calc(var(--bubble-x) * 2), calc(var(--bubble-y) * 2));
+    transform: scale(0.1) translate(calc(var(--bubble-x) * 1.2), calc(var(--bubble-y) * 1.2));
     opacity: 0;
   }
 }

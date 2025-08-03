@@ -111,15 +111,20 @@ export default function ColorMerge() {
       setShowSuccessFlash(true);
       
       // Create bubble burst effect immediately
-      const matchedColor = gameLogic.getCurrentColorString(); // Use the actual matched color from center
-      const newBubbles = Array.from({ length: 15 }, (_, i) => ({
-        id: Date.now() + i,
-        x: Math.random() * 400 - 200, // -200 to 200px - much wider spread
-        y: Math.random() * 400 - 200, // -200 to 200px - much wider spread  
-        size: Math.random() * 40 + 20, // 20-60px - bigger bubbles
-        color: matchedColor, // Keep the matched color throughout animation
-        delay: Math.random() * 100 // 0-100ms delay for more synchronized burst
-      }));
+      const matchedColor = gameLogic.getCurrentColorString(); // The color that was successfully mixed
+      const newBubbles = Array.from({ length: 18 }, (_, i) => {
+        // Create circular spread pattern for more natural explosion
+        const angle = (i / 18) * 2 * Math.PI + Math.random() * 0.5; // Evenly distribute with some randomness
+        const distance = 300 + Math.random() * 200; // 300-500px spread to exit screen
+        return {
+          id: Date.now() + i,
+          x: Math.cos(angle) * distance,
+          y: Math.sin(angle) * distance,
+          size: Math.random() * 35 + 25, // 25-60px bubbles
+          color: matchedColor, // Keep the exact matched color throughout entire lifecycle
+          delay: Math.random() * 150 // 0-150ms staggered start
+        };
+      });
       setBubbles(newBubbles);
       
       // Quick green flash, then transition
@@ -143,7 +148,7 @@ export default function ColorMerge() {
         }
         
         // Clear bubbles after animation completes
-        setTimeout(() => setBubbles([]), 3000);
+        setTimeout(() => setBubbles([]), 4000);
       }, 400); // Quick green flash
 
       // Update stats with current level and all-time best
@@ -281,13 +286,14 @@ export default function ColorMerge() {
         {bubbles.map((bubble) => (
           <div
             key={bubble.id}
-            className="absolute rounded-full animate-[bubble-burst_3000ms_ease-out_forwards]"
+            className="absolute rounded-full animate-[bubble-burst_4000ms_cubic-bezier(0.25,0.46,0.45,0.94)_forwards] shadow-lg"
             style={{
               left: '50%',
               top: '50%',
               width: `${bubble.size}px`,
               height: `${bubble.size}px`,
-              backgroundColor: bubble.color,
+              backgroundColor: bubble.color, // Maintains the matched color throughout animation
+              border: '2px solid rgba(255,255,255,0.3)',
               '--bubble-x': `${bubble.x}px`,
               '--bubble-y': `${bubble.y}px`,
               animationDelay: `${bubble.delay}ms`,
