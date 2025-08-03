@@ -22,6 +22,7 @@ export default function ColorMerge() {
   const [lastGuess, setLastGuess] = useState<string[]>([]);
   const [allIncorrectGuesses, setAllIncorrectGuesses] = useState<Array<{guess: string[], correct: string[], level: number}>>([]);
   const [enhancedHaptics, setEnhancedHaptics] = useState(false);
+  const [bubbles, setBubbles] = useState<Array<{id: number, x: number, y: number, size: number, color: string, delay: number}>>([]);
   const { stats, updateStats } = useGameStats("colormerge");
   const { toast } = useToast();
 
@@ -109,28 +110,41 @@ export default function ColorMerge() {
       triggerHaptic('heavy');
       setShowSuccessFlash(true);
       
-      // Smooth transition to next level
+      // Create bubble burst effect immediately
+      const currentColor = gameLogic.getTargetColorString();
+      const newBubbles = Array.from({ length: 12 }, (_, i) => ({
+        id: Date.now() + i,
+        x: Math.random() * 100 - 50, // -50 to 50
+        y: Math.random() * 100 - 50,
+        size: Math.random() * 30 + 15, // 15-45px
+        color: currentColor,
+        delay: Math.random() * 200 // 0-200ms delay
+      }));
+      setBubbles(newBubbles);
+      
+      // Quick green flash, then transition
       setTimeout(() => {
         setShowSuccessFlash(false);
         
-        // Small delay to ensure smooth transition
-        setTimeout(() => {
-          const prevHearts = gameLogic.getState().hearts;
-          gameLogic.nextLevel();
-          const nextState = gameLogic.getState();
-          setGameState(nextState);
-          
-          // Check if heart was gained during level progression
-          if (nextState.hearts > prevHearts) {
-            setShowHeartGain(true);
-            setTimeout(() => setShowHeartGain(false), 1000);
-            toast({
-              title: "Bonus Heart!",
-              description: "Level 10 milestone reached!",
-            });
-          }
-        }, 100); // Small buffer to prevent stutter
-      }, 2500); // Extended duration for longer green flash and matched center display
+        // Start next level immediately as background transitions
+        const prevHearts = gameLogic.getState().hearts;
+        gameLogic.nextLevel();
+        const nextState = gameLogic.getState();
+        setGameState(nextState);
+        
+        // Check if heart was gained during level progression
+        if (nextState.hearts > prevHearts) {
+          setShowHeartGain(true);
+          setTimeout(() => setShowHeartGain(false), 1000);
+          toast({
+            title: "Bonus Heart!",
+            description: "Level 10 milestone reached!",
+          });
+        }
+        
+        // Clear bubbles after animation completes
+        setTimeout(() => setBubbles([]), 3000);
+      }, 400); // Quick green flash
 
       // Update stats with current level and all-time best
       updateStats({
@@ -252,15 +266,37 @@ export default function ColorMerge() {
 
   return (
     <>
-      {/* Full Background with Target Color - Smooth transition with celebration */}
+      {/* Full Background with Target Color - Quick transition */}
       <div 
         className={`fixed inset-0 transition-all duration-700 ease-in-out ${
-          showSuccessFlash ? 'animate-[celebrate-success_2500ms_ease-out_forwards]' : ''
+          showSuccessFlash ? 'animate-[celebrate-success_400ms_ease-out_forwards]' : ''
         }`}
         style={{ 
           backgroundColor: gameLogic.getTargetColorString()
         }}
       />
+      
+      {/* Bubble Burst Animation Layer */}
+      <div className="fixed inset-0 pointer-events-none z-30">
+        {bubbles.map((bubble) => (
+          <div
+            key={bubble.id}
+            className="absolute rounded-full animate-[bubble-burst_3000ms_ease-out_forwards]"
+            style={{
+              left: '50%',
+              top: '50%',
+              width: `${bubble.size}px`,
+              height: `${bubble.size}px`,
+              backgroundColor: bubble.color,
+              '--bubble-x': `${bubble.x}px`,
+              '--bubble-y': `${bubble.y}px`,
+              animationDelay: `${bubble.delay}ms`,
+              marginLeft: `-${bubble.size/2}px`,
+              marginTop: `-${bubble.size/2}px`,
+            } as React.CSSProperties}
+          />
+        ))}
+      </div>
       
       <div className={`h-screen flex flex-col relative z-10 overflow-hidden transition-all duration-300 isolate-layer ${
         showSuccessFlash ? 'ring-8 ring-green-400/50' : showHeartLoss ? 'ring-8 ring-red-500/50' : ''
@@ -431,26 +467,25 @@ export default function ColorMerge() {
               <div
                 className={`w-48 h-48 rounded-full transition-all ease-out ${
                   showSuccessFlash 
-                    ? 'duration-700' 
+                    ? 'duration-300 animate-pulse' 
                     : showHeartLoss 
                       ? 'duration-300 scale-50 opacity-60' 
                       : 'duration-200 scale-100 opacity-100'
                 }`}
                 style={{ 
                   backgroundColor: showSuccessFlash 
-                    ? gameLogic.getTargetColorString() // First become target color
+                    ? gameLogic.getTargetColorString() // Show target color briefly before bursting
                     : gameLogic.getCurrentColorString(),
-                  opacity: showSuccessFlash ? 0 : 1, // Then fade to completely transparent
-                  transform: showSuccessFlash ? 'scale(1.05)' : 'scale(1)'
+                  opacity: showSuccessFlash ? 0.8 : 1, // Stay visible longer before fading
+                  transform: showSuccessFlash ? 'scale(1.1)' : 'scale(1)' // Slight expansion before burst
                 }}
               />
-              {/* New white circle that appears from center after complete blend */}
-              {showSuccessFlash && (
+              {/* New white circle that appears after bubble animation */}
+              {!showSuccessFlash && gameState.colorClicks.blue === 0 && gameState.colorClicks.red === 0 && gameState.colorClicks.yellow === 0 && gameState.colorClicks.white === 0 && gameState.colorClicks.black === 0 && (
                 <div
-                  className="absolute top-1/2 left-1/2 w-48 h-48 rounded-full transform -translate-x-1/2 -translate-y-1/2 bg-white opacity-0"
+                  className="absolute top-1/2 left-1/2 w-48 h-48 rounded-full transform -translate-x-1/2 -translate-y-1/2 bg-white opacity-0 animate-[smooth-appear_400ms_ease-out_forwards] border-4 border-white/20"
                   style={{ 
-                    animation: 'smooth-appear 600ms ease-out forwards',
-                    animationDelay: '700ms'
+                    animationDelay: '600ms'
                   }}
                 />
               )}
