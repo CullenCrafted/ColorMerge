@@ -526,11 +526,8 @@ export default function ColorMerge() {
                 </div>
               )}
               {showHeartGain && (
-                <div 
-                  className="absolute top-16 left-1/2"
-                  style={{ animation: 'floatingHeart 1s ease-out forwards' }}
-                >
-                  <Heart className="w-8 h-8 text-green-500 fill-current drop-shadow-lg" />
+                <div className="absolute top-16 left-1/2 transform -translate-x-1/2 animate-bounce">
+                  <span className="text-xl text-green-500 font-bold drop-shadow-lg bg-black/50 rounded-full px-2 py-1">+1</span>
                 </div>
               )}
             </div>
@@ -552,9 +549,11 @@ export default function ColorMerge() {
                 style={{
                   borderColor: showSuccessFlash 
                     ? 'transparent'
-                    : gameLogic.getCurrentColorString() === 'rgb(255, 255, 255)'
-                      ? 'rgba(0, 0, 0, 0.6)' 
-                      : 'rgba(255, 255, 255, 0.4)'
+                    : gameState.mixCount === 0
+                      ? 'rgba(255, 255, 255, 0.4)'
+                      : gameLogic.getCurrentColorString() === 'rgb(255, 255, 255)'
+                        ? 'rgba(0, 0, 0, 0.6)' 
+                        : 'rgba(255, 255, 255, 0.4)'
                 }}
               >
                 {/* Fill progress with mixed color */}
