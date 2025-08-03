@@ -522,7 +522,7 @@ export default function ColorMerge() {
               }`}>{gameState.hearts}</span>
               {showHeartLoss && (
                 <div className="absolute top-16 left-1/2 transform -translate-x-1/2 animate-bounce">
-                  <span className="text-xl text-red-500 font-bold drop-shadow-lg bg-black/50 rounded-full px-2 py-1">-1</span>
+                  <span className="text-xl text-green-500 font-bold drop-shadow-lg bg-black/50 rounded-full px-2 py-1">-1</span>
                 </div>
               )}
               {showHeartGain && (
