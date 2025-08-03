@@ -548,10 +548,11 @@ export default function ColorMerge() {
               <div 
                 className="w-48 h-48 rounded-full bg-white relative overflow-hidden transition-all duration-300"
                 style={{
-                  border: showSuccessFlash ? 'none' : '4px solid',
-                  borderColor: gameLogic.getCurrentColorString() === 'rgb(255, 255, 255)' && gameState.mixCount === gameState.maxMixes
-                    ? 'rgba(0, 0, 0, 0.6)' 
-                    : 'rgba(255, 255, 255, 0.4)'
+                  border: showSuccessFlash 
+                    ? 'none' 
+                    : gameLogic.getCurrentColorString() === 'rgb(255, 255, 255)' && gameState.mixCount === gameState.maxMixes
+                      ? '4px solid rgba(0, 0, 0, 0.6)' 
+                      : '4px solid rgba(255, 255, 255, 0.4)'
                 }}
               >
                 {/* Fill progress with mixed color */}
