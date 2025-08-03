@@ -252,28 +252,34 @@ export default function ColorMerge() {
 
   return (
     <>
-      {/* Full Background with Target Color - Smooth transition */}
+      {/* Full Background with Target Color - Smooth transition with celebration */}
       <div 
-        className="fixed inset-0 transition-all duration-700 ease-in-out"
+        className={`fixed inset-0 transition-all duration-700 ease-in-out ${
+          showSuccessFlash ? 'animate-[celebrate-success_2500ms_ease-out_forwards]' : ''
+        }`}
         style={{ 
           backgroundColor: gameLogic.getTargetColorString()
         }}
       />
       
-      <div className={`h-screen flex flex-col relative z-10 overflow-hidden transition-all isolate-layer ${
-        showSuccessFlash ? 'ring-8 ring-green-400/50 animate-[fade-green-flash_2500ms_ease-out_forwards]' : showHeartLoss ? 'ring-8 ring-red-500/50' : ''
+      <div className={`h-screen flex flex-col relative z-10 overflow-hidden transition-all duration-300 isolate-layer ${
+        showSuccessFlash ? 'ring-8 ring-green-400/50' : showHeartLoss ? 'ring-8 ring-red-500/50' : ''
       }`}>
-        {/* Floating Particles */}
+        {/* Floating Particles with Success Celebration */}
         <div className="absolute inset-0 pointer-events-none z-0">
           {Array.from({ length: 6 }, (_, i) => (
             <div
               key={i}
-              className="absolute w-2 h-2 bg-white/20 rounded-full animate-bounce-gentle"
+              className={`absolute w-2 h-2 rounded-full transition-all duration-500 ${
+                showSuccessFlash 
+                  ? 'bg-yellow-300/80 w-3 h-3 animate-bounce' 
+                  : 'bg-white/20 animate-bounce-gentle'
+              }`}
               style={{
                 left: `${20 + i * 15}%`,
                 top: `${10 + (i % 3) * 30}%`,
                 animationDelay: `${i * 0.5}s`,
-                animationDuration: `${3 + i * 0.5}s`
+                animationDuration: showSuccessFlash ? `${0.8 + i * 0.2}s` : `${3 + i * 0.5}s`
               }}
             />
           ))}

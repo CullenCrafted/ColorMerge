@@ -320,23 +320,51 @@
   }
 }
 
-/* Green flash fade-out animation */
-@keyframes fade-green-flash {
+/* Success celebration background animation */
+@keyframes celebrate-success {
   0% {
-    opacity: 0.9;
-    background-color: rgb(34, 197, 94, 0.9);
+    transform: scale(1);
+    filter: brightness(1) saturate(1);
   }
-  70% {
-    opacity: 0.7;
-    background-color: rgb(34, 197, 94, 0.7);
+  15% {
+    transform: scale(1.02);
+    filter: brightness(1.2) saturate(1.3);
+  }
+  30% {
+    transform: scale(1.01);
+    filter: brightness(1.1) saturate(1.2);
+  }
+  60% {
+    transform: scale(1.005);
+    filter: brightness(1.05) saturate(1.1);
   }
   85% {
-    opacity: 0.4;
-    background-color: rgb(34, 197, 94, 0.4);
+    transform: scale(1);
+    filter: brightness(1) saturate(1);
   }
   100% {
-    opacity: 0;
-    background-color: rgb(34, 197, 94, 0);
+    transform: scale(1);
+    filter: brightness(1) saturate(1);
+  }
+}
+
+/* Enhanced bounce for celebration particles */
+@keyframes bounce-celebration {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.8;
+  }
+  25% {
+    transform: translateY(-15px) scale(1.2);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-25px) scale(1.1);
+    opacity: 0.9;
+  }
+  75% {
+    transform: translateY(-10px) scale(1.05);
+    opacity: 0.95;
   }
 }
 
