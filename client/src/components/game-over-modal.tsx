@@ -94,11 +94,10 @@ export default function GameOverModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <DialogContent className="max-w-md w-full bg-gradient-to-br from-purple-500/30 via-pink-500/30 to-orange-500/30 backdrop-blur-xl border-0 shadow-2xl rounded-3xl transition-all duration-500 transform scale-100 relative">
+      <DialogContent className="max-w-md w-full bg-gradient-to-br from-purple-500/30 via-pink-500/30 to-orange-500/30 border-0 shadow-2xl rounded-3xl transition-all duration-500 transform scale-100 relative">
           <DialogTitle className="sr-only">Game Over</DialogTitle>
           <DialogDescription className="sr-only">Your game statistics and performance summary</DialogDescription>
-          <div className="text-center p-6 bg-white/85 backdrop-blur-sm rounded-2xl mx-2 my-2 flex flex-col border border-white/40">
+          <div className="text-center p-6 bg-white/85 rounded-2xl mx-2 my-2 flex flex-col border border-white/40">
           {/* Icon */}
           <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-red-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
             {isNewRecord ? (
@@ -115,12 +114,12 @@ export default function GameOverModal({
 
           {/* Stats */}
           <div className="space-y-3 mb-6">
-            <div className="bg-white/50 backdrop-blur-sm rounded-xl p-3">
+            <div className="bg-white/50  rounded-xl p-3">
               <div className="text-xl font-bold text-gray-900">{actualFinalLevel}</div>
               <div className="text-xs text-gray-600">Level Achieved</div>
             </div>
 
-            <div className="bg-white/50 backdrop-blur-sm rounded-xl p-3">
+            <div className="bg-white/50  rounded-xl p-3">
               <div className="text-lg font-bold text-yellow-600">{bestLevel}</div>
               <div className="text-xs text-gray-600">Personal Best</div>
             </div>
@@ -180,7 +179,6 @@ export default function GameOverModal({
           )}
           </div>
         </DialogContent>
-      </div>
     </Dialog>
   );
 }
