@@ -199,6 +199,10 @@ export class ColorMergeLogic {
     return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
   }
 
+  public isTargetWhite(): boolean {
+    return this.getTargetColorString() === 'rgb(255, 255, 255)';
+  }
+
   public getCurrentColorString(): string {
     const { r, g, b } = this.state.currentColor;
     return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
