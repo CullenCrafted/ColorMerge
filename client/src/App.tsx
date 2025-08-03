@@ -9,13 +9,22 @@ import AdScreen from "@/components/ad-screen";
 function App() {
   const [showAd, setShowAd] = useState(true);
 
+  const handleAdClose = () => {
+    setShowAd(false);
+    // Force a reflow to ensure any backdrop blur effects are cleared
+    document.body.style.transform = 'translateZ(0)';
+    setTimeout(() => {
+      document.body.style.transform = '';
+    }, 10);
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <div className="min-h-screen overflow-hidden">
           <Toaster />
           {showAd ? (
-            <AdScreen onClose={() => setShowAd(false)} />
+            <AdScreen onClose={handleAdClose} />
           ) : (
             <ColorMerge />
           )}

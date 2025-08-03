@@ -21,12 +21,12 @@ export default function AdScreen({ onClose }: AdScreenProps) {
   }, [countdown]);
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center z-[9999]">
       {/* Skip Button */}
       {canSkip && (
         <Button
           onClick={onClose}
-          className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border-2 border-white/20 hover:bg-white/20 transition-all duration-300"
+          className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 border-2 border-white/20 hover:bg-white/20 transition-all duration-300 z-[10000]"
           variant="ghost"
         >
           <X className="w-6 h-6 text-white" />
@@ -35,15 +35,15 @@ export default function AdScreen({ onClose }: AdScreenProps) {
 
       {/* Countdown Timer */}
       {!canSkip && (
-        <div className="absolute top-6 right-6 flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20">
+        <div className="absolute top-6 right-6 flex items-center space-x-2 bg-white/10 rounded-full px-4 py-2 border border-white/20 z-[10000]">
           <Clock className="w-5 h-5 text-white" />
           <span className="text-white font-medium">{countdown}s</span>
         </div>
       )}
 
       {/* Main Ad Content */}
-      <div className="max-w-md mx-4 text-center">
-        <Card className="bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl">
+      <div className="max-w-md mx-4 text-center z-[10000] relative">
+        <Card className="bg-white/5 border-white/20 shadow-2xl">
           <CardContent className="p-8">
             {/* Premium Game Ad */}
             <div className="mb-6">
@@ -100,7 +100,7 @@ export default function AdScreen({ onClose }: AdScreenProps) {
       </div>
 
       {/* Background Effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[9998]">
         <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-purple-500/20 to-transparent rounded-full blur-3xl animate-pulse-slow"></div>
         <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-blue-500/20 to-transparent rounded-full blur-3xl animate-pulse-slow"></div>
       </div>
