@@ -546,8 +546,9 @@ export default function ColorMerge() {
             <div className="relative">
               {/* Base circle starts white each round */}
               <div 
-                className="w-48 h-48 rounded-full border-4 bg-white relative overflow-hidden transition-all duration-300"
+                className="w-48 h-48 rounded-full bg-white relative overflow-hidden transition-all duration-300"
                 style={{
+                  border: showSuccessFlash ? 'none' : '4px solid',
                   borderColor: gameLogic.getCurrentColorString() === 'rgb(255, 255, 255)' && gameState.mixCount === gameState.maxMixes
                     ? 'rgba(0, 0, 0, 0.6)' 
                     : 'rgba(255, 255, 255, 0.4)'
