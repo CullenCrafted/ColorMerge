@@ -107,21 +107,16 @@ export default function ColorMerge() {
     }
 
     if (result.levelComplete) {
-      // SUCCESS - Store the matched color immediately
+      // SUCCESS - Store the matched color BEFORE any changes
       const exactMatchedColor = gameLogic.getCurrentColorString();
       console.log('EXACT matched background color for bubbles:', exactMatchedColor);
       
-      // Advance level immediately (like original game)
-      const prevHearts = gameLogic.getState().hearts;
-      gameLogic.nextLevel();
-      const nextState = gameLogic.getState();
-      
-      // Update UI state immediately (like original)
-      setGameState(nextState);
-      
-      // Success effects
+      // Success effects first
       triggerHaptic('heavy');
       setShowSuccessFlash(true);
+      
+      // Store hearts before advancing
+      const prevHearts = gameLogic.getState().hearts;
       
       // Create bubbles with the matched color
       const primaryBubbles = Array.from({ length: 12 }, (_, i) => {
@@ -152,32 +147,38 @@ export default function ColorMerge() {
         };
       });
       
-      // Short delay for visual appreciation then start bubbles (like original timing)
+      // Short delay for appreciation, then advance level and start celebration
       setTimeout(() => {
+        // NOW advance to next level
+        gameLogic.nextLevel();
+        const nextState = gameLogic.getState();
+        setGameState(nextState);
+        
+        // Start bubble explosion
         setBubbles([...primaryBubbles, ...secondaryBubbles]);
         setShowSuccessFlash(false);
         
+        // Check for heart bonus
+        if (nextState.hearts > prevHearts) {
+          setShowHeartGain(true);
+          setTimeout(() => setShowHeartGain(false), 1000);
+          toast({
+            title: "Bonus Heart!",
+            description: `Level ${nextState.currentLevel} milestone reached!`,
+          });
+        }
+        
+        // Update stats
+        updateStats({
+          currentLevel: nextState.currentLevel,
+          bestLevel: Math.max((stats as any)?.bestLevel || 0, nextState.currentLevel),
+          hearts: nextState.hearts,
+          totalPlays: ((stats as any)?.totalPlays || 0) + 1,
+        });
+        
         // Clear bubbles after animation
         setTimeout(() => setBubbles([]), 3000);
-      }, 500); // Shorter delay like original
-      
-      // Check for heart bonus
-      if (nextState.hearts > prevHearts) {
-        setShowHeartGain(true);
-        setTimeout(() => setShowHeartGain(false), 1000);
-        toast({
-          title: "Bonus Heart!",
-          description: `Level ${nextState.currentLevel} milestone reached!`,
-        });
-      }
-      
-      // Update stats
-      updateStats({
-        currentLevel: nextState.currentLevel,
-        bestLevel: Math.max((stats as any)?.bestLevel || 0, nextState.currentLevel),
-        hearts: nextState.hearts,
-        totalPlays: ((stats as any)?.totalPlays || 0) + 1,
-      });
+      }, 800); // Show matched result for 0.8 seconds
 
 
 
@@ -521,16 +522,34 @@ export default function ColorMerge() {
 
         {/* Main Game Area - Centered Mixing Circle */}
         <div className="flex-1 flex flex-col items-center justify-center relative z-20 pointer-events-auto">
-          {/* Current Mix Display - Circle that blends completely into background on success */}
+          {/* Current Mix Display - Circle with progressive filling */}
           <div className="text-center mb-8">
             <div className="relative">
-              <div
-                className="color-display-center w-48 h-48 rounded-full"
-                style={{ 
-                  backgroundColor: gameLogic.getCurrentColorString()
-                }}
-              />
-
+              {/* Base circle (empty) */}
+              <div className="w-48 h-48 rounded-full border-4 border-white/40 bg-white/10 backdrop-blur-sm relative overflow-hidden">
+                {/* Fill progress */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 transition-all duration-500 ease-out"
+                  style={{ 
+                    backgroundColor: gameLogic.getCurrentColorString(),
+                    height: `${(gameState.mixCount / gameState.maxMixes) * 100}%`,
+                    borderRadius: gameState.mixCount === gameState.maxMixes ? '100%' : '0 0 100% 100%'
+                  }}
+                />
+                {/* Center text showing remaining mixes */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span 
+                    className="text-2xl font-bold drop-shadow-lg"
+                    style={{ 
+                      color: gameState.mixCount > gameState.maxMixes / 2 
+                        ? getContrastTextColor(gameLogic.getCurrentColorString()) === 'text-white' ? 'white' : 'black'
+                        : 'white'
+                    }}
+                  >
+                    {gameLogic.getRemainingMixes()}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 

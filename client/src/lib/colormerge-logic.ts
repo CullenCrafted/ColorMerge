@@ -76,7 +76,6 @@ export class ColorMergeLogic {
     this.state.mixCount = 0;
     this.state.chosenColors = [];
     this.state.colorClicks = { red: 0, yellow: 0, blue: 0, white: 0, black: 0 }; // Reset clicks
-    this.state.colorClicks = { red: 0, yellow: 0, blue: 0, white: 0, black: 0 };
   }
 
   public addColor(color: string): { success: boolean; gameOver: boolean; levelComplete: boolean; bonusHeart: boolean } {
@@ -99,7 +98,7 @@ export class ColorMergeLogic {
     // Check for final match
     if (this.state.mixCount === this.state.maxMixes) {
       if (this.colorsMatch()) {
-        this.nextLevel();
+        // Don't call nextLevel here - let the UI handle it
         return { success: true, gameOver: false, levelComplete: true, bonusHeart: false };
       } else {
         this.state.hearts--;
@@ -131,20 +130,29 @@ export class ColorMergeLogic {
   }
 
   private getEffectiveColors(colors: string[]): string[] {
-    const yellowCount = colors.filter(c => c === 'yellow').length;
-    const blueCount = colors.filter(c => c === 'blue').length;
-    let effectiveColors = [...colors];
+    const colorCounts = colors.reduce((acc, color) => {
+      acc[color] = (acc[color] || 0) + 1;
+      return acc;
+    }, {} as { [key: string]: number });
 
+    const yellowCount = colorCounts.yellow || 0;
+    const blueCount = colorCounts.blue || 0;
+    
+    // Convert blue + yellow to green
     if (yellowCount > 0 && blueCount > 0) {
       const greenCount = Math.min(yellowCount, blueCount);
-      effectiveColors = effectiveColors.filter(c => 
-        (c !== 'yellow' || --effectiveColors.filter(ec => ec === 'yellow').length >= 0) && 
-        (c !== 'blue' || --effectiveColors.filter(ec => ec === 'blue').length >= 0)
-      );
-      for (let i = 0; i < greenCount; i++) {
-        effectiveColors.push('green');
-      }
+      colorCounts.yellow = yellowCount - greenCount;
+      colorCounts.blue = blueCount - greenCount;
+      colorCounts.green = (colorCounts.green || 0) + greenCount;
     }
+
+    // Convert back to array
+    const effectiveColors: string[] = [];
+    Object.entries(colorCounts).forEach(([color, count]) => {
+      for (let i = 0; i < count; i++) {
+        effectiveColors.push(color);
+      }
+    });
 
     return effectiveColors;
   }
@@ -193,29 +201,13 @@ export class ColorMergeLogic {
   }
 
   public getCurrentTargetColorArray(): string[] {
-    // Return the target color combination for the current level
-    let targetColors: string[] = [];
-    const level = this.state.currentLevel;
-    
-    // Simple algorithm to generate target colors based on level
-    if (level <= 3) {
-      const options = [['red'], ['blue'], ['yellow']];
-      targetColors = options[level - 1];
-    } else if (level <= 6) {
-      const options = [['red', 'blue'], ['yellow', 'blue'], ['red', 'yellow']];
-      targetColors = options[level - 4];
-    } else if (level <= 10) {
-      const options = [['red', 'blue', 'yellow'], ['red', 'red', 'blue'], ['yellow', 'yellow', 'blue'], ['red', 'yellow', 'white']];
-      targetColors = options[level - 7];
-    } else {
-      // More complex combinations for higher levels
-      const baseColors = ['red', 'blue', 'yellow', 'white', 'black'];
-      const numColors = Math.min(2 + Math.floor(level / 5), 5);
-      for (let i = 0; i < numColors; i++) {
-        targetColors.push(baseColors[i % baseColors.length]);
+    // Return the actual recipe used to generate the target
+    const targetColors: string[] = [];
+    Object.entries(this.state.recipe).forEach(([color, count]) => {
+      for (let i = 0; i < count; i++) {
+        targetColors.push(color);
       }
-    }
-    
+    });
     return targetColors;
   }
 }
