@@ -107,21 +107,23 @@ export default function ColorMerge() {
     }
 
     if (result.levelComplete) {
-      // Success haptic and flash
+      // SUCCESS - Store the matched color immediately
+      const exactMatchedColor = gameLogic.getCurrentColorString();
+      console.log('EXACT matched background color for bubbles:', exactMatchedColor);
+      
+      // Advance level immediately (like original game)
+      const prevHearts = gameLogic.getState().hearts;
+      gameLogic.nextLevel();
+      const nextState = gameLogic.getState();
+      
+      // Update UI state immediately (like original)
+      setGameState(nextState);
+      
+      // Success effects
       triggerHaptic('heavy');
       setShowSuccessFlash(true);
       
-      // CRITICAL: Store the EXACT matched background color BEFORE any changes
-      const exactMatchedBackgroundColor = gameLogic.getCurrentColorString();
-      console.log('EXACT matched background color for bubbles:', exactMatchedBackgroundColor);
-      
-      // Store current state before advancing
-      const currentLevelState = gameLogic.getState();
-      const prevHearts = currentLevelState.hearts;
-      
-      // Create bubble explosion with the EXACT matched color
-      const bubbleColor = exactMatchedBackgroundColor;
-      
+      // Create bubbles with the matched color
       const primaryBubbles = Array.from({ length: 12 }, (_, i) => {
         const angle = (i / 12) * 2 * Math.PI + Math.random() * 0.3;
         const distance = 400 + Math.random() * 300;
@@ -130,7 +132,7 @@ export default function ColorMerge() {
           x: Math.cos(angle) * distance,
           y: Math.sin(angle) * distance,
           size: Math.random() * 25 + 30,
-          color: bubbleColor,
+          color: exactMatchedColor,
           delay: Math.random() * 100,
           type: 'primary' as const
         };
@@ -144,44 +146,38 @@ export default function ColorMerge() {
           x: Math.cos(angle) * distance,
           y: Math.sin(angle) * distance,
           size: Math.random() * 15 + 15,
-          color: bubbleColor,
+          color: exactMatchedColor,
           delay: 200 + Math.random() * 150,
           type: 'secondary' as const
         };
       });
       
-      // WAIT 1 SECOND before advancing level and starting celebration
+      // Short delay for visual appreciation then start bubbles (like original timing)
       setTimeout(() => {
-        // NOW advance to next level AFTER showing the matched result
-        gameLogic.nextLevel();
-        const nextLevelState = gameLogic.getState();
-        setGameState(nextLevelState);
-        
-        // Start bubble explosion
         setBubbles([...primaryBubbles, ...secondaryBubbles]);
         setShowSuccessFlash(false);
         
-        // Check if heart was gained
-        if (nextLevelState.hearts > prevHearts) {
-          setShowHeartGain(true);
-          setTimeout(() => setShowHeartGain(false), 1000);
-          toast({
-            title: "Bonus Heart!",
-            description: `Level ${nextLevelState.currentLevel} milestone reached!`,
-          });
-        }
-        
-        // Clear bubbles after animations
+        // Clear bubbles after animation
         setTimeout(() => setBubbles([]), 3000);
-        
-        // Update stats with the NEW level state
-        updateStats({
-          currentLevel: nextLevelState.currentLevel,
-          bestLevel: Math.max((stats as any)?.bestLevel || 0, nextLevelState.currentLevel),
-          hearts: nextLevelState.hearts,
-          totalPlays: ((stats as any)?.totalPlays || 0) + 1,
+      }, 500); // Shorter delay like original
+      
+      // Check for heart bonus
+      if (nextState.hearts > prevHearts) {
+        setShowHeartGain(true);
+        setTimeout(() => setShowHeartGain(false), 1000);
+        toast({
+          title: "Bonus Heart!",
+          description: `Level ${nextState.currentLevel} milestone reached!`,
         });
-      }, 1000); // 1 second to see the successful match
+      }
+      
+      // Update stats
+      updateStats({
+        currentLevel: nextState.currentLevel,
+        bestLevel: Math.max((stats as any)?.bestLevel || 0, nextState.currentLevel),
+        hearts: nextState.hearts,
+        totalPlays: ((stats as any)?.totalPlays || 0) + 1,
+      });
 
 
 
