@@ -7,10 +7,12 @@ import { useGameStats } from "@/hooks/use-game-stats";
 import { useToast } from "@/hooks/use-toast";
 import InstructionsModal from "@/components/instructions-modal";
 import GameOverModal from "@/components/game-over-modal";
+import HeartsOutModal from "@/components/hearts-out-modal";
 
 export default function ColorMerge() {
   const [showInstructions, setShowInstructions] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
+  const [showHeartsOut, setShowHeartsOut] = useState(false);
 
   const [gameLogic, setGameLogic] = useState<ColorMergeLogic>(new ColorMergeLogic());
   const [gameState, setGameState] = useState(gameLogic.getState());
@@ -209,19 +211,12 @@ export default function ColorMerge() {
     if (result.gameOver) {
       triggerHaptic('heavy');
       const finalLevel = gameState.currentLevel; // The level they reached before running out of hearts
-      const currentBest = (stats as any)?.bestLevel || 0;
       
       // Store the final level reached for the modal
       setFinalLevelReached(finalLevel);
       
-      // Update all-time best only if current level is higher
-      updateStats({
-        currentLevel: 1, // Reset to level 1 for new game
-        hearts: 3, // Reset hearts for new game
-        bestLevel: Math.max(finalLevel, currentBest), // Keep all-time best
-        totalPlays: ((stats as any)?.totalPlays || 0) + 1,
-      });
-      setShowGameOver(true);
+      // Show hearts-out modal instead of game over modal
+      setShowHeartsOut(true);
     }
   };
 
@@ -248,6 +243,7 @@ export default function ColorMerge() {
     setGameState(newLogic.getState());
     setAllIncorrectGuesses([]);
     setShowGameOver(false);
+    setShowHeartsOut(false);
     
     // Update stats to reflect level 1 restart
     updateStats({
@@ -256,6 +252,16 @@ export default function ColorMerge() {
       bestLevel: (stats as any)?.bestLevel || 0, // Keep best level
       totalPlays: ((stats as any)?.totalPlays || 0) + 1,
     });
+  };
+
+  const handleContinueWithHearts = () => {
+    // Give player 2 hearts and continue at current level
+    const currentState = gameLogic.getState();
+    const newLogic = new ColorMergeLogic(currentState.currentLevel, 2); // Continue with 2 hearts at current level
+    newLogic.generateNewTarget(); // Generate same level target
+    setGameLogic(newLogic);
+    setGameState(newLogic.getState());
+    setShowHeartsOut(false);
   };
 
   const colorButtons = [
@@ -655,6 +661,13 @@ export default function ColorMerge() {
         onPlayAgain={handleNewGame}
       />
 
+      <HeartsOutModal
+        open={showHeartsOut}
+        onOpenChange={setShowHeartsOut}
+        finalLevel={finalLevelReached}
+        onRestart={handleNewGame}
+        onContinueWithHearts={handleContinueWithHearts}
+      />
 
     </>
   );
