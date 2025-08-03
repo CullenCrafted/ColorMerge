@@ -552,7 +552,7 @@ export default function ColorMerge() {
                 style={{
                   borderColor: showSuccessFlash 
                     ? 'transparent'
-                    : gameLogic.getCurrentColorString() === 'rgb(255, 255, 255)' && gameState.mixCount === gameState.maxMixes
+                    : gameLogic.getCurrentColorString() === 'rgb(255, 255, 255)'
                       ? 'rgba(0, 0, 0, 0.6)' 
                       : 'rgba(255, 255, 255, 0.4)'
                 }}
