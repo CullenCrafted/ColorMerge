@@ -525,9 +525,9 @@ export default function ColorMerge() {
           {/* Current Mix Display - Circle with progressive filling */}
           <div className="text-center mb-8">
             <div className="relative">
-              {/* Base circle (empty) */}
-              <div className="w-48 h-48 rounded-full border-4 border-white/40 bg-white/10 backdrop-blur-sm relative overflow-hidden">
-                {/* Fill progress */}
+              {/* Base circle starts white each round */}
+              <div className="w-48 h-48 rounded-full border-4 border-white/40 bg-white relative overflow-hidden">
+                {/* Fill progress with mixed color */}
                 <div
                   className="absolute bottom-0 left-0 right-0 transition-all duration-500 ease-out"
                   style={{ 
@@ -536,19 +536,6 @@ export default function ColorMerge() {
                     borderRadius: gameState.mixCount === gameState.maxMixes ? '100%' : '0 0 100% 100%'
                   }}
                 />
-                {/* Center text showing remaining mixes */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span 
-                    className="text-2xl font-bold drop-shadow-lg"
-                    style={{ 
-                      color: gameState.mixCount > gameState.maxMixes / 2 
-                        ? getContrastTextColor(gameLogic.getCurrentColorString()) === 'text-white' ? 'white' : 'black'
-                        : 'white'
-                    }}
-                  >
-                    {gameLogic.getRemainingMixes()}
-                  </span>
-                </div>
               </div>
             </div>
           </div>
