@@ -152,14 +152,14 @@ export default function ColorMerge() {
         };
       });
       
-      // Extended time to appreciate the successful match, then start bubble explosion
+      // Show the successful match for 1 second, then start bubble explosion
       setTimeout(() => {
-        // NOW start the bubble explosion after the extended display time
+        // NOW start the bubble explosion after displaying the match
         setBubbles([...primaryBubbles, ...secondaryBubbles]);
         
         setShowSuccessFlash(false);
         
-        // Start next level after showing the matched result longer
+        // Start next level and change background AFTER showing the matched result
         const prevHearts = gameLogic.getState().hearts;
         gameLogic.nextLevel();
         const nextState = gameLogic.getState();
@@ -177,7 +177,7 @@ export default function ColorMerge() {
         
         // Clear bubbles after all animations complete
         setTimeout(() => setBubbles([]), 3000);
-      }, 1500); // Extended time to see the successful match before bubbles start
+      }, 1000); // 1 second to see the successful match before bubbles and background change
 
       // Update stats with current level and all-time best
       updateStats({
