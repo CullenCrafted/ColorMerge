@@ -22,7 +22,7 @@ export default function ColorMerge() {
   const [lastGuess, setLastGuess] = useState<string[]>([]);
   const [allIncorrectGuesses, setAllIncorrectGuesses] = useState<Array<{guess: string[], correct: string[], level: number}>>([]);
   const [enhancedHaptics, setEnhancedHaptics] = useState(false);
-  const [bubbles, setBubbles] = useState<Array<{id: number, x: number, y: number, size: number, color: string, delay: number}>>([]);
+  const [bubbles, setBubbles] = useState<Array<{id: string, x: number, y: number, size: number, color: string, delay: number, type: 'primary' | 'secondary'}>>([]);
   const { stats, updateStats } = useGameStats("colormerge");
   const { toast } = useToast();
 
@@ -110,30 +110,49 @@ export default function ColorMerge() {
       triggerHaptic('heavy');
       setShowSuccessFlash(true);
       
-      // IMPORTANT: Capture BOTH colors for debugging
-      const currentMixed = gameLogic.getCurrentColorString(); // What user mixed
-      const targetColor = gameLogic.getTargetColorString(); // What was the target
-      console.log('Current mixed color:', currentMixed);
-      console.log('Target color:', targetColor);
-      console.log('Level complete - using target color for bubbles:', targetColor);
+      // CRITICAL: Use the BACKGROUND color that was successfully matched
+      // The background shows the current mixed color, which is what user matched to win
+      const backgroundElement = document.querySelector('.color-display-center');
+      const computedStyle = backgroundElement ? window.getComputedStyle(backgroundElement) : null;
+      const actualBackgroundColor = computedStyle ? computedStyle.backgroundColor : null;
       
-      const matchedColor = targetColor; // Use the target color that was successfully matched
+      // Fallback to target color if we can't get background
+      const matchedColor = actualBackgroundColor || gameLogic.getTargetColorString();
       
-      // Create bubble burst effect immediately
-      const newBubbles = Array.from({ length: 18 }, (_, i) => {
-        // Create circular spread pattern for more natural explosion
-        const angle = (i / 18) * 2 * Math.PI + Math.random() * 0.5; // Evenly distribute with some randomness
-        const distance = 300 + Math.random() * 200; // 300-500px spread to exit screen
+      console.log('Background color from DOM:', actualBackgroundColor);
+      console.log('Using bubble color:', matchedColor);
+      
+      // Create smooth swooping bubble explosion
+      const primaryBubbles = Array.from({ length: 12 }, (_, i) => {
+        const angle = (i / 12) * 2 * Math.PI + Math.random() * 0.3;
+        const distance = 400 + Math.random() * 300; // 400-700px for smooth exit
         return {
-          id: Date.now() + i,
+          id: `primary-${Date.now()}-${i}`,
           x: Math.cos(angle) * distance,
           y: Math.sin(angle) * distance,
-          size: Math.random() * 35 + 25, // 25-60px bubbles
-          color: matchedColor, // Keep the exact matched color throughout entire lifecycle
-          delay: Math.random() * 150 // 0-150ms staggered start
+          size: Math.random() * 25 + 30, // 30-55px primary bubbles
+          color: matchedColor,
+          delay: Math.random() * 100,
+          type: 'primary' as const
         };
       });
-      setBubbles(newBubbles);
+      
+      // Secondary explosion bubbles for smoother effect
+      const secondaryBubbles = Array.from({ length: 24 }, (_, i) => {
+        const angle = (i / 24) * 2 * Math.PI + Math.random() * 0.4;
+        const distance = 200 + Math.random() * 150; // Shorter distance for secondary
+        return {
+          id: `secondary-${Date.now()}-${i}`,
+          x: Math.cos(angle) * distance,
+          y: Math.sin(angle) * distance,
+          size: Math.random() * 15 + 15, // 15-30px secondary bubbles
+          color: matchedColor,
+          delay: 200 + Math.random() * 150, // Delayed start
+          type: 'secondary' as const
+        };
+      });
+      
+      setBubbles([...primaryBubbles, ...secondaryBubbles]);
       
       // Quick green flash, then transition
       setTimeout(() => {
@@ -155,8 +174,8 @@ export default function ColorMerge() {
           });
         }
         
-        // Clear bubbles after animation completes
-        setTimeout(() => setBubbles([]), 3500);
+        // Clear bubbles after all animations complete
+        setTimeout(() => setBubbles([]), 3000);
       }, 400); // Quick green flash
 
       // Update stats with current level and all-time best
@@ -301,27 +320,38 @@ export default function ColorMerge() {
       
       {/* Bubble Burst Animation Layer */}
       <div className="fixed inset-0 pointer-events-none z-30">
-        {bubbles.map((bubble) => (
-          <div
-            key={bubble.id}
-            className="absolute rounded-full animate-[bubble-burst_3000ms_cubic-bezier(0.25,0.1,0.25,1)_forwards]"
-            style={{
-              left: '50%',
-              top: '50%',
-              width: `${bubble.size}px`,
-              height: `${bubble.size}px`,
-              backgroundColor: bubble.color, // The matched color from level completion
-              border: '1px solid rgba(255,255,255,0.15)',
-              '--bubble-x': `${bubble.x}px`,
-              '--bubble-y': `${bubble.y}px`,
-              animationDelay: `${bubble.delay}ms`,
-              marginLeft: `-${bubble.size/2}px`,
-              marginTop: `-${bubble.size/2}px`,
-              boxShadow: `0 0 12px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.2)`,
-              willChange: 'transform, opacity',
-            } as React.CSSProperties}
-          />
-        ))}
+        {bubbles.map((bubble) => {
+          const isPrimary = bubble.type === 'primary';
+          const animationName = isPrimary ? 'bubble-swoop' : 'bubble-explode';
+          const duration = isPrimary ? '2500ms' : '1800ms';
+          const easing = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'; // Smooth natural easing
+          
+          return (
+            <div
+              key={bubble.id}
+              className={`absolute rounded-full animate-[${animationName}_${duration}_${easing}_forwards]`}
+              style={{
+                left: '50%',
+                top: '50%',
+                width: `${bubble.size}px`,
+                height: `${bubble.size}px`,
+                backgroundColor: bubble.color, // Force the exact matched background color
+                border: '1px solid rgba(255,255,255,0.1)',
+                '--bubble-x': `${bubble.x}px`,
+                '--bubble-y': `${bubble.y}px`,
+                ...(isPrimary ? {} : {
+                  '--explode-x': `${bubble.x}px`,
+                  '--explode-y': `${bubble.y}px`,
+                }),
+                animationDelay: `${bubble.delay}ms`,
+                marginLeft: `-${bubble.size/2}px`,
+                marginTop: `-${bubble.size/2}px`,
+                boxShadow: `0 0 8px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.3)`,
+                willChange: 'transform, opacity, filter',
+              } as React.CSSProperties}
+            />
+          );
+        })}
       </div>
       
       <div className={`h-screen flex flex-col relative z-10 overflow-hidden transition-all duration-300 isolate-layer ${
@@ -491,7 +521,7 @@ export default function ColorMerge() {
           <div className="text-center mb-8">
             <div className="relative">
               <div
-                className={`w-48 h-48 rounded-full transition-all ease-out ${
+                className={`color-display-center w-48 h-48 rounded-full transition-all ease-out ${
                   showSuccessFlash 
                     ? 'duration-300 animate-pulse' 
                     : showHeartLoss 
