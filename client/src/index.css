@@ -336,34 +336,38 @@
   }
 }
 
-/* Bubble burst and fade animation */
+/* Bubble burst and fade animation - explosive spread */
 @keyframes bubble-burst {
   0% {
     transform: scale(0) translate(0, 0);
     opacity: 0;
   }
-  10% {
-    transform: scale(1.2) translate(0, 0);
+  5% {
+    transform: scale(1.5) translate(0, 0);
     opacity: 1;
   }
-  20% {
-    transform: scale(1) translate(var(--bubble-x), var(--bubble-y));
+  15% {
+    transform: scale(1.2) translate(calc(var(--bubble-x) * 0.3), calc(var(--bubble-y) * 0.3));
+    opacity: 0.95;
+  }
+  30% {
+    transform: scale(1) translate(calc(var(--bubble-x) * 0.8), calc(var(--bubble-y) * 0.8));
     opacity: 0.9;
   }
-  40% {
-    transform: scale(0.8) translate(calc(var(--bubble-x) * 1.5), calc(var(--bubble-y) * 1.5));
+  50% {
+    transform: scale(0.8) translate(calc(var(--bubble-x) * 1.2), calc(var(--bubble-y) * 1.2));
     opacity: 0.7;
   }
-  60% {
-    transform: scale(0.6) translate(calc(var(--bubble-x) * 2), calc(var(--bubble-y) * 2));
+  70% {
+    transform: scale(0.6) translate(calc(var(--bubble-x) * 1.5), calc(var(--bubble-y) * 1.5));
     opacity: 0.5;
   }
-  80% {
-    transform: scale(0.4) translate(calc(var(--bubble-x) * 2.5), calc(var(--bubble-y) * 2.5));
+  85% {
+    transform: scale(0.4) translate(calc(var(--bubble-x) * 1.8), calc(var(--bubble-y) * 1.8));
     opacity: 0.3;
   }
   100% {
-    transform: scale(0.2) translate(calc(var(--bubble-x) * 3), calc(var(--bubble-y) * 3));
+    transform: scale(0.1) translate(calc(var(--bubble-x) * 2), calc(var(--bubble-y) * 2));
     opacity: 0;
   }
 }

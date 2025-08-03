@@ -111,14 +111,14 @@ export default function ColorMerge() {
       setShowSuccessFlash(true);
       
       // Create bubble burst effect immediately
-      const currentColor = gameLogic.getTargetColorString();
-      const newBubbles = Array.from({ length: 12 }, (_, i) => ({
+      const matchedColor = gameLogic.getCurrentColorString(); // Use the actual matched color from center
+      const newBubbles = Array.from({ length: 15 }, (_, i) => ({
         id: Date.now() + i,
-        x: Math.random() * 100 - 50, // -50 to 50
-        y: Math.random() * 100 - 50,
-        size: Math.random() * 30 + 15, // 15-45px
-        color: currentColor,
-        delay: Math.random() * 200 // 0-200ms delay
+        x: Math.random() * 400 - 200, // -200 to 200px - much wider spread
+        y: Math.random() * 400 - 200, // -200 to 200px - much wider spread  
+        size: Math.random() * 40 + 20, // 20-60px - bigger bubbles
+        color: matchedColor, // Keep the matched color throughout animation
+        delay: Math.random() * 100 // 0-100ms delay for more synchronized burst
       }));
       setBubbles(newBubbles);
       
