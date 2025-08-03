@@ -104,7 +104,11 @@ export class ColorMergeLogic {
         this.state.hearts--;
         const gameOver = this.state.hearts <= 0;
         if (!gameOver) {
-          this.generateNewTarget();
+          // Reset current level without generating new target - retry same target
+          this.state.currentColor = { r: 255, g: 255, b: 255 };
+          this.state.mixCount = 0;
+          this.state.chosenColors = [];
+          this.state.colorClicks = { red: 0, yellow: 0, blue: 0, white: 0, black: 0 };
         }
         return { success: false, gameOver, levelComplete: false, bonusHeart: false };
       }

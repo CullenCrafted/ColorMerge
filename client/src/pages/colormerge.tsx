@@ -179,10 +179,9 @@ export default function ColorMerge() {
 
 
       if (result.bonusHeart) {
-        toast({
-          title: "Perfect! Bonus Heart Earned",
-          description: "Solved with extra moves!",
-        });
+        // Show heart animation only, no toast popup
+        setShowHeartGain(true);
+        setTimeout(() => setShowHeartGain(false), 1000);
       }
     }
 
@@ -528,7 +527,7 @@ export default function ColorMerge() {
               <div 
                 className="w-48 h-48 rounded-full border-4 bg-white relative overflow-hidden transition-all duration-300"
                 style={{
-                  borderColor: gameLogic.getCurrentColorString() === 'rgb(255, 255, 255)' 
+                  borderColor: gameLogic.getCurrentColorString() === 'rgb(255, 255, 255)' && gameState.mixCount === gameState.maxMixes
                     ? 'rgba(0, 0, 0, 0.6)' 
                     : 'rgba(255, 255, 255, 0.4)'
                 }}
