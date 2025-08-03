@@ -111,19 +111,21 @@ export default function ColorMerge() {
       triggerHaptic('heavy');
       setShowSuccessFlash(true);
       
-      // IMMEDIATELY advance to next level for stats tracking (but don't update UI state yet)
-      const prevHearts = gameLogic.getState().hearts;
-      gameLogic.nextLevel();
-      const nextLevelState = gameLogic.getState();
-      
-      // Get the matched background color BEFORE any state changes
+      // CRITICAL: Store the EXACT matched background color BEFORE advancing level
       const backgroundElement = document.querySelector('.color-display-center');
       const computedStyle = backgroundElement ? window.getComputedStyle(backgroundElement) : null;
-      const exactMatchedBackgroundColor = computedStyle ? computedStyle.backgroundColor : gameLogic.getTargetColorString();
+      const exactMatchedBackgroundColor = computedStyle ? computedStyle.backgroundColor : gameLogic.getCurrentColorString();
       
       console.log('EXACT matched background color for bubbles:', exactMatchedBackgroundColor);
       
-      // Bubbles will ONLY EVER be this exact background color
+      // Store current state before advancing
+      const prevHearts = gameLogic.getState().hearts;
+      
+      // NOW advance to next level for stats tracking
+      gameLogic.nextLevel();
+      const nextLevelState = gameLogic.getState();
+      
+      // Bubbles will ONLY EVER be this exact matched background color
       const bubbleColor = exactMatchedBackgroundColor;
       
       // Create bubble explosion
@@ -530,30 +532,12 @@ export default function ColorMerge() {
           <div className="text-center mb-8">
             <div className="relative">
               <div
-                className={`color-display-center w-48 h-48 rounded-full transition-all ease-out ${
-                  showSuccessFlash 
-                    ? 'duration-300 animate-pulse' 
-                    : showHeartLoss 
-                      ? 'duration-300 scale-50 opacity-60' 
-                      : 'duration-200 scale-100 opacity-100'
-                }`}
+                className="color-display-center w-48 h-48 rounded-full"
                 style={{ 
-                  backgroundColor: showSuccessFlash 
-                    ? gameLogic.getTargetColorString() // Show target color briefly before bursting
-                    : gameLogic.getCurrentColorString(),
-                  opacity: showSuccessFlash ? 0.8 : 1, // Stay visible longer before fading
-                  transform: showSuccessFlash ? 'scale(1.1)' : 'scale(1)' // Slight expansion before burst
+                  backgroundColor: gameLogic.getCurrentColorString()
                 }}
               />
-              {/* New white circle that appears after bubble animation */}
-              {!showSuccessFlash && gameState.colorClicks.blue === 0 && gameState.colorClicks.red === 0 && gameState.colorClicks.yellow === 0 && gameState.colorClicks.white === 0 && gameState.colorClicks.black === 0 && (
-                <div
-                  className="absolute top-1/2 left-1/2 w-48 h-48 rounded-full transform -translate-x-1/2 -translate-y-1/2 bg-white opacity-0 animate-[smooth-appear_400ms_ease-out_forwards] border-4 border-white/20"
-                  style={{ 
-                    animationDelay: '600ms'
-                  }}
-                />
-              )}
+
             </div>
           </div>
 
