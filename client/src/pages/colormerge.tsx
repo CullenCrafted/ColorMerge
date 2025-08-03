@@ -27,7 +27,7 @@ export default function ColorMerge() {
   const [finalLevelReached, setFinalLevelReached] = useState(1);
   const { stats, updateStats } = useGameStats("colormerge");
   const { toast } = useToast();
-  const { playBubbleSound, initializeAudio } = useAudio();
+  const { toggleBackgroundMusic, initializeAudio } = useAudio();
 
   // Haptic feedback function
   const triggerHaptic = (type: 'light' | 'medium' | 'heavy' = 'light') => {
@@ -68,10 +68,18 @@ export default function ColorMerge() {
     }
   }, [stats]);
 
-  // Initialize audio on component mount
+  // Initialize audio on component mount and start background music
   useEffect(() => {
     initializeAudio();
+    if (soundEnabled) {
+      toggleBackgroundMusic(true);
+    }
   }, [initializeAudio]);
+
+  // Toggle background music when soundEnabled changes
+  useEffect(() => {
+    toggleBackgroundMusic(soundEnabled);
+  }, [soundEnabled, toggleBackgroundMusic]);
 
   // Trigger haptic feedback when level changes
   useEffect(() => {
@@ -178,11 +186,6 @@ export default function ColorMerge() {
           hearts: nextState.hearts,
           totalPlays: ((stats as any)?.totalPlays || 0) + 1,
         });
-        
-        // Play bubble sound and vibration for all bubble explosions
-        if (soundEnabled) {
-          playBubbleSound();
-        }
         
         // Enhanced vibration for bubble explosion
         if ('vibrate' in navigator) {
@@ -400,6 +403,20 @@ export default function ColorMerge() {
           {/* Controls on left and right */}
           <div className="flex items-center justify-between">
             {/* Left side controls */}
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className={`w-10 h-10 rounded-xl transition-all duration-200 ${
+                  soundEnabled 
+                    ? 'bg-white/20 text-white hover:bg-white/30' 
+                    : 'bg-black/20 text-gray-400 hover:bg-black/30'
+                }`}
+              >
+                {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+              </Button>
+            </div>
             <div className="flex items-center space-x-2">
               <Button
                 onClick={() => setSoundEnabled(!soundEnabled)}

@@ -9,7 +9,7 @@ export const useAudio = () => {
         audioRef.current = new Audio();
         audioRef.current.preload = 'auto';
         audioRef.current.loop = true;
-        audioRef.current.volume = 0.3; // Set to 30% volume for pleasant sound
+        audioRef.current.volume = 0.2; // Set to 20% volume for background music
         
         // Import the audio file
         import('@assets/bubble-sound.mp3').then((audioModule) => {
@@ -24,40 +24,40 @@ export const useAudio = () => {
     }
   }, []);
 
-  const playBubbleSound = useCallback(() => {
+  const startBackgroundMusic = useCallback(() => {
     if (!audioRef.current) {
       initializeAudio();
     }
     
     if (audioRef.current) {
       try {
-        // Reset to beginning for clean loop
         audioRef.current.currentTime = 0;
         audioRef.current.play().catch(console.error);
-        
-        // Stop after 3 seconds to match bubble animation
-        setTimeout(() => {
-          if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-          }
-        }, 3000);
       } catch (error) {
-        console.error('Failed to play bubble sound:', error);
+        console.error('Failed to start background music:', error);
       }
     }
   }, [initializeAudio]);
 
-  const stopBubbleSound = useCallback(() => {
+  const stopBackgroundMusic = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
   }, []);
 
+  const toggleBackgroundMusic = useCallback((isEnabled: boolean) => {
+    if (isEnabled) {
+      startBackgroundMusic();
+    } else {
+      stopBackgroundMusic();
+    }
+  }, [startBackgroundMusic, stopBackgroundMusic]);
+
   return {
-    playBubbleSound,
-    stopBubbleSound,
+    startBackgroundMusic,
+    stopBackgroundMusic,
+    toggleBackgroundMusic,
     initializeAudio
   };
 };
