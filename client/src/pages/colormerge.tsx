@@ -152,10 +152,11 @@ export default function ColorMerge() {
         };
       });
       
-      setBubbles([...primaryBubbles, ...secondaryBubbles]);
-      
-      // Extended time to appreciate the successful match, then transition
+      // Extended time to appreciate the successful match, then start bubble explosion
       setTimeout(() => {
+        // NOW start the bubble explosion after the extended display time
+        setBubbles([...primaryBubbles, ...secondaryBubbles]);
+        
         setShowSuccessFlash(false);
         
         // Start next level after showing the matched result longer
@@ -176,7 +177,7 @@ export default function ColorMerge() {
         
         // Clear bubbles after all animations complete
         setTimeout(() => setBubbles([]), 3000);
-      }, 1500); // Extended time to see the successful match
+      }, 1500); // Extended time to see the successful match before bubbles start
 
       // Update stats with current level and all-time best
       updateStats({
