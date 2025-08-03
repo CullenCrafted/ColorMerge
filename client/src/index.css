@@ -202,6 +202,21 @@
     isolation: isolate;
   }
   
+  /* Fix touch interactions */
+  .touch-enabled {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* Ensure game elements are accessible */
+  .game-interactive {
+    pointer-events: auto !important;
+    z-index: 100;
+    position: relative;
+  }
+  
   .text-game-error {
     color: hsl(var(--game-error));
   }

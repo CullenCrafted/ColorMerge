@@ -264,7 +264,7 @@ export default function ColorMerge() {
         showSuccessFlash ? 'ring-8 ring-green-400/50' : showHeartLoss ? 'ring-8 ring-red-500/50' : ''
       }`}>
         {/* Floating Particles */}
-        <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 pointer-events-none z-0">
           {Array.from({ length: 6 }, (_, i) => (
             <div
               key={i}
@@ -418,7 +418,7 @@ export default function ColorMerge() {
 
 
         {/* Main Game Area - Centered Mixing Circle */}
-        <div className="flex-1 flex flex-col items-center justify-center relative z-20">
+        <div className="flex-1 flex flex-col items-center justify-center relative z-20 pointer-events-auto">
           {/* Current Mix Display - Circle that blends completely into background on success */}
           <div className="text-center mb-8">
             <div className="relative">
@@ -452,7 +452,7 @@ export default function ColorMerge() {
           </div>
 
           {/* Mix Progress Indicator - Real-time color matching */}
-          <div className="flex items-center justify-center space-x-3 mb-8 bg-black/20 backdrop-blur-lg rounded-2xl p-3 border border-white/20">
+          <div className="flex items-center justify-center space-x-3 mb-8 bg-black/30 rounded-2xl p-3 border border-white/20">
             {colorButtons.map(({ color }) => {
               const count = gameState.colorClicks[color] || 0;
               const currentMixColor = gameLogic.getCurrentColorString();
@@ -495,13 +495,13 @@ export default function ColorMerge() {
           </div>
 
           {/* Color Buttons */}
-          <div className="flex items-center justify-center space-x-4 mb-4 relative z-20">
+          <div className="flex items-center justify-center space-x-4 mb-4 relative z-20 pointer-events-auto">
             {colorButtons.map(({ color, bgColor, shadowColor, textColor = 'text-white' }) => (
               <Button
                 key={color}
                 onClick={() => handleColorClick(color)}
                 disabled={gameLogic.getRemainingMixes() <= 0 || isPaused}
-                className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${bgColor} ${shadowColor} shadow-lg hover:shadow-xl transform hover:scale-110 active:scale-95 transition-all duration-200 border-2 border-white/40 disabled:opacity-50 disabled:cursor-not-allowed ${textColor} pointer-events-auto`}
+                className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${bgColor} ${shadowColor} shadow-lg hover:shadow-xl transform hover:scale-110 active:scale-95 transition-all duration-200 border-2 border-white/40 disabled:opacity-50 disabled:cursor-not-allowed ${textColor} game-interactive touch-enabled`}
                 style={{ zIndex: 50 }}
               />
             ))}
@@ -511,7 +511,7 @@ export default function ColorMerge() {
         {/* Pause Overlay */}
         {isPaused && (
           <div className="fixed inset-0 bg-black/50 bg-opacity-90 flex items-center justify-center z-50">
-            <div className="bg-white/90 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
+            <div className="bg-white/95 rounded-2xl p-8 shadow-2xl">
               <h2 className="text-2xl font-bold text-center mb-4 text-gray-900">Game Paused</h2>
               <Button
                 onClick={() => setIsPaused(false)}
