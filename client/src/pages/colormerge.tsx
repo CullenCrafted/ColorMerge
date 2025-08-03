@@ -176,7 +176,7 @@ export default function ColorMerge() {
         
         // Clear bubbles after all animations complete
         setTimeout(() => setBubbles([]), 3000);
-      }, 800); // 0.8 seconds - optimal timing for appreciation without feeling slow
+      }, 1000); // 1 second delay for background change as requested
 
       // Update stats with current level and all-time best
       updateStats({
