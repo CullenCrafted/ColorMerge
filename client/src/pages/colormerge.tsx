@@ -403,20 +403,6 @@ export default function ColorMerge() {
           {/* Controls on left and right */}
           <div className="flex items-center justify-between">
             {/* Left side controls */}
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                className={`w-10 h-10 rounded-xl transition-all duration-200 ${
-                  soundEnabled 
-                    ? 'bg-white/20 text-white hover:bg-white/30' 
-                    : 'bg-black/20 text-gray-400 hover:bg-black/30'
-                }`}
-              >
-                {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-              </Button>
-            </div>
             <div className="flex items-center space-x-2">
               <Button
                 onClick={() => setSoundEnabled(!soundEnabled)}
