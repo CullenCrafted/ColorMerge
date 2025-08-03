@@ -110,8 +110,11 @@ export default function ColorMerge() {
       triggerHaptic('heavy');
       setShowSuccessFlash(true);
       
+      // IMPORTANT: Capture the matched color BEFORE any level transitions
+      const matchedColor = gameLogic.getCurrentColorString(); // Get current mixed color before it resets
+      console.log('Matched color for bubbles:', matchedColor); // Debug log
+      
       // Create bubble burst effect immediately
-      const matchedColor = gameLogic.getCurrentColorString(); // The color that was successfully mixed
       const newBubbles = Array.from({ length: 18 }, (_, i) => {
         // Create circular spread pattern for more natural explosion
         const angle = (i / 18) * 2 * Math.PI + Math.random() * 0.5; // Evenly distribute with some randomness
@@ -148,7 +151,7 @@ export default function ColorMerge() {
         }
         
         // Clear bubbles after animation completes
-        setTimeout(() => setBubbles([]), 4000);
+        setTimeout(() => setBubbles([]), 3000);
       }, 400); // Quick green flash
 
       // Update stats with current level and all-time best
@@ -286,19 +289,20 @@ export default function ColorMerge() {
         {bubbles.map((bubble) => (
           <div
             key={bubble.id}
-            className="absolute rounded-full animate-[bubble-burst_4000ms_cubic-bezier(0.25,0.46,0.45,0.94)_forwards] shadow-lg"
+            className="absolute rounded-full animate-[bubble-burst_2500ms_cubic-bezier(0.4,0,0.2,1)_forwards] shadow-lg"
             style={{
               left: '50%',
               top: '50%',
               width: `${bubble.size}px`,
               height: `${bubble.size}px`,
-              backgroundColor: bubble.color, // Maintains the matched color throughout animation
-              border: '2px solid rgba(255,255,255,0.3)',
+              backgroundColor: bubble.color, // Force the matched color
+              border: '1px solid rgba(255,255,255,0.2)',
               '--bubble-x': `${bubble.x}px`,
               '--bubble-y': `${bubble.y}px`,
               animationDelay: `${bubble.delay}ms`,
               marginLeft: `-${bubble.size/2}px`,
               marginTop: `-${bubble.size/2}px`,
+              boxShadow: `0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3)`,
             } as React.CSSProperties}
           />
         ))}
