@@ -163,13 +163,13 @@ export default function ColorMerge() {
         const nextState = gameLogic.getState();
         setGameState(nextState);
         
-        // Check if heart was gained during level progression
+        // Check if heart was gained during level progression (every 10 levels)
         if (nextState.hearts > prevHearts) {
           setShowHeartGain(true);
           setTimeout(() => setShowHeartGain(false), 1000);
           toast({
             title: "Bonus Heart!",
-            description: "Level 10 milestone reached!",
+            description: `Level ${nextState.currentLevel} milestone reached!`,
           });
         }
         
@@ -195,7 +195,7 @@ export default function ColorMerge() {
 
     if (result.gameOver) {
       triggerHaptic('heavy');
-      const finalLevel = gameState.currentLevel;
+      const finalLevel = gameState.currentLevel; // The level they reached before running out of hearts
       const currentBest = (stats as any)?.bestLevel || 0;
       
       // Update all-time best only if current level is higher
@@ -210,8 +210,19 @@ export default function ColorMerge() {
   };
 
   const handleResetLevel = () => {
-    gameLogic.resetLevel();
-    setGameState(gameLogic.getState());
+    // Reset to level 1 with 3 hearts
+    const newLogic = new ColorMergeLogic(1, 3);
+    setGameLogic(newLogic);
+    setGameState(newLogic.getState());
+    setAllIncorrectGuesses([]);
+    
+    // Update stats to reflect level 1 restart
+    updateStats({
+      currentLevel: 1,
+      hearts: 3,
+      bestLevel: (stats as any)?.bestLevel || 0, // Keep best level
+      totalPlays: ((stats as any)?.totalPlays || 0) + 1,
+    });
   };
 
   const handleNewGame = () => {

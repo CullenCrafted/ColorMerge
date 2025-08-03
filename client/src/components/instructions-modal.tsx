@@ -72,6 +72,11 @@ export default function InstructionsModal({ open, onOpenChange, game }: Instruct
                   💡 <strong>Bonus Hearts:</strong> Complete levels with extra moves remaining to earn bonus hearts!
                 </p>
               </div>
+              <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg p-3 border border-green-300">
+                <p className="text-green-800 font-medium">
+                  🎯 <strong>Heart Milestones:</strong> Earn an extra heart every 10 levels you complete!
+                </p>
+              </div>
             </div>
           </div>
 
