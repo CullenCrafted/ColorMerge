@@ -549,9 +549,13 @@ export default function ColorMerge() {
                 style={{
                   borderColor: showSuccessFlash 
                     ? 'transparent'
-                    : gameLogic.getCurrentColorString() === 'rgb(255, 255, 255)'
-                      ? 'rgba(0, 0, 0, 0.8)' 
-                      : 'rgba(255, 255, 255, 0.6)'
+                    : (() => {
+                        const bgColor = gameLogic.getCurrentColorString();
+                        // Only show black border when background is exactly pure white
+                        return bgColor === 'rgb(255, 255, 255)' && gameState.mixCount === gameState.maxMixes
+                          ? 'rgba(0, 0, 0, 0.8)' 
+                          : 'rgba(255, 255, 255, 0.6)';
+                      })()
                 }}
               >
                 {/* Fill progress with mixed color */}
