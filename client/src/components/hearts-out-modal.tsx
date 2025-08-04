@@ -93,7 +93,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
   if (showingAd) {
     return (
       <Dialog open={open} onOpenChange={() => {}}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 border-0 shadow-2xl relative">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 border-0 shadow-2xl relative sm:rounded-lg" style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
           {/* Floating bubbles for ad screen */}
           <div className="absolute inset-0 pointer-events-none">
             {floatingBubbles.slice(0, 8).map((bubble) => (
@@ -180,7 +180,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
         handleRestart();
       }
     }}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-br from-red-500 via-pink-500 to-purple-600 border-0 shadow-2xl relative">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-br from-red-500 via-pink-500 to-purple-600 border-0 shadow-2xl relative sm:rounded-lg" style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
         {/* Floating bubbles background */}
         <div className="absolute inset-0 pointer-events-none">
           {floatingBubbles.map((bubble) => (

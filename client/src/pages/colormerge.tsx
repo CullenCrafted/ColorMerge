@@ -567,7 +567,7 @@ export default function ColorMerge() {
                     backgroundColor: gameLogic.getCurrentColorString(),
                     height: `${(gameState.mixCount / gameState.maxMixes) * 100}%`,
                     borderRadius: gameState.mixCount === gameState.maxMixes ? '100%' : '0 0 100% 100%',
-                    border: gameLogic.isCurrentMixWhite() ? '2px solid rgba(0, 0, 0, 0.4)' : 'none'
+                    border: (gameLogic.isCurrentMixWhite() && gameState.mixCount > 0) ? '2px solid rgba(0, 0, 0, 0.4)' : 'none'
                   }}
                 />
               </div>
