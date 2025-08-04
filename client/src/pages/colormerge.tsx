@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, RotateCcw, Pause, Volume2, VolumeX, Trophy, Heart, Zap } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { HelpCircle, RotateCcw, Pause, Volume2, VolumeX, Trophy, Heart, Zap, DollarSign, ChevronDown } from "lucide-react";
 import { ColorMergeLogic } from "@/lib/colormerge-logic";
 import { useAudio } from "@/hooks/use-audio";
 import { useGameStats } from "@/hooks/use-game-stats";
@@ -27,6 +28,7 @@ export default function ColorMerge() {
   const [enhancedHaptics, setEnhancedHaptics] = useState(false);
   const [bubbles, setBubbles] = useState<Array<{id: string, x: number, y: number, size: number, color: string, delay: number, type: 'primary' | 'secondary'}>>([]);
   const [finalLevelReached, setFinalLevelReached] = useState(1);
+  const [showBuyHearts, setShowBuyHearts] = useState(false);
   const { stats, updateStats } = useGameStats("colormerge");
   const { toast } = useToast();
   const { toggleBackgroundMusic, initializeAudio } = useAudio();
@@ -485,6 +487,70 @@ export default function ColorMerge() {
 
             {/* Right side controls */}
             <div className="flex items-center space-x-2">
+              {/* Buy Hearts Button */}
+              <DropdownMenu open={showBuyHearts} onOpenChange={setShowBuyHearts}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`w-12 h-10 rounded-full bg-opacity-90 hover:bg-black/30 relative z-40 pointer-events-auto transition-all duration-300 ${
+                      showSuccessFlash ? 'bg-green-500/80 ring-2 ring-green-400' : 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 border border-yellow-400/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1">
+                      <Heart className={`w-3 h-3 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : 'text-yellow-300'}`} />
+                      <DollarSign className={`w-3 h-3 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : 'text-yellow-300'}`} />
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  className="w-64 bg-white/95 backdrop-blur-sm border border-white/50 shadow-2xl rounded-xl p-2 z-50" 
+                  align="end"
+                  sideOffset={8}
+                >
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      setShowBuyHearts(false);
+                      // Simulate watch ad
+                      triggerHaptic('medium');
+                      toast({
+                        title: "Ad Starting",
+                        description: "Watch 15s ad for 2 hearts",
+                      });
+                    }}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-green-100/80 cursor-pointer transition-colors"
+                  >
+                    <div className="bg-green-500 rounded-full p-2">
+                      <Zap className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900">Watch 15s Ad</p>
+                      <p className="text-sm text-gray-600">Get 2 hearts • Free</p>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      setShowBuyHearts(false);
+                      // Simulate purchase
+                      triggerHaptic('heavy');
+                      toast({
+                        title: "Purchase Processing",
+                        description: "Buying 20 hearts for $0.99",
+                      });
+                    }}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-yellow-100/80 cursor-pointer transition-colors"
+                  >
+                    <div className="bg-yellow-500 rounded-full p-2">
+                      <DollarSign className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900">Buy Hearts</p>
+                      <p className="text-sm text-gray-600">Get 20 hearts • $0.99</p>
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
               <Button
                 onClick={() => setIsPaused(!isPaused)}
                 variant="ghost"
