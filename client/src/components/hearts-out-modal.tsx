@@ -93,7 +93,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
   if (showingAd) {
     return (
       <Dialog open={open} onOpenChange={() => {}}>
-        <DialogContent className="max-w-sm bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 border-0 shadow-2xl relative overflow-hidden sm:rounded-xl">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 border-0 shadow-2xl relative">
           {/* Floating bubbles for ad screen */}
           <div className="absolute inset-0 pointer-events-none">
             {floatingBubbles.slice(0, 8).map((bubble) => (
@@ -119,7 +119,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
             </DialogTitle>
           </DialogHeader>
           
-          <div className="text-center space-y-4 p-4 relative z-10">
+          <div className="text-center space-y-6 p-4 relative z-10">
             <div className="flex justify-center">
               <div className="bg-white/20 backdrop-blur-sm p-6 rounded-full relative border-4 border-white/30">
                 <Play className="w-16 h-16 text-white drop-shadow-lg" />
@@ -180,7 +180,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
         handleRestart();
       }
     }}>
-      <DialogContent className="max-w-sm bg-gradient-to-br from-red-500 via-pink-500 to-purple-600 border-0 shadow-2xl relative overflow-hidden sm:rounded-xl">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-br from-red-500 via-pink-500 to-purple-600 border-0 shadow-2xl relative">
         {/* Floating bubbles background */}
         <div className="absolute inset-0 pointer-events-none">
           {floatingBubbles.map((bubble) => (
@@ -208,7 +208,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
           </DialogTitle>
         </DialogHeader>
         
-        <div className="text-center space-y-4 p-4 relative z-10">
+        <div className="text-center space-y-6 p-4 relative z-10">
           <div className="flex justify-center">
             <div className="bg-white/20 backdrop-blur-sm p-4 rounded-full border-4 border-white/30 shadow-2xl">
               <Heart className="w-12 h-12 text-white drop-shadow-lg animate-pulse" />

@@ -555,7 +555,7 @@ export default function ColorMerge() {
                 style={{
                   borderColor: showSuccessFlash 
                     ? 'transparent'
-                    : (gameLogic.isTargetWhite() || gameLogic.isCurrentMixWhite())
+                    : gameLogic.isTargetWhite()
                       ? 'rgba(0, 0, 0, 0.8)' 
                       : 'rgba(255, 255, 255, 0.6)'
                 }}
@@ -566,7 +566,8 @@ export default function ColorMerge() {
                   style={{ 
                     backgroundColor: gameLogic.getCurrentColorString(),
                     height: `${(gameState.mixCount / gameState.maxMixes) * 100}%`,
-                    borderRadius: gameState.mixCount === gameState.maxMixes ? '100%' : '0 0 100% 100%'
+                    borderRadius: gameState.mixCount === gameState.maxMixes ? '100%' : '0 0 100% 100%',
+                    border: gameLogic.isCurrentMixWhite() ? '2px solid rgba(0, 0, 0, 0.4)' : 'none'
                   }}
                 />
               </div>
