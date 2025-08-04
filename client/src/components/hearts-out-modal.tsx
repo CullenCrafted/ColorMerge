@@ -26,9 +26,9 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
   }>>([]);
 
   const handleRestart = () => {
+    resetAdState();
     onRestart();
     onOpenChange(false);
-    resetAdState();
   };
 
   const handleWatchAd = () => {
@@ -38,15 +38,16 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
   };
 
   const handleContinueAfterAd = () => {
+    resetAdState();
     onContinueWithHearts();
     onOpenChange(false);
-    resetAdState();
   };
 
   const resetAdState = () => {
     setShowingAd(false);
     setAdCountdown(15);
     setAdCompleted(false);
+    setFloatingBubbles([]);
   };
 
   // Ad countdown timer
@@ -90,7 +91,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
   if (showingAd) {
     return (
       <Dialog open={open} onOpenChange={() => {}}>
-        <DialogContent className="max-w-md bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 border-0 shadow-2xl relative overflow-hidden">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 border-0 shadow-2xl relative">
           {/* Floating bubbles for ad screen */}
           <div className="absolute inset-0 pointer-events-none">
             {floatingBubbles.slice(0, 8).map((bubble) => (
@@ -171,7 +172,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-gradient-to-br from-red-500 via-pink-500 to-purple-600 border-0 shadow-2xl relative overflow-hidden">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-br from-red-500 via-pink-500 to-purple-600 border-0 shadow-2xl relative">
         {/* Floating bubbles background */}
         <div className="absolute inset-0 pointer-events-none">
           {floatingBubbles.map((bubble) => (
@@ -184,20 +185,13 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
                 width: `${bubble.size}px`,
                 height: `${bubble.size}px`,
                 backgroundColor: bubble.color,
-                animation: `float ${bubble.duration}s infinite ${bubble.delay}s ease-in-out alternate`,
+                animation: `float-bubble ${bubble.duration}s infinite ${bubble.delay}s ease-in-out alternate`,
               }}
             />
           ))}
         </div>
         
-        {/* Custom keyframes for floating animation */}
-        <style jsx>{`
-          @keyframes float {
-            0% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-            100% { transform: translateY(0px) rotate(360deg); }
-          }
-        `}</style>
+
         
         <DialogHeader className="relative z-10">
           <DialogTitle className="text-3xl font-bold text-center text-white drop-shadow-lg">
