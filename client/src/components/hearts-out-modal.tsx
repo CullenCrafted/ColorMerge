@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trophy, Heart, RotateCcw, Play, Timer } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Trophy, Heart, RotateCcw, Play, Timer, ChevronDown, DollarSign } from "lucide-react";
 import { useState, useEffect } from "react";
 
 // Pie chart component for showing color mixtures
@@ -99,6 +100,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLev
   const [showingAd, setShowingAd] = useState(false);
   const [adCountdown, setAdCountdown] = useState(15);
   const [adCompleted, setAdCompleted] = useState(false);
+  const [showingPayment, setShowingPayment] = useState(false);
   const [floatingBubbles, setFloatingBubbles] = useState<Array<{
     id: string;
     x: number;
@@ -121,6 +123,17 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLev
     setAdCompleted(false);
   };
 
+  const handlePurchaseHearts = () => {
+    setShowingPayment(true);
+    // Simulate payment processing
+    setTimeout(() => {
+      setShowingPayment(false);
+      // Give 20 hearts and continue
+      onContinueWithHearts();
+      onOpenChange(false);
+    }, 2000);
+  };
+
   const handleContinueAfterAd = () => {
     resetAdState();
     onContinueWithHearts();
@@ -131,6 +144,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLev
     setShowingAd(false);
     setAdCountdown(15);
     setAdCompleted(false);
+    setShowingPayment(false);
     setFloatingBubbles([]);
   };
 
@@ -173,6 +187,55 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLev
       setFloatingBubbles([]);
     }
   }, [open]);
+
+  if (showingPayment) {
+    return (
+      <Dialog open={open} onOpenChange={() => {}}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500 border-0 shadow-2xl relative sm:rounded-lg" style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+          <DialogHeader className="text-center relative z-10">
+            <DialogTitle className="text-2xl font-bold text-white drop-shadow-lg mb-2">
+              Processing Payment
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="text-center space-y-6 p-4 relative z-10">
+            <div className="flex justify-center">
+              <div className="bg-white/20 backdrop-blur-sm p-6 rounded-full relative border-4 border-white/30">
+                <DollarSign className="w-16 h-16 text-white drop-shadow-lg animate-pulse" />
+              </div>
+            </div>
+            
+            <div>
+              <p className="text-xl text-white font-semibold mb-2 drop-shadow-lg">
+                Purchasing 20 Hearts
+              </p>
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
+                <p className="text-white font-bold text-lg">
+                  💳 Processing $0.99...
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-6 border-2 border-dashed border-white/40">
+                <div className="text-center">
+                  <div className="animate-pulse">
+                    <div className="bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 rounded-lg p-4 mb-3 shadow-lg">
+                      <h3 className="text-white font-bold text-lg drop-shadow">Secure Payment</h3>
+                      <p className="text-white/90 text-sm">Powered by Stripe • Safe & Encrypted</p>
+                    </div>
+                    <div className="text-white font-bold text-lg drop-shadow">
+                      Your hearts will be added instantly
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   if (showingAd) {
     return (
@@ -308,7 +371,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLev
               </div>
               <p className="text-white/90 text-sm font-medium">Current level reached</p>
               {finalLevel > bestLevel && (
-                <div className="mt-2 bg-gradient-to-r from-yellow-400/30 to-orange-500/30 rounded-lg p-3 border-2 border-yellow-400/50 shadow-lg">
+                <div className="mt-2 bg-gradient-to-r from-yellow-400/30 to-orange-500/30 rounded-lg p-3 border-2 border-yellow-400/50 shadow-lg relative z-50">
                   <div className="flex items-center justify-center space-x-2">
                     <span className="text-2xl">🏆</span>
                     <p className="text-yellow-200 text-sm font-bold animate-pulse">NEW BEST LEVEL!</p>
@@ -357,13 +420,41 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLev
           )}
 
           <div className="space-y-3">
-            <Button 
-              onClick={handleWatchAd}
-              className="w-full bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 hover:from-green-500 hover:via-emerald-600 hover:to-teal-600 text-white py-3 rounded-xl font-bold shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 border-2 border-white/30"
-            >
-              <Timer className="w-5 h-5 animate-spin" />
-              Watch Ad for 2 Hearts
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="w-full bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 hover:from-green-500 hover:via-emerald-600 hover:to-teal-600 text-white py-3 rounded-xl font-bold shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 border-2 border-white/30">
+                  <Heart className="w-5 h-5" />
+                  Get More Hearts
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64 bg-white/95 backdrop-blur-sm border border-white/50 shadow-2xl rounded-xl p-2">
+                <DropdownMenuItem 
+                  onClick={handleWatchAd}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-green-100/80 cursor-pointer transition-colors"
+                >
+                  <div className="bg-green-500 rounded-full p-2">
+                    <Timer className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-900">Watch 15s Ad</p>
+                    <p className="text-sm text-gray-600">Get 2 hearts • Free</p>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={handlePurchaseHearts}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-yellow-100/80 cursor-pointer transition-colors"
+                >
+                  <div className="bg-yellow-500 rounded-full p-2">
+                    <DollarSign className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-900">Buy Hearts</p>
+                    <p className="text-sm text-gray-600">Get 20 hearts • $0.99</p>
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Button 
               onClick={handleRestart}
