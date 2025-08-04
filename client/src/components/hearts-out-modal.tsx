@@ -91,7 +91,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
   if (showingAd) {
     return (
       <Dialog open={open} onOpenChange={() => {}}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 border-0 shadow-2xl relative">
+        <DialogContent className="max-w-sm w-full bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 border-0 shadow-2xl relative overflow-hidden">
           {/* Floating bubbles for ad screen */}
           <div className="absolute inset-0 pointer-events-none">
             {floatingBubbles.slice(0, 8).map((bubble) => (
@@ -116,7 +116,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
             </DialogTitle>
           </DialogHeader>
           
-          <div className="text-center space-y-6 p-4 relative z-10">
+          <div className="text-center space-y-4 p-4 relative z-10">
             <div className="flex justify-center">
               <div className="bg-white/20 backdrop-blur-sm p-6 rounded-full relative border-4 border-white/30">
                 <Play className="w-16 h-16 text-white drop-shadow-lg" />
@@ -171,8 +171,13 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-br from-red-500 via-pink-500 to-purple-600 border-0 shadow-2xl relative">
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      if (!newOpen) {
+        // If user closes modal with X, restart the game
+        handleRestart();
+      }
+    }}>
+      <DialogContent className="max-w-sm w-full bg-gradient-to-br from-red-500 via-pink-500 to-purple-600 border-0 shadow-2xl relative overflow-hidden">
         {/* Floating bubbles background */}
         <div className="absolute inset-0 pointer-events-none">
           {floatingBubbles.map((bubble) => (
@@ -199,38 +204,38 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
           </DialogTitle>
         </DialogHeader>
         
-        <div className="text-center space-y-6 p-4 relative z-10">
+        <div className="text-center space-y-4 p-4 relative z-10">
           <div className="flex justify-center">
-            <div className="bg-white/20 backdrop-blur-sm p-6 rounded-full border-4 border-white/30 shadow-2xl">
-              <Heart className="w-16 h-16 text-white drop-shadow-lg animate-pulse" />
+            <div className="bg-white/20 backdrop-blur-sm p-4 rounded-full border-4 border-white/30 shadow-2xl">
+              <Heart className="w-12 h-12 text-white drop-shadow-lg animate-pulse" />
             </div>
           </div>
           
           <div>
-            <p className="text-xl text-white font-semibold mb-3 drop-shadow-lg">You ran out of hearts!</p>
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
-              <div className="flex items-center justify-center gap-3 text-3xl font-bold text-white mb-2">
-                <Trophy className="w-8 h-8 text-yellow-300 drop-shadow-lg" />
+            <p className="text-lg text-white font-semibold mb-2 drop-shadow-lg">You ran out of hearts!</p>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+              <div className="flex items-center justify-center gap-2 text-2xl font-bold text-white mb-1">
+                <Trophy className="w-6 h-6 text-yellow-300 drop-shadow-lg" />
                 <span className="drop-shadow-lg">Level {finalLevel}</span>
               </div>
-              <p className="text-white/90 font-medium">Current level reached</p>
+              <p className="text-white/90 text-sm font-medium">Current level reached</p>
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <Button 
               onClick={handleWatchAd}
-              className="w-full bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 hover:from-green-500 hover:via-emerald-600 hover:to-teal-600 text-white py-4 rounded-xl font-bold text-lg shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-3 border-2 border-white/30"
+              className="w-full bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 hover:from-green-500 hover:via-emerald-600 hover:to-teal-600 text-white py-3 rounded-xl font-bold shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 border-2 border-white/30"
             >
-              <Timer className="w-6 h-6 animate-spin" />
+              <Timer className="w-5 h-5 animate-spin" />
               Watch Ad for 2 Hearts
             </Button>
 
             <Button 
               onClick={handleRestart}
-              className="w-full bg-white/20 backdrop-blur-sm border-2 border-white/40 text-white hover:bg-white/30 py-4 rounded-xl font-bold text-lg shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-3"
+              className="w-full bg-white/20 backdrop-blur-sm border-2 border-white/40 text-white hover:bg-white/30 py-3 rounded-xl font-bold shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
             >
-              <RotateCcw className="w-6 h-6" />
+              <RotateCcw className="w-5 h-5" />
               Start Over
             </Button>
           </div>
