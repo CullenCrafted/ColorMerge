@@ -72,17 +72,19 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
   // Generate floating bubbles when modal opens
   useEffect(() => {
     if (open) {
+      console.log('Modal opened, generating bubbles...');
       const colors = ['#3B82F6', '#EF4444', '#FBBF24', '#10B981', '#8B5CF6', '#F97316', '#EC4899'];
-      const bubbles = Array.from({ length: 20 }, (_, i) => ({
-        id: `bubble-${i}`,
-        x: Math.random() * 100,
+      const newBubbles = Array.from({ length: 20 }, (_, i) => ({
+        id: `bubble-${i}-${Date.now()}`,
+        x: Math.random() * 100, // percentage positions
         y: Math.random() * 100,
-        size: Math.random() * 30 + 15,
+        size: 8 + Math.random() * 12, // 8-20px
         color: colors[Math.floor(Math.random() * colors.length)],
-        duration: Math.random() * 8 + 6,
-        delay: Math.random() * 2
+        duration: 3 + Math.random() * 2, // 3-5 seconds
+        delay: Math.random() * 1000 // 0-1 second delay
       }));
-      setFloatingBubbles(bubbles);
+      console.log('Generated bubbles:', newBubbles.length);
+      setFloatingBubbles(newBubbles);
     } else {
       setFloatingBubbles([]);
     }
@@ -97,14 +99,15 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
             {floatingBubbles.slice(0, 8).map((bubble) => (
               <div
                 key={bubble.id}
-                className="absolute rounded-full opacity-30 animate-bounce"
+                className="absolute rounded-full opacity-40"
                 style={{
                   left: `${bubble.x}%`,
                   top: `${bubble.y}%`,
-                  width: `${bubble.size * 0.8}px`,
-                  height: `${bubble.size * 0.8}px`,
+                  width: `${bubble.size}px`,
+                  height: `${bubble.size}px`,
                   backgroundColor: bubble.color,
-                  animation: `bounce ${bubble.duration}s infinite ${bubble.delay}s ease-in-out alternate`,
+                  animation: `float-bubble ${bubble.duration}s infinite ${bubble.delay}ms ease-in-out`,
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
                 }}
               />
             ))}
@@ -190,7 +193,8 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
                 width: `${bubble.size}px`,
                 height: `${bubble.size}px`,
                 backgroundColor: bubble.color,
-                animation: `float-bubble ${bubble.duration}s infinite ${bubble.delay}s ease-in-out alternate`,
+                animation: `float-bubble ${bubble.duration}s infinite ${bubble.delay}ms ease-in-out`,
+                boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
               }}
             />
           ))}

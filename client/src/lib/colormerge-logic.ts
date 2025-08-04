@@ -203,6 +203,10 @@ export class ColorMergeLogic {
     return this.getTargetColorString() === 'rgb(255, 255, 255)';
   }
 
+  public isCurrentMixWhite(): boolean {
+    return this.getCurrentColorString() === 'rgb(255, 255, 255)';
+  }
+
   public getCurrentColorString(): string {
     const { r, g, b } = this.state.currentColor;
     return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
