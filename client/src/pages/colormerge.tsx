@@ -175,10 +175,31 @@ export default function ColorMerge() {
         setBubbles([...primaryBubbles, ...secondaryBubbles]);
         setShowSuccessFlash(false);
         
-        // Check for heart bonus
+        // Check for heart bonus - EXCITING CELEBRATION!
         if (nextState.hearts > prevHearts) {
+          // Enhanced haptic feedback for heart gain
+          triggerHaptic('heavy');
+          
+          // Show heart gain celebration
           setShowHeartGain(true);
-          setTimeout(() => setShowHeartGain(false), 1000);
+          
+          // Create heart burst animation
+          const heartBubbles = Array.from({ length: 20 }, (_, i) => {
+            const angle = (i / 20) * 2 * Math.PI;
+            const distance = 200 + Math.random() * 200;
+            return {
+              id: `heart-${Date.now()}-${i}`,
+              x: Math.cos(angle) * distance,
+              y: Math.sin(angle) * distance,
+              size: 15 + Math.random() * 10,
+              color: '#FF1493', // Deep pink for hearts
+              type: 'heart-burst' as const,
+              delay: Math.random() * 200
+            };
+          });
+          setBubbles(prev => [...prev, ...heartBubbles]);
+          
+          setTimeout(() => setShowHeartGain(false), 3000);
         }
         
         // Update stats
@@ -509,12 +530,19 @@ export default function ColorMerge() {
               <span className={`text-lg font-bold transition-colors duration-300 ${
                 showSuccessFlash ? 'text-white' : textColorClass
               }`}>{gameState.currentLevel}</span>
+              {gameState.currentLevel % 10 === 0 && gameState.currentLevel > 0 && (
+                <div className="absolute -top-1 -right-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold animate-bounce shadow-lg">
+                  💖
+                </div>
+              )}
             </div>
             
             {/* Hearts */}
             <div className={`flex flex-col items-center bg-opacity-90 rounded-2xl px-3 py-2 border relative transition-all duration-300 ${
               showSuccessFlash 
                 ? 'bg-green-500/80 border-green-400 ring-2 ring-green-400' 
+                : showHeartGain 
+                ? 'bg-gradient-to-r from-yellow-400 to-pink-500 border-yellow-300 ring-2 ring-yellow-400 animate-pulse scale-110'
                 : 'bg-black/20 border-white/20'
             }`}>
               <Heart className={`w-4 h-4 fill-current mb-1 transition-colors duration-300 ${
@@ -532,8 +560,13 @@ export default function ColorMerge() {
                 </div>
               )}
               {showHeartGain && (
-                <div className="absolute top-16 left-1/2 transform -translate-x-1/2 animate-bounce">
-                  <span className="text-xl text-black font-bold drop-shadow-lg bg-white/90 rounded-full px-2 py-1">+1</span>
+                <div className="absolute top-16 left-1/2 transform -translate-x-1/2 animate-bounce z-50">
+                  <div className="bg-gradient-to-r from-yellow-400 via-pink-500 to-red-500 text-white rounded-full px-4 py-2 font-bold text-xl shadow-2xl border-2 border-white animate-pulse">
+                    ❤️ +1 HEART! ❤️
+                  </div>
+                  <div className="text-center mt-2 text-sm font-bold text-yellow-300 drop-shadow-lg animate-pulse">
+                    AMAZING!
+                  </div>
                 </div>
               )}
             </div>
@@ -590,7 +623,14 @@ export default function ColorMerge() {
                 >
                   <div
                     className={`w-6 h-6 rounded-full ${color === 'white' ? 'border-2 border-gray-400' : ''}`}
-                    style={{ backgroundColor: color }}
+                    style={{ 
+                      backgroundColor: color === 'red' ? 'rgb(255, 0, 0)' 
+                        : color === 'yellow' ? 'rgb(255, 255, 0)'
+                        : color === 'blue' ? 'rgb(0, 0, 255)'
+                        : color === 'white' ? 'rgb(255, 255, 255)'
+                        : color === 'black' ? 'rgb(0, 0, 0)'
+                        : color
+                    }}
                   />
                   <div 
                     className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold border border-white/50"
