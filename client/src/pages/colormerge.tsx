@@ -193,7 +193,7 @@ export default function ColorMerge() {
               y: Math.sin(angle) * distance,
               size: 15 + Math.random() * 10,
               color: '#FF1493', // Deep pink for hearts
-              type: 'heart-burst' as const,
+              type: 'primary' as const,
               delay: Math.random() * 200
             };
           });
@@ -286,11 +286,37 @@ export default function ColorMerge() {
   };
 
   const colorButtons = [
-    { color: 'blue', bgColor: 'from-blue-400 to-blue-600', shadowColor: 'shadow-blue-500/50' },
-    { color: 'red', bgColor: 'from-red-400 to-red-600', shadowColor: 'shadow-red-500/50' },
-    { color: 'yellow', bgColor: 'from-yellow-300 to-yellow-500', shadowColor: 'shadow-yellow-500/50' },
-    { color: 'white', bgColor: 'from-gray-100 to-white', shadowColor: 'shadow-gray-500/50', textColor: 'text-gray-800' },
-    { color: 'black', bgColor: 'from-gray-800 to-black', shadowColor: 'shadow-gray-900/50' },
+    { 
+      color: 'blue', 
+      exactColor: 'rgb(0, 0, 255)',
+      bgColor: 'from-blue-400 to-blue-600', 
+      shadowColor: 'shadow-blue-500/50' 
+    },
+    { 
+      color: 'red', 
+      exactColor: 'rgb(255, 0, 0)',
+      bgColor: 'from-red-400 to-red-600', 
+      shadowColor: 'shadow-red-500/50' 
+    },
+    { 
+      color: 'yellow', 
+      exactColor: 'rgb(255, 255, 0)',
+      bgColor: 'from-yellow-300 to-yellow-500', 
+      shadowColor: 'shadow-yellow-500/50' 
+    },
+    { 
+      color: 'white', 
+      exactColor: 'rgb(255, 255, 255)',
+      bgColor: 'from-gray-100 to-white', 
+      shadowColor: 'shadow-gray-500/50', 
+      textColor: 'text-gray-800' 
+    },
+    { 
+      color: 'black', 
+      exactColor: 'rgb(0, 0, 0)',
+      bgColor: 'from-gray-800 to-black', 
+      shadowColor: 'shadow-gray-900/50' 
+    },
   ];
 
   // Get dynamic text color based on background
@@ -624,12 +650,7 @@ export default function ColorMerge() {
                   <div
                     className={`w-6 h-6 rounded-full ${color === 'white' ? 'border-2 border-gray-400' : ''}`}
                     style={{ 
-                      backgroundColor: color === 'red' ? 'rgb(255, 0, 0)' 
-                        : color === 'yellow' ? 'rgb(255, 255, 0)'
-                        : color === 'blue' ? 'rgb(0, 0, 255)'
-                        : color === 'white' ? 'rgb(255, 255, 255)'
-                        : color === 'black' ? 'rgb(0, 0, 0)'
-                        : color
+                      backgroundColor: colorButtons.find(btn => btn.color === color)?.exactColor || color
                     }}
                   />
                   <div 
@@ -662,13 +683,17 @@ export default function ColorMerge() {
 
           {/* Color Buttons */}
           <div className="flex items-center justify-center space-x-4 mb-4 relative z-20 pointer-events-auto">
-            {colorButtons.map(({ color, bgColor, shadowColor, textColor = 'text-white' }) => (
+            {colorButtons.map(({ color, exactColor, bgColor, shadowColor, textColor = 'text-white' }) => (
               <Button
                 key={color}
                 onClick={() => handleColorClick(color)}
                 disabled={gameLogic.getRemainingMixes() <= 0 || isPaused}
-                className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${bgColor} ${shadowColor} shadow-lg hover:shadow-xl transform hover:scale-110 active:scale-95 transition-all duration-200 border-2 border-white/40 disabled:opacity-50 disabled:cursor-not-allowed ${textColor} game-interactive touch-enabled`}
-                style={{ zIndex: 50 }}
+                className={`w-16 h-16 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-110 active:scale-95 transition-all duration-200 border-2 border-white/40 disabled:opacity-50 disabled:cursor-not-allowed ${textColor} game-interactive touch-enabled`}
+                style={{ 
+                  backgroundColor: exactColor,
+                  zIndex: 50,
+                  border: color === 'white' ? '2px solid rgba(0,0,0,0.3)' : '2px solid rgba(255,255,255,0.4)'
+                }}
               />
             ))}
           </div>
@@ -709,6 +734,8 @@ export default function ColorMerge() {
         open={showHeartsOut}
         onOpenChange={setShowHeartsOut}
         finalLevel={finalLevelReached}
+        bestLevel={(stats as any)?.bestLevel || 0}
+        incorrectGuesses={allIncorrectGuesses}
         onRestart={handleNewGame}
         onContinueWithHearts={handleContinueWithHearts}
       />

@@ -3,15 +3,99 @@ import { Button } from "@/components/ui/button";
 import { Trophy, Heart, RotateCcw, Play, Timer } from "lucide-react";
 import { useState, useEffect } from "react";
 
+// Pie chart component for showing color mixtures
+const ColorPieChart = ({ colors, size = 30 }: { colors: string[]; size?: number }) => {
+  if (colors.length === 0) return <div className={`w-8 h-8 bg-gray-300 rounded-full`} />;
+  
+  const colorCounts = colors.reduce((acc, color) => {
+    acc[color] = (acc[color] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const total = colors.length;
+  
+  // If only one color, show a solid circle
+  if (Object.keys(colorCounts).length === 1) {
+    const [singleColor] = Object.keys(colorCounts);
+    return (
+      <div 
+        className="rounded-full drop-shadow-lg border-2 border-white/50" 
+        style={{ 
+          width: size, 
+          height: size, 
+          backgroundColor: singleColor === 'red' ? 'rgb(255, 0, 0)' 
+            : singleColor === 'yellow' ? 'rgb(255, 255, 0)'
+            : singleColor === 'blue' ? 'rgb(0, 0, 255)'
+            : singleColor === 'white' ? 'rgb(255, 255, 255)'
+            : singleColor === 'black' ? 'rgb(0, 0, 0)'
+            : singleColor
+        }}
+      />
+    );
+  }
+
+  let currentAngle = 0;
+  const segments = Object.entries(colorCounts).map(([color, count]) => {
+    const percentage = count / total;
+    const angle = percentage * 360;
+    const startAngle = currentAngle;
+    const endAngle = currentAngle + angle;
+    currentAngle += angle;
+
+    const startX = Math.cos((startAngle - 90) * Math.PI / 180) * (size/2);
+    const startY = Math.sin((startAngle - 90) * Math.PI / 180) * (size/2);
+    const endX = Math.cos((endAngle - 90) * Math.PI / 180) * (size/2);
+    const endY = Math.sin((endAngle - 90) * Math.PI / 180) * (size/2);
+    
+    const largeArcFlag = angle > 180 ? 1 : 0;
+    
+    const pathData = [
+      `M ${size/2} ${size/2}`,
+      `L ${size/2 + startX} ${size/2 + startY}`,
+      `A ${size/2} ${size/2} 0 ${largeArcFlag} 1 ${size/2 + endX} ${size/2 + endY}`,
+      'Z'
+    ].join(' ');
+
+    return (
+      <path
+        key={color}
+        d={pathData}
+        fill={color === 'red' ? 'rgb(255, 0, 0)' 
+          : color === 'yellow' ? 'rgb(255, 255, 0)'
+          : color === 'blue' ? 'rgb(0, 0, 255)'
+          : color === 'white' ? 'rgb(255, 255, 255)'
+          : color === 'black' ? 'rgb(0, 0, 0)'
+          : color}
+        stroke="rgba(255,255,255,0.5)"
+        strokeWidth="1"
+      />
+    );
+  });
+
+  return (
+    <svg width={size} height={size} className="drop-shadow-lg">
+      {segments}
+    </svg>
+  );
+};
+
+interface IncorrectGuess {
+  guess: string[];
+  correct: string[];
+  level: number;
+}
+
 interface HeartsOutModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   finalLevel: number;
+  bestLevel: number;
+  incorrectGuesses: IncorrectGuess[];
   onRestart: () => void;
   onContinueWithHearts: () => void;
 }
 
-export default function HeartsOutModal({ open, onOpenChange, finalLevel, onRestart, onContinueWithHearts }: HeartsOutModalProps) {
+export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLevel, incorrectGuesses, onRestart, onContinueWithHearts }: HeartsOutModalProps) {
   const [showingAd, setShowingAd] = useState(false);
   const [adCountdown, setAdCountdown] = useState(15);
   const [adCompleted, setAdCompleted] = useState(false);
@@ -223,8 +307,44 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, onResta
                 <span className="drop-shadow-lg">Level {finalLevel}</span>
               </div>
               <p className="text-white/90 text-sm font-medium">Current level reached</p>
+              {finalLevel > bestLevel && (
+                <div className="mt-2 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 rounded-lg p-2 border border-yellow-300/30">
+                  <p className="text-yellow-300 text-xs font-bold text-center animate-pulse">🏆 NEW BEST LEVEL! 🏆</p>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Show incorrect guesses review */}
+          {incorrectGuesses.length > 0 && (
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+              <h3 className="text-white font-bold text-sm mb-3 text-center">Missed Combinations:</h3>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {incorrectGuesses.slice(-3).map((mistake, index) => (
+                  <div key={index} className="bg-black/20 rounded-lg p-2 border border-white/10">
+                    <div className="flex items-center justify-between text-xs text-white/80 mb-1">
+                      <span>Level {mistake.level}</span>
+                    </div>
+                    <div className="flex items-center justify-center space-x-3">
+                      {/* Your Guess */}
+                      <div className="flex flex-col items-center">
+                        <span className="text-xs text-red-300 mb-1">Your guess</span>
+                        <ColorPieChart colors={mistake.guess} size={30} />
+                      </div>
+                      
+                      <div className="text-white/60 text-lg">vs</div>
+                      
+                      {/* Correct Answer */}
+                      <div className="flex flex-col items-center">
+                        <span className="text-xs text-green-300 mb-1">Correct</span>
+                        <ColorPieChart colors={mistake.correct} size={30} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-3">
             <Button 
