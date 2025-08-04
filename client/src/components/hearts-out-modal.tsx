@@ -308,10 +308,20 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLev
               </div>
               <p className="text-white/90 text-sm font-medium">Current level reached</p>
               {finalLevel > bestLevel && (
-                <div className="mt-2 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 rounded-lg p-2 border border-yellow-300/30">
-                  <p className="text-yellow-300 text-xs font-bold text-center animate-pulse">🏆 NEW BEST LEVEL! 🏆</p>
+                <div className="mt-2 bg-gradient-to-r from-yellow-400/30 to-orange-500/30 rounded-lg p-3 border-2 border-yellow-400/50 shadow-lg">
+                  <div className="flex items-center justify-center space-x-2">
+                    <span className="text-2xl">🏆</span>
+                    <p className="text-yellow-200 text-sm font-bold animate-pulse">NEW BEST LEVEL!</p>
+                    <span className="text-2xl">🏆</span>
+                  </div>
+                  <p className="text-yellow-300/80 text-xs text-center mt-1">Previous best: {bestLevel}</p>
                 </div>
               )}
+              
+              {/* Debug info - remove this later */}
+              <div className="mt-1 text-xs text-white/50 text-center">
+                Current: {finalLevel} | Best: {bestLevel} | Show: {finalLevel > bestLevel ? 'YES' : 'NO'}
+              </div>
             </div>
           </div>
 
