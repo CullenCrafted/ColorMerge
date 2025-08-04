@@ -29,6 +29,7 @@ export default function ColorMerge() {
   const [bubbles, setBubbles] = useState<Array<{id: string, x: number, y: number, size: number, color: string, delay: number, type: 'primary' | 'secondary'}>>([]);
   const [finalLevelReached, setFinalLevelReached] = useState(1);
   const [showBuyHearts, setShowBuyHearts] = useState(false);
+  const [heartModalAction, setHeartModalAction] = useState<'ad' | 'payment' | null>(null);
   const { stats, updateStats } = useGameStats("colormerge");
   const { toast } = useToast();
   const { toggleBackgroundMusic, initializeAudio } = useAudio();
@@ -494,12 +495,12 @@ export default function ColorMerge() {
                     variant="ghost"
                     size="sm"
                     className={`w-12 h-10 rounded-full bg-opacity-90 hover:bg-black/30 relative z-40 pointer-events-auto transition-all duration-300 ${
-                      showSuccessFlash ? 'bg-green-500/80 ring-2 ring-green-400' : 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 border border-yellow-400/50'
+                      showSuccessFlash ? 'bg-green-500/80 ring-2 ring-green-400' : 'bg-black/20'
                     }`}
                   >
-                    <div className="flex items-center gap-1">
-                      <Heart className={`w-3 h-3 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : 'text-yellow-300'}`} />
-                      <DollarSign className={`w-3 h-3 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : 'text-yellow-300'}`} />
+                    <div className="flex items-center">
+                      <span className={`text-lg transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`}>+</span>
+                      <Heart className={`w-4 h-4 fill-current transition-colors duration-300 ${showSuccessFlash ? 'text-white' : 'text-red-400'}`} />
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
@@ -511,12 +512,8 @@ export default function ColorMerge() {
                   <DropdownMenuItem 
                     onClick={() => {
                       setShowBuyHearts(false);
-                      // Simulate watch ad
-                      triggerHaptic('medium');
-                      toast({
-                        title: "Ad Starting",
-                        description: "Watch 15s ad for 2 hearts",
-                      });
+                      setHeartModalAction('ad');
+                      setShowHeartsOut(true);
                     }}
                     className="flex items-center gap-3 p-3 rounded-lg hover:bg-green-100/80 cursor-pointer transition-colors"
                   >
@@ -531,12 +528,8 @@ export default function ColorMerge() {
                   <DropdownMenuItem 
                     onClick={() => {
                       setShowBuyHearts(false);
-                      // Simulate purchase
-                      triggerHaptic('heavy');
-                      toast({
-                        title: "Purchase Processing",
-                        description: "Buying 20 hearts for $0.99",
-                      });
+                      setHeartModalAction('payment');
+                      setShowHeartsOut(true);
                     }}
                     className="flex items-center gap-3 p-3 rounded-lg hover:bg-yellow-100/80 cursor-pointer transition-colors"
                   >
@@ -798,12 +791,16 @@ export default function ColorMerge() {
 
       <HeartsOutModal
         open={showHeartsOut}
-        onOpenChange={setShowHeartsOut}
+        onOpenChange={(open) => {
+          setShowHeartsOut(open);
+          if (!open) setHeartModalAction(null);
+        }}
         finalLevel={finalLevelReached}
         bestLevel={(stats as any)?.bestLevel || 0}
         incorrectGuesses={allIncorrectGuesses}
         onRestart={handleNewGame}
         onContinueWithHearts={handleContinueWithHearts}
+        directAction={heartModalAction}
       />
 
     </>

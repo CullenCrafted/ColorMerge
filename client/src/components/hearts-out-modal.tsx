@@ -94,9 +94,10 @@ interface HeartsOutModalProps {
   incorrectGuesses: IncorrectGuess[];
   onRestart: () => void;
   onContinueWithHearts: () => void;
+  directAction?: 'ad' | 'payment' | null;
 }
 
-export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLevel, incorrectGuesses, onRestart, onContinueWithHearts }: HeartsOutModalProps) {
+export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLevel, incorrectGuesses, onRestart, onContinueWithHearts, directAction = null }: HeartsOutModalProps) {
   const [showingAd, setShowingAd] = useState(false);
   const [adCountdown, setAdCountdown] = useState(15);
   const [adCompleted, setAdCompleted] = useState(false);
@@ -167,7 +168,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLev
     }
   }, [open]);
 
-  // Generate floating bubbles when modal opens
+  // Generate floating bubbles when modal opens and handle direct actions
   useEffect(() => {
     if (open) {
       console.log('Modal opened, generating bubbles...');
@@ -183,10 +184,17 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLev
       }));
       console.log('Generated bubbles:', newBubbles.length);
       setFloatingBubbles(newBubbles);
+
+      // Handle direct actions from top button
+      if (directAction === 'ad') {
+        setTimeout(() => handleWatchAd(), 500);
+      } else if (directAction === 'payment') {
+        setTimeout(() => handlePurchaseHearts(), 500);
+      }
     } else {
       setFloatingBubbles([]);
     }
-  }, [open]);
+  }, [open, directAction]);
 
   if (showingPayment) {
     return (
