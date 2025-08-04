@@ -562,12 +562,15 @@ export default function ColorMerge() {
               >
                 {/* Fill progress with mixed color */}
                 <div
-                  className="absolute bottom-0 left-0 right-0 transition-all duration-500 ease-out"
+                  className="absolute transition-all duration-500 ease-out"
                   style={{ 
                     backgroundColor: gameLogic.getCurrentColorString(),
-                    height: `${(gameState.mixCount / gameState.maxMixes) * 100}%`,
+                    height: `${(gameState.mixCount / gameState.maxMixes) * 100 + 20}%`, // Extra height to hide bottom edge
+                    width: '110%', // Extra width to hide side edges
+                    left: '-5%', // Center the wider element
+                    bottom: '-10%', // Start lower to hide bottom edge
                     borderRadius: gameState.mixCount === gameState.maxMixes ? '100%' : '0 0 100% 100%',
-                    border: (gameLogic.isCurrentMixWhite() && gameState.mixCount > 0) ? '2px solid rgba(0, 0, 0, 0.4)' : 'none'
+                    borderTop: (gameLogic.isCurrentMixWhite() && gameState.mixCount > 0) ? '2px solid rgba(0, 0, 0, 0.4)' : 'none'
                   }}
                 />
               </div>
