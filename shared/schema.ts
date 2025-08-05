@@ -11,7 +11,7 @@ export const users = pgTable("users", {
 export const gameStats = pgTable("game_stats", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
-  gameType: text("game_type").notNull(), // classic, arcade, golfball, strings, concentric, flashbg, tetris, chaotic, zenfade
+  gameType: text("game_type").notNull(), // colormerge, connectlines, stretchwords, wordscramble, letterpath
   currentLevel: integer("current_level").default(1),
   bestLevel: integer("best_level").default(1),
   currentScore: integer("current_score").default(0),

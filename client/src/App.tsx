@@ -1,25 +1,33 @@
-import { Router, Route } from "wouter";
+import { useState } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import SimpleMainMenu from "@/pages/simple-main-menu";
-import GameSingle from "@/pages/game-single";
-import GameArcade from "@/pages/game-arcade";
 import ColorMerge from "@/pages/colormerge";
+import AdScreen from "@/components/ad-screen";
 
 function App() {
+  const [showAd, setShowAd] = useState(true);
+
+  const handleAdClose = () => {
+    setShowAd(false);
+    // Force a reflow to ensure any rendering issues are cleared
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => {
+      document.body.style.overflow = '';
+    }, 10);
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <div className="min-h-screen overflow-hidden">
           <Toaster />
-          <Router>
-            <Route path="/" component={SimpleMainMenu} />
-            <Route path="/game/:mode" component={GameSingle} />
-            <Route path="/game/arcade" component={GameArcade} />
-            <Route path="/colormerge" component={ColorMerge} />
-          </Router>
+          {showAd ? (
+            <AdScreen onClose={handleAdClose} />
+          ) : (
+            <ColorMerge />
+          )}
         </div>
       </TooltipProvider>
     </QueryClientProvider>
