@@ -1,0 +1,144 @@
+Here is the entire prompt in a single block of clean, copyable text — optimized for pasting into Replit or sending to a developer/AI assistant:
+
+⸻
+
+REPLIT PROMPT: COLOR MERGE GAME – EXPANSION, MAIN MENU, AND INFINITE ARCADE MODE
+
+We are expanding the existing ColorMerge game (currently built in Replit) into a multi-mode color blending puzzle game.
+
+Goals:
+	•	Preserve the smooth, minimal, satisfying feel of the original ColorMerge game.
+	•	Add 7 new color-based game modes, each with unique layout and mechanics.
+	•	Implement an Arcade Mode with infinite progression that rotates through all game types.
+	•	Let players also access and play each individual game mode independently.
+	•	Design a Main Menu (Home Screen) that allows users to choose:
+	•	Classic Mode (original)
+	•	Arcade Mode (infinite campaign)
+	•	All other game modes as standalone challenges
+
+⸻
+
+🧩 GAME MODES TO INCLUDE:
+	1.	Classic Mode (original ColorMerge)
+	•	Keep as-is for early levels in Arcade Mode and standalone play.
+	2.	Golf Ball Dimples
+	•	A 3D rotatable sphere with colored dimples.
+	•	Player taps each dimple and adds colors to blend it into the background.
+	•	When matched, the dimple disappears.
+	•	Variables: dimple count, blend difficulty, background complexity, rotation speed.
+	3.	Strings / Bands
+	•	Colored bands or lines overlay a multicolor background.
+	•	Bands vary in number, width, curvature, orientation, and overlap.
+	•	Player taps a band, adds colors, and matches it to make it disappear.
+	4.	Concentric Circles
+	•	Multiple nested circles where each layer builds upon the color of the previous.
+	•	The goal is to match each ring to its intended blend, moving from inside out.
+	•	Score based on speed and accuracy.
+	5.	Flash Background
+	•	The background briefly flashes on screen, then disappears.
+	•	Player must recreate the background by blending colors from memory.
+	•	Difficulty scales by increasing color complexity and decreasing flash time.
+	6.	Tetris Falling Shapes
+	•	Shapes fall from the top with partially blended colors.
+	•	Player must tap and complete the blend before the shape hits the bottom.
+	•	Shapes vary in form (circle, triangle, square, etc.).
+	•	Background changes per round. Speed and complexity increase with difficulty.
+	7.	Chaotic Bounce
+	•	Blank or partially blended shapes bounce around the screen.
+	•	Player must tap and match the background color before the screen becomes overcrowded.
+	•	Difficulty increases with spawn rate, speed, and background color complexity.
+	8.	Zen Fade
+	•	The background fades slowly from one blended color mix to another.
+	•	Player must match the current fade before the transition completes.
+	•	Precision and timing become more challenging as the game progresses.
+
+⸻
+
+🏠 MAIN MENU (HOME SCREEN):
+
+Create a unified and elegant main menu that allows players to launch any game mode:
+	•	Classic Mode
+	•	Arcade Mode
+	•	Golf Ball Mode
+	•	Strings Mode
+	•	Concentric Circles
+	•	Flash Background
+	•	Tetris Shapes
+	•	Chaotic Bounce
+	•	Zen Fade
+
+Classic and Arcade should be listed at the top of the menu. Each menu button should load the appropriate game view and difficulty.
+
+⸻
+
+🎮 ARCADE MODE STRUCTURE:
+
+Arcade Mode is an infinite campaign that cycles through the 8 total game modes. Each level pulls from one of the game types and increases in difficulty using a procedural system.
+
+Game mode selection rotates every level using:
+
+const gameModes = ["Classic", "GolfBall", "Strings", "Concentric", "FlashBG", "Tetris", "Chaotic", "ZenFade"];
+const currentGame = gameModes[levelNumber % gameModes.length];
+
+Difficulty increases over time using a Global Difficulty Index (GDI):
+
+const GDI = levelNumber * 1.15;
+
+Each level generates a settings object for the chosen game using GDI to scale:
+
+{
+  "level": 42,
+  "game_mode": "GolfBall",
+  "GDI": 48.3,
+  "settings": {
+    "dimples": 72,
+    "background_colors": 5,
+    "blend_variance": 0.2,
+    "rotation_speed": 1.8
+  }
+}
+
+Each mode’s internal difficulty will be adjusted using GDI:
+	•	Increase number of elements (dimples, bands, shapes, etc.)
+	•	Increase background complexity
+	•	Increase spawn/fall/fade speed
+	•	Tighten blend accuracy
+	•	Add visual movement or layout complexity
+
+⸻
+
+⚙️ SYSTEM COMPONENTS TO DEVELOP:
+	1.	Game Engine
+	•	Accepts a level number
+	•	Calculates GDI
+	•	Selects game mode and generates settings
+	•	Loads the appropriate game module
+	2.	Modular Game Components
+	•	Each game mode must be independent, reusable, and accept a config object.
+	•	Should handle their own win/loss conditions and UI.
+	3.	Main Menu UI
+	•	Display all game modes as individual launchable options.
+	•	Keep UI clean, animated, and consistent across views.
+	4.	Shared HUD and Transitions
+	•	Show current level, optional timer, or progress bar
+	•	Include smooth transitions between menu and gameplay, and between levels
+	•	Optional: display name of game mode before each level
+	5.	Progress & Storage (optional)
+	•	Save last completed Arcade level
+	•	Save high scores, play history, or most-played mode
+	•	Can use local storage or Firebase
+
+⸻
+
+✅ DELIVERABLES CHECKLIST:
+	•	Keep original ColorMerge intact
+	•	Create new modular game scenes for 7 additional game modes
+	•	Implement infinite Arcade Mode using level rotation and difficulty scaling
+	•	Build a stylish home screen menu with all game modes accessible
+	•	Add transition animations and shared UI elements
+	•	Design a centralized game engine and config system for Arcade Mode
+	•	(Optional) Add analytics or storage for progression and stats
+
+⸻
+
+Let me know if you need assets, blending logic functions, mockups, or testing plans. The finished app should feel cohesive, intuitive, and addictive — a growing library of satisfying color-based challenges.
