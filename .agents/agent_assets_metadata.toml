@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "RBQ2fW_Sc7IEsj8dnGtkX"
+uri = "file://exports/ColorMerge-complete-project.zip"
+type = "unspecified"
+title = "ColorMerge Complete Project"
+description = "Downloadable ZIP containing the complete project source, configuration, and assets. Generated dependencies, Git internals, caches, and local agent metadata are excluded."
+logical_id = "16eae46e-7d59-4b32-a5e8-17252974c71b"
+content_hash = "sha256:79d96f1a1649fd3ce8740f98072db60ff8cd946498dc74486fff412e1c36be8a"
+size = 16414117
+mtime_ms = 1788612861801
+storage_uri = "gcs://replit-rams-assets-worf/rams/assets/repl:a3d976c1-4b98-444f-a35d-b4759a06127e/16eae46e-7d59-4b32-a5e8-17252974c71b/81d495d1-d54f-4a20-b900-923c659c83a0"
+storage_version_token = "1788612866498549"
+content_type = "application/octet-stream"
