@@ -84,7 +84,8 @@ function showExtraHeartOption(popup) {
 
     const extraHeartButton = document.createElement('button');
     extraHeartButton.id = 'extra-heart-button';
-    extraHeartButton.textContent = '+❤️';
+    extraHeartButton.textContent = 'Watch ad · +1 ❤️';
+    extraHeartButton.setAttribute('aria-label', 'Watch a rewarded ad for one extra heart');
     extraHeartButton.onclick = () => {
         showAdPage();
         popup.style.display = 'none';
@@ -118,31 +119,31 @@ function hideExtraHeartOption() {
 }
 
 function showAdPage() {
-    const adPage = document.createElement('div');
-    adPage.id = 'ad-page';
+    const resultPopup = document.getElementById('result-popup');
+    const resetButton = document.getElementById('reset-button');
 
-    const adContent = document.createElement('div');
-    adContent.className = 'ad-content';
+    if (!window.ColorMergeAds) {
+        console.error('ColorMerge rewarded ads failed to initialize.');
+        resultPopup.style.display = 'flex';
+        return;
+    }
 
-    const countdownBar = document.createElement('div');
-    countdownBar.id = 'countdown-bar';
-
-    adContent.appendChild(countdownBar);
-    adPage.appendChild(adContent);
-    document.body.appendChild(adPage);
-
-    let countdown = 10;
-    const interval = setInterval(() => {
-        countdown--;
-        countdownBar.style.width = `${countdown * 10}%`;
-        if (countdown === 0) {
-            clearInterval(interval);
-            adPage.remove();
+    const started = window.ColorMergeAds.requestRewardedAd({
+        onViewed: () => {
             hearts++;
             updateHeartsDisplay();
             resetGame();
+            resetButton.disabled = false;
+        },
+        onDismissed: () => {
+            resultPopup.style.display = 'flex';
+            resetButton.disabled = true;
         }
-    }, 1000);
+    });
+
+    if (!started) {
+        resultPopup.style.display = 'flex';
+    }
 }
 
 function showCorrectCountsInPopup(container) {

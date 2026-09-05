@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://colormerge.xyz/sitemap.xml

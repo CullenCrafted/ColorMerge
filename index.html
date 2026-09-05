@@ -3,25 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Mix Challenge</title>
+    <meta name="description" content="ColorMerge is a quick color-mixing challenge. Combine blue, red, yellow, white, and black to match the target color.">
+    <meta name="theme-color" content="#f0f0f0">
+    <title>ColorMerge — A Color Mixing Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="game-container">
-        <button id="instructions-button">i</button>
+        <button id="instructions-button" type="button" aria-label="How to play">i</button>
 
-        <div id="instructions-popup">
-            <button id="close-instructions">&times;</button>
+        <div id="instructions-popup" role="dialog" aria-modal="true" aria-labelledby="instructions-title">
+            <button id="close-instructions" type="button" aria-label="Close instructions">&times;</button>
             <div id="instructions-content">
-                <h2>How to Play</h2>
+                <h2 id="instructions-title">How to Play</h2>
                 <p>1. There are 5 color buttons below; Blue, Red, Yellow, White, & Black</p>
                 <p>2. Try to match the background by mixing these colors</p>
                 <p>3. Each color button press will add that color to the mix (center circle)</p>
                 <p>4. The small gray dots and the quantities of them (the Level), represent the number of colors that mixed to make the background</p>
                 <p>5. You'll start with 1 color, if correct, then 2 colors, and so on</p>
-                <p>5. In some scenarios it's possible to match the background in fewer tries; you'll recieve an additional heart</p>
-                <p>6. Lose a heart for every incorrect match, and gain a heart every 10 levels</p>
-                <p>7. Have fun!</p>
+                <p>6. In some scenarios it's possible to match the background in fewer tries; you'll receive an additional heart</p>
+                <p>7. Lose a heart for every incorrect match, and gain a heart every 10 levels</p>
+                <p>8. Have fun!</p>
             </div>
         </div>
 
@@ -44,14 +46,19 @@
         </div>        
         <div id="mix-indicator" class="mix-indicator"></div>
         <div id="mixing-area" class="color-display"></div>
-        <div id="color-buttons">
-            <button onclick="addColor('blue')" style="background-color: blue;"></button>
-            <button onclick="addColor('red')" style="background-color: red;"></button>
-            <button onclick="addColor('yellow')" style="background-color: yellow; color: black;"></button>
-            <button onclick="addColor('white')" style="background-color: white;"></button>
-            <button onclick="addColor('black')" style="background-color: black; color: white;"></button>
+        <div id="color-buttons" aria-label="Mix colors">
+            <button type="button" aria-label="Add blue" onclick="addColor('blue')" style="background-color: blue;"></button>
+            <button type="button" aria-label="Add red" onclick="addColor('red')" style="background-color: red;"></button>
+            <button type="button" aria-label="Add yellow" onclick="addColor('yellow')" style="background-color: yellow; color: black;"></button>
+            <button type="button" aria-label="Add white" onclick="addColor('white')" style="background-color: white;"></button>
+            <button type="button" aria-label="Add black" onclick="addColor('black')" style="background-color: black; color: white;"></button>
         </div>
         <div id="click-counts"></div>
+        <nav id="site-links" aria-label="ColorMerge information">
+            <a href="/about">About</a>
+            <span aria-hidden="true">·</span>
+            <a href="/privacy">Privacy</a>
+        </nav>
     </div>
     <div id="color-counts" style="text-align: left; position: absolute; top: 10px; left: 10px;">
         <p id="red-count">Red: 0</p>
@@ -60,6 +67,8 @@
         <p id="white-count">White: 0</p>
         <p id="black-count">Black: 0</p>
     </div>
+    <script src="ads-config.js"></script>
+    <script src="ads.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
