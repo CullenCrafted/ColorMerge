@@ -14,3 +14,31 @@ mtime_ms = 1788612861801
 storage_uri = "gcs://replit-rams-assets-worf/rams/assets/repl:a3d976c1-4b98-444f-a35d-b4759a06127e/16eae46e-7d59-4b32-a5e8-17252974c71b/81d495d1-d54f-4a20-b900-923c659c83a0"
 storage_version_token = "1788612866498549"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "k5dUC-xPmVLKFWEj3nrJi"
+uri = "file://exports/ColorMerge-source.zip"
+type = "unspecified"
+title = "ColorMerge Source — Smaller Download"
+description = "Complete project source and assets except the large screen-recording video. Approximately 2.7 MB."
+logical_id = "31f76375-d0fb-4a28-bb10-bd8ac3bb1f5a"
+content_hash = "sha256:af219435d2df84e39e86b281321aa886d8409610ab390f506081142d324bccaf"
+size = 2770453
+mtime_ms = 1788613072433
+storage_uri = "gcs://replit-rams-assets-worf/rams/assets/repl:a3d976c1-4b98-444f-a35d-b4759a06127e/31f76375-d0fb-4a28-bb10-bd8ac3bb1f5a/3e078606-7dda-4312-a968-aa522415c5d0"
+storage_version_token = "1788613076150194"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "OwZIZdKrMFqu_lQhff3IS"
+uri = "file://attached_assets/ScreenRecording_08-03-2025%2008-08-49_1_1754251295324.mov"
+type = "video"
+title = "ColorMerge Screen Recording"
+description = "The large video excluded from the smaller source ZIP. Approximately 14 MB."
+logical_id = "e0c41dfc-60a1-4a72-aa69-db22a3f35864"
+content_hash = "sha256:33178cd9a1d82927498409a905590a3b0ad28f8535e83ea150d0ceee6cc09518"
+size = 13686963
+mtime_ms = 1754251303453
+storage_uri = "gcs://replit-rams-assets-worf/rams/assets/repl:a3d976c1-4b98-444f-a35d-b4759a06127e/e0c41dfc-60a1-4a72-aa69-db22a3f35864/5b0e57ce-a72e-4ebb-9804-59b966c46af2"
+storage_version_token = "1788613077174107"
+content_type = "video/quicktime"
