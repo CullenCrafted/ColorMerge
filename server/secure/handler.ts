@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { databaseStore, type Store } from './store.js';
+import { logGameFailure } from './diagnostics.js';
 import { GameError, newRun, publicRun, transition } from './game.js';
 
 const actionSchema = z.discriminatedUnion('type', [
@@ -46,6 +47,7 @@ export function makeHandler(getStore: () => Store = databaseStore) {
     } catch (error) {
       if (error instanceof GameError) return res.status(error.status).json({ message: error.message });
       // Never expose database connection details or secret game state in errors/logs.
+      logGameFailure(error);
       return res.status(503).json({ message: 'The game service is unavailable. Please try again shortly.' });
     }
   };
