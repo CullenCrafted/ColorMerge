@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import type { Run } from './game';
+import type { Run } from './game.js';
 
 export interface Store {
   get(id: string): Promise<Run | undefined>;

@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { ColorMergeLogic, type ColorMergeState } from './engine';
+import { ColorMergeLogic, type ColorMergeState } from './engine.js';
 
 export type Action = { type: 'tap'; color: string; roundId: string; revision: number } | { type: 'advance' | 'restart'; roundId: string; revision: number };
 export interface Run {

@@ -1,8 +1,8 @@
 import { createHash, randomBytes } from 'node:crypto';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
-import { databaseStore, type Store } from './store';
-import { GameError, newRun, publicRun, transition } from './game';
+import { databaseStore, type Store } from './store.js';
+import { GameError, newRun, publicRun, transition } from './game.js';
 
 const actionSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('tap'), color: z.enum(['red', 'blue', 'yellow', 'white', 'black']), roundId: z.string().uuid(), revision: z.number().int().nonnegative() }).strict(),
