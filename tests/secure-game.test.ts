@@ -5,7 +5,7 @@ import { newRun, publicRun, transition, type Run } from '../server/secure/game';
 import { ColorMergeLogic } from '../server/secure/engine';
 import { makeHandler } from '../server/secure/handler';
 import type { Store } from '../server/secure/store';
-import { categorizeDatabaseError, logDatabaseFailure, logGameFailure } from '../server/secure/diagnostics';
+import { categorizeDatabaseError, logDatabaseFailure, logGameFailure, logMissingDatabaseUrl } from '../server/secure/diagnostics';
 
 function fixed(colors: string[], maxMixes = colors.length, hearts = 3) {
   const run = newRun();
@@ -108,9 +108,13 @@ test('diagnostics categorize database failures without logging secrets', () => {
   assert.equal(categorizeDatabaseError(Object.assign(new Error('x'),{code:'XX000'})),'other-database-failure');
   assert.equal(categorizeDatabaseError(new Error('plain failure')),'other-database-failure');
   assert.equal(categorizeDatabaseError(undefined),'other-database-failure');
+  // Unsafe or malformed codes are ignored for categorization and logging.
+  assert.equal(categorizeDatabaseError(Object.assign(new Error('x'),{code:'******db.example/colormerge'})),'other-database-failure');
+  assert.equal(categorizeDatabaseError(Object.assign(new Error('x'),{code:'42P01\nforged line'})),'other-database-failure');
+  assert.equal(categorizeDatabaseError(Object.assign(new Error('x'),{code:'not a safe code!'})),'other-database-failure');
 });
 test('diagnostic logs contain only categories and safe codes, never raw error text', () => {
-  const secret='******db.example/colormerge ****** recipe=red,blue';
+  const secret='******db.example/colormerge secretpw recipe=red,blue';
   const logged: string[]=[];
   const original=console.error;
   console.error=(...args: unknown[])=>{ logged.push(args.map(String).join(' ')); };
@@ -118,23 +122,38 @@ test('diagnostic logs contain only categories and safe codes, never raw error te
     logDatabaseFailure('get',Object.assign(new Error(secret),{code:'42P01'}));
     logDatabaseFailure('save',Object.assign(new Error(secret),{code:'28P01'}));
     logDatabaseFailure('create',new Error(secret));
-    logDatabaseFailure('store-init',new Error('missing'));
+    logDatabaseFailure('get',Object.assign(new Error(secret),{code:secret}));
+    logMissingDatabaseUrl();
     logGameFailure(new Error('DATABASE_URL is required'));
     logGameFailure(new Error(secret));
   } finally { console.error=original; }
-  assert.equal(logged.length,6);
+  assert.equal(logged.length,7);
   assert.match(logged[0],/missing-sessions-table \(code 42P01\)/);
   assert.match(logged[1],/connection-or-auth \(code 28P01\)/);
   assert.match(logged[2],/other-database-failure/);
   assert.match(logged[3],/other-database-failure/);
+  assert.doesNotMatch(logged[3],/\(code/);
   assert.match(logged[4],/missing-database-url/);
-  assert.match(logged[5],/unexpected/);
+  assert.match(logged[5],/missing-database-url/);
+  assert.match(logged[6],/other-database-failure/);
   for (const line of logged) {
-    assert.doesNotMatch(line,/postgres:\/\/|p%40ssw0rd|hunter2|recipe|password/);
+    assert.doesNotMatch(line,/postgres:\/\/|p%40ssw0rd|secretpw|recipe|cmuser|db\.example/);
   }
 });
+test('handler logs each store failure exactly once with the store category', () => {
+  const logged: string[]=[];
+  const original=console.error;
+  console.error=(...args: unknown[])=>{ logged.push(args.map(String).join(' ')); };
+  try {
+    const missingTable=Object.assign(new Error('connection string inside'),{code:'42P01'});
+    logDatabaseFailure('get',missingTable);
+    logGameFailure(missingTable);
+    assert.equal(logged.length,1);
+    assert.match(logged[0],/get failed: missing-sessions-table \(code 42P01\)/);
+  } finally { console.error=original; }
+});
 test('503 responses log diagnostics while keeping the public message generic', async () => {
-  const secret='******db.example/colormerge';
+  const secret='******db.example/colormerge secretpw';
   const failing: Store = {
     async get() { throw Object.assign(new Error(secret),{code:'42P01'}); },
     async create() { throw Object.assign(new Error(secret),{code:'42P01'}); },
@@ -152,8 +171,9 @@ test('503 responses log diagnostics while keeping the public message generic', a
     assert.equal(res.status,503);
     const body=await res.json();
     assert.deepEqual(body,{message:'The game service is unavailable. Please try again shortly.'});
-    assert.doesNotMatch(JSON.stringify(body),/postgres:\/\/|secretpw|42P01/);
+    assert.doesNotMatch(JSON.stringify(body),/postgres:\/\/|secretpw|cmuser|db\.example|42P01/);
     assert.ok(logged.length>=1);
-    for (const line of logged) assert.doesNotMatch(line,/postgres:\/\/|secretpw/);
+    assert.ok(logged.some(line=>/missing-sessions-table \(code 42P01\)/.test(line)));
+    for (const line of logged) assert.doesNotMatch(line,/postgres:\/\/|secretpw|cmuser|db\.example/);
   } finally { console.error=original; server.closeAllConnections(); await new Promise<void>(resolve=>server.close(()=>resolve())); }
 });

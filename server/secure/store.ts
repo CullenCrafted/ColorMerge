@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import type { Run } from './game.js';
-import { logDatabaseFailure } from './diagnostics.js';
+import { logDatabaseFailure, logMissingDatabaseUrl } from './diagnostics.js';
 
 export interface Store {
   get(id: string): Promise<Run | undefined>;
@@ -9,7 +9,7 @@ export interface Store {
 }
 export function databaseStore(): Store {
   if (!process.env.DATABASE_URL) {
-    logDatabaseFailure('store-init', new Error('missing'));
+    logMissingDatabaseUrl();
     throw new Error('DATABASE_URL is required');
   }
   const sql = neon(process.env.DATABASE_URL);
