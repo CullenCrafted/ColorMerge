@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { HelpCircle, RotateCcw, Pause, Volume2, VolumeX, Trophy, Heart, Zap } from "lucide-react";
 import { ColorMergeLogic } from "@/lib/colormerge-logic";
 import { useAudio } from "@/hooks/use-audio";
-import { useGameStats } from "@/hooks/use-game-stats";
 import { useToast } from "@/hooks/use-toast";
 import InstructionsModal from "@/components/instructions-modal";
 import GameOverModal from "@/components/game-over-modal";
@@ -14,7 +13,9 @@ export default function ColorMerge() {
   const [showGameOver, setShowGameOver] = useState(false);
   const [showHeartsOut, setShowHeartsOut] = useState(false);
 
-  const [gameLogic, setGameLogic] = useState<ColorMergeLogic>(new ColorMergeLogic());
+  const [gameLogic] = useState(() => new ColorMergeLogic());
+  const [serviceError, setServiceError] = useState("");
+  const [loadingGame, setLoadingGame] = useState(true);
   const [gameState, setGameState] = useState(gameLogic.getState());
   const [isPaused, setIsPaused] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -27,7 +28,7 @@ export default function ColorMerge() {
   const [enhancedHaptics, setEnhancedHaptics] = useState(false);
   const [bubbles, setBubbles] = useState<Array<{id: string, x: number, y: number, size: number, color: string, delay: number, type: 'primary' | 'secondary'}>>([]);
   const [finalLevelReached, setFinalLevelReached] = useState(1);
-  const { stats, updateStats } = useGameStats("colormerge");
+  const stats = { bestLevel: gameLogic.bestLevel };
   const { toast } = useToast();
   const { toggleBackgroundMusic, initializeAudio } = useAudio();
 
@@ -62,13 +63,24 @@ export default function ColorMerge() {
     return brightness > 128 ? 'text-black' : 'text-white';
   };
 
-  useEffect(() => {
-    if (stats) {
-      const newLogic = new ColorMergeLogic((stats as any).currentLevel || 1, (stats as any).hearts || 3);
-      setGameLogic(newLogic);
-      setGameState(newLogic.getState());
-    }
-  }, [stats]);
+  const reloadGame = async () => {
+    setLoadingGame(true);
+    setServiceError("");
+    try {
+      await gameLogic.load();
+      if (gameLogic.status === 'won') await gameLogic.nextLevel();
+      setGameState(gameLogic.getState());
+      setAllIncorrectGuesses(gameLogic.mistakes);
+      setShowSuccessFlash(false);
+      if (gameLogic.status === 'over') {
+        setFinalLevelReached(gameLogic.getState().currentLevel);
+        setShowHeartsOut(true);
+      }
+    } catch (error) {
+      setServiceError(error instanceof Error ? error.message : "Unable to connect to the game.");
+    } finally { setLoadingGame(false); }
+  };
+  useEffect(() => { void reloadGame(); }, [gameLogic]);
 
   // Initialize audio on component mount and start background music
   useEffect(() => {
@@ -88,8 +100,8 @@ export default function ColorMerge() {
     triggerHaptic('medium');
   }, [gameState.currentLevel]);
 
-  const handleColorClick = (color: string) => {
-    if (isPaused) return;
+  const handleColorClick = async (color: string) => {
+    if (isPaused || gameLogic.busy || !gameLogic.ready || gameLogic.status !== 'playing' || showSuccessFlash) return;
     
     triggerHaptic('light');
     const previousHeartCount = gameState.hearts;
@@ -101,7 +113,16 @@ export default function ColorMerge() {
     currentGuess.push(color);
     setLastGuess(currentGuess);
     
-    const result = gameLogic.addColor(color);
+    gameLogic.previewColor(color);
+    setGameState(gameLogic.getState());
+    let result;
+    try { result = await gameLogic.addColor(color); }
+    catch (error) {
+      setGameState(gameLogic.getState());
+      setServiceError(error instanceof Error ? error.message : "Unable to save your move.");
+      return;
+    }
+    setAllIncorrectGuesses(gameLogic.mistakes);
     const newState = gameLogic.getState();
     setGameState(newState);
 
@@ -110,13 +131,6 @@ export default function ColorMerge() {
       // Heart lost - store incorrect guess for final summary
       triggerHaptic('heavy');
       setShowHeartLoss(true);
-      
-      const newIncorrectGuess = {
-        guess: currentGuess,
-        correct: gameLogic.getCurrentTargetColorArray(),
-        level: gameState.currentLevel
-      };
-      setAllIncorrectGuesses(prev => [...prev, newIncorrectGuess]);
       
       setTimeout(() => {
         setShowHeartLoss(false);
@@ -165,9 +179,15 @@ export default function ColorMerge() {
       });
       
       // Short delay for appreciation, then advance level and start celebration
-      setTimeout(() => {
+      setTimeout(async () => {
         // NOW advance to next level
-        gameLogic.nextLevel();
+        try { await gameLogic.nextLevel(); }
+        catch (error) {
+          setShowSuccessFlash(false);
+          setServiceError(error instanceof Error ? error.message : "Unable to load the next level.");
+          return;
+        }
+        setAllIncorrectGuesses(gameLogic.mistakes);
         const nextState = gameLogic.getState();
         setGameState(nextState);
         
@@ -202,13 +222,6 @@ export default function ColorMerge() {
           setTimeout(() => setShowHeartGain(false), 3000);
         }
         
-        // Update stats
-        updateStats({
-          currentLevel: nextState.currentLevel,
-          bestLevel: Math.max((stats as any)?.bestLevel || 0, nextState.currentLevel),
-          hearts: nextState.hearts,
-          totalPlays: ((stats as any)?.totalPlays || 0) + 1,
-        });
         
         // Enhanced vibration for bubble explosion
         if ('vibrate' in navigator) {
@@ -241,39 +254,20 @@ export default function ColorMerge() {
     }
   };
 
-  const handleResetLevel = () => {
-    // Reset to level 1 with 3 hearts
-    const newLogic = new ColorMergeLogic(1, 3);
-    setGameLogic(newLogic);
-    setGameState(newLogic.getState());
-    setAllIncorrectGuesses([]);
-    
-    // Update stats to reflect level 1 restart
-    updateStats({
-      currentLevel: 1,
-      hearts: 3,
-      bestLevel: (stats as any)?.bestLevel || 0, // Keep best level
-      totalPlays: ((stats as any)?.totalPlays || 0) + 1,
-    });
+  const handleNewGame = async () => {
+    if (gameLogic.busy || showSuccessFlash) return;
+    setLoadingGame(true);
+    try {
+      await gameLogic.resetGame();
+      setGameState(gameLogic.getState());
+      setAllIncorrectGuesses([]);
+      setShowGameOver(false);
+      setShowHeartsOut(false);
+    } catch (error) {
+      setServiceError(error instanceof Error ? error.message : "Unable to restart.");
+    } finally { setLoadingGame(false); }
   };
-
-  const handleNewGame = () => {
-    // Create completely new game logic starting from level 1
-    const newLogic = new ColorMergeLogic(1, 3);
-    setGameLogic(newLogic);
-    setGameState(newLogic.getState());
-    setAllIncorrectGuesses([]);
-    setShowGameOver(false);
-    setShowHeartsOut(false);
-    
-    // Update stats to reflect level 1 restart
-    updateStats({
-      currentLevel: 1,
-      hearts: 3,
-      bestLevel: (stats as any)?.bestLevel || 0, // Keep best level
-      totalPlays: ((stats as any)?.totalPlays || 0) + 1,
-    });
-  };
+  const handleResetLevel = handleNewGame;
 
   const colorButtons = [
     { 
@@ -377,6 +371,14 @@ export default function ColorMerge() {
 
   return (
     <>
+      {(loadingGame || serviceError) && (
+        <div role="alert" className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-6">
+          <div className="bg-white text-gray-900 rounded-2xl p-6 max-w-sm text-center">
+            <p>{serviceError || "Loading your game…"}</p>
+            {serviceError && <Button className="mt-4" onClick={() => void reloadGame()}>Retry connection</Button>}
+          </div>
+        </div>
+      )}
       {/* Full Background with Target Color - Quick transition */}
       <div 
         className={`fixed inset-0 transition-all duration-700 ease-in-out ${
@@ -677,7 +679,7 @@ export default function ColorMerge() {
               <Button
                 key={color}
                 onClick={() => handleColorClick(color)}
-                disabled={gameLogic.getRemainingMixes() <= 0 || isPaused}
+                disabled={gameLogic.getRemainingMixes() <= 0 || isPaused || gameLogic.busy || !gameLogic.ready || gameLogic.status !== 'playing' || showSuccessFlash}
                 className={`w-16 h-16 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-110 active:scale-95 transition-all duration-200 border-2 border-white/40 disabled:opacity-50 disabled:cursor-not-allowed ${textColor} game-interactive touch-enabled`}
                 style={{ 
                   backgroundColor: exactColor,

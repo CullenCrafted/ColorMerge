@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["server/secure/**/*.ts", "api/**/*.ts", "scripts/setup-secure-db.ts", "client/src/lib/colormerge-logic.ts", "tests/**/*.ts"],
+  "exclude": ["node_modules", "dist"],
+  "compilerOptions": { "incremental": false, "target": "ES2022" }
+}

@@ -3,8 +3,14 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertGameStatsSchema, insertSubscriptionSchema } from "@shared/schema";
 import { z } from "zod";
+import { gameHandler } from './secure/handler';
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  app.all('/api/game', gameHandler);
+  // Retire the demo stats API: it accepted arbitrary scores and shared user 1.
+  app.all('/api/stats/:gameType', (_req, res) => {
+    res.status(410).json({ message: 'Use the verified game session API.' });
+  });
   
   // Get game stats for a user
   app.get("/api/stats/:gameType", async (req, res) => {
