@@ -1,0 +1,845 @@
+/* General styles for the body and html */
+body, html {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f0f0; /* Default background color */
+    -webkit-touch-callout: none; /* Disable callouts */
+    -webkit-user-select: none;   /* Disable text selection */
+    -moz-user-select: none;      /* Disable text selection for Firefox */
+    -ms-user-select: none;       /* Disable text selection for Internet Explorer/Edge */
+    user-select: none;           /* Disable text selection for modern browsers */
+    -webkit-tap-highlight-color: rgba(0,0,0,0); /* Remove tap highlight */
+    transition: background-color 1.5s;
+}
+
+/* Styling for the Instructions button */
+#instructions-button {
+    position: absolute;
+    font-size: 26px;
+    left: 4%;
+    bottom:20%;
+    border: none;
+    border-radius: 40%;
+    background-color: rgba(0, 255, 255, 0.8); /* Green background */
+    color: black; /* White text */
+    cursor: pointer;
+    box-shadow: 0 8px 8px rgba(0, 0, 0, 0.2);
+    border: 2px solid black;
+    z-index: 1001; /* Ensure it is above other elements */
+}
+
+#instructions-button:hover {
+    background-color: rgba(0, 153, 255, 0.8); /* Darker green on hover */
+}
+
+/* Styling for the Instructions popup */
+#instructions-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 500px;
+    background-color: rgba(253, 200, 255, 0.95); /* Light background */
+    border: 2px solid black;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1002; /* Ensure it is above other elements */
+    display: none; /* Hidden by default */
+}
+
+/* Styling for the popup close button */
+#close-instructions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+#close-instructions:hover {
+    color: red; /* Red color on hover */
+}
+
+/* Additional styling for the popup content */
+#instructions-content {
+    text-align: center;
+    font-size: 18px;
+    color: black;
+}
+
+/* Hide the color counts container */
+#color-counts {
+    display: none;
+}
+
+/* Styling for the main game container */
+#game-container {
+    text-align: center;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: 0 4px 8px rgba(0,0,0,0); /* Soft shadow for depth */
+    width: 100%;
+    height: 100%;
+    margin: 0; /* Remove margin */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative; /* Ensure absolute children are positioned relative to this */
+}
+
+/* Styling for the color display circle */
+.color-display {
+    width: 25vw; /* 20% of the viewport width */
+    height: 25vw; /* 20% of the viewport width */
+    max-width: 300px; /* Maximum size */
+    max-height: 300px; /* Maximum size */
+    border-radius: 50%; /* Circle shape */
+    background-color: #FFF; /* Start as white */
+    box-shadow: 0 4px 8px rgba(0,0,0,0); /* Consistent shadow styling */
+    border: none; /* Default no border */
+}
+
+/* Add black border when body background is white */
+.color-display.white-background  {
+    border: 3px solid black;
+}
+
+/* Add black border when body background is white */
+.color-display.black-background {
+    border: 3px solid white;
+}
+
+/* Styling for the button container */
+#color-buttons {
+    background-color: rgba(255, 255, 255, 0.8); /* Gray background for contrast */
+    padding: 20px; /* Slightly increased padding */
+    border-radius: 25px; /* Rounded corners */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2%; /* Space above the container */
+    position: absolute;
+    bottom: 5%;
+}
+
+/* Styling for individual buttons */
+#color-buttons button {
+    margin: 10px;
+    padding: 20px 20px; /* Adjusted for better touch */
+    font-size: 14px; /* Adjust font size for small screens */
+    cursor: pointer;
+    border: none;
+    border-radius: 15px; /* Rounded corners */
+    background-color: inherit; /* Maintain inline style color */
+    color: inherit; /* Maintain inline style text color */
+    border: 2px solid black;
+    transition: transform 0.2s; /* Smooth transform on hover */
+    touch-action: manipulation; /* Ensure touch actions are handled correctly */
+}
+
+/* Hover effect for buttons */
+#color-buttons button:hover, #color-buttons button.active {
+    transform: scale(1.5); /* Slightly enlarge buttons on hover */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Shadow effect for depth */
+}
+
+/* Active effect for buttons to reset scale */
+#color-buttons button:active {
+    transform: scale(1); /* Reset scale on button press */
+    box-shadow: none; /* Remove shadow effect when pressed */
+}
+
+/* Styling for the mix indicator */
+.mix-indicator {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    margin-top: 0%;
+}
+
+/* Styling for dots in the mix indicator */
+.mix-indicator .dot {
+    height: 30px; /* Adjusted for small screens */
+    width: 30px; /* Adjusted for small screens */
+    background-color: gray; /* Default color */
+    box-shadow: 0 2px 4px black;
+    border-radius: 50%; /* Rounded dots */
+    margin: 2px;
+    border: none;
+}
+
+/* Styling for the indicator box */
+.indicator-box {
+    border: 2px solid transparent; /* Default transparent border */
+    border-radius: 50%; /* Match dot shape */
+    display: inline-block;
+    margin: 2px;
+    position: relative;
+}
+
+/* Add this CSS for white dots when the background is black */
+body.background-black .mix-indicator .dot {
+    background-color: white;
+}
+
+/* Additional styling for the mix indicator counter */
+.mix-indicator-counter {
+    font-size: 18px; /* Adjusted for small screens */
+    margin-left: 10px;
+    align-self: center;
+}
+
+/* Styling for squares in the mix indicator */
+.square {
+    height: 30px; /* Adjusted for small screens */
+    width: 30px; /* Adjusted for small screens */
+    color: black; /* Default text color */
+    display: flex;
+    box-shadow: 0 2px 4px black;
+    justify-content: center;
+    align-items: center;
+    margin: 2px;
+    border: 5px solid #38e038;
+    border-radius: 50%; /* Rounded corners */
+    font-weight: bold;
+    font-size: 16px; /* Font size for the number */
+}
+
+/* Set the font color of the last square to black */
+.mix-indicator .square:last-child {
+    padding: 5px;
+    color: black;
+}
+
+/* Set the font color of the first square to white */
+.mix-indicator .square:first-child {
+    color: white;
+}
+
+.mix-indicator .square:nth-last-child(2) {
+    color: white;
+}
+
+/* Styling for the NICE popup */
+.nice-popup {
+    position: fixed;
+    top: 115%;
+    color: #32cd32;
+    padding: 0%;
+    border-radius: 10px;
+    font-size: 42px;
+    font: bold;
+    box-shadow: 1px solid white;
+    z-index: 1000; /* Ensure it is above other elements */
+    top: 200px;
+}
+
+/* Styling for the correct counts container */
+.correct-counts-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0px; /* Space between correct counts and chosen colors */
+    box-shadow: 0 4px 12px black;
+    background-color: #38e038;
+    padding: 3px; /* Add padding for visual separation */
+    border-radius: 10px; /* Rounded corners for the container */
+    margin-top: 8%;
+}
+
+/* Styling for squares in the correct counts container */
+.correct-counts-container .square {
+    height: 30px; /* Adjusted for small screens */
+    width: 30px; /* Adjusted for small screens */
+    color: black; /* Default text color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2px;
+    border: 1px solid black;
+    border-radius: 50%; /* Rounded corners */
+    font-weight: bold;
+    font-size: 16px; /* Font size for the number */
+}
+
+/* Hide the last child in the mix indicator when the correct counts container is displayed */
+.hide {
+    display: none;
+}
+
+.correct-counts-container .square:nth-last-child(1) {
+    color: white;
+}
+
+.correct-counts-container .square:first-child {
+    color: white;
+}
+
+/* Change the look of level one */
+.level-indicator {
+    font-size: 32px;
+    font-weight: bold;
+    color: black;
+    background-color: rgba(0, 255, 255, 0.8);
+    box-shadow: 0px 4px 8px black;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 5px;
+    top: 25%; /* Adjust the spacing below the level indicator */
+}
+
+#progress-map {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    position: absolute;
+    width: 100%;
+    top: 15%; /* Adjust this value to position the progress map vertically */
+}
+
+.level-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: gray;
+    color: white;
+    border: 3px solid rgba(0, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin: 0 5px;
+    transition: opacity 3s ease;
+}
+
+.level-dot.completed {
+    background-color: #38e038;
+    color: black;
+}
+
+.level-dot.current {
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+    background-color: white;
+    color: black;
+    border: 2px solid black;
+    transition: opacity 3s ease;
+}
+
+.heart-icon {
+    color: red;
+    font-size: 16px; /* Adjust the size as needed */
+}
+
+.connector {
+    width: 30px;
+    height: 2px;
+    background-color: gray;
+    transition: opacity 3s ease;
+}
+
+#result-popup {
+    transform: translate(0%, -30%);
+}
+
+/* Styling for the OK button in the result popup */
+#ok-button {
+    padding: 10px 20px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    background-color: #38e038; /* Green background */
+    color: white; /* White text */
+    cursor: pointer;
+    display: none; /* Hidden by default */
+    border: 2px solid black;
+    position: absolute; /* Positioning */
+    bottom: -150%; /* Adjust based on your layout */
+    right: -20%; /* Adjust based on your layout */
+}
+
+#ok-button:hover {
+    background-color: #32cd32; /* Darker green on hover */
+}
+
+/* Flash effect for the status container */
+.status-flash {
+    animation: flash-green 1s;
+}
+
+@keyframes flash-green {
+    from {
+        background-color: #38e038;
+    }
+    to {
+        background-color: rgba(255, 255, 255, 0.8); /* Original background color */
+    }
+}
+
+/* Styling for the unified status container */
+#status-container {
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0px;
+    padding: 10px;
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    top: 5px;
+    width: 90%; /* Adjust width to be responsive */
+    max-width: 600px; /* Maximum width for larger screens */
+}
+
+/* Styling for the streak container inside the status container */
+#streaks {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* Styling for the streak text */
+#streaks p {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Styling for the hearts container inside the status container */
+#hearts-container {
+    display: flex;
+    align-items: center;
+}
+
+/* Styling for the hearts */
+.heart {
+    width: 25px; /* Adjusted for better visibility on small screens */
+    height: 25px; /* Adjusted for better visibility on small screens */
+    background-color: red;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    margin-right: 8px;
+    border: 2px solid black;
+}
+
+/* Styling for the heart counter */
+.heart-counter {
+    font-size: 25px; /* Adjust font size as needed */
+    font-weight: bold;
+    color: red; /* Color for the heart */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 10px;
+    border-radius: 10px;
+}
+
+/* Styling for the reset button inside the status container */
+#reset-button {
+    padding: 10px 15px; /* Adjusted padding for small screens */
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 8px; /* Rounded corners */
+    background-color: rgba(255, 255, 255, 0.8); /* Neutral background */
+    color: black; /* Text color */
+    border: none; /* No border */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    font-weight: bold;
+    transition: background-color 0.3s; /* Smooth background color transition */
+}
+
+/* Change background color on hover for reset button */
+#reset-button:hover {
+    background-color: #38e038; /* Green on hover */
+}
+
+/* Temporary color change when pressed */
+#reset-button.pressed {
+    background-color: #38e038; /* Green when pressed */
+}
+
+/* Styling for the indicator box */
+.indicator-box {
+    border: 4px solid transparent; /* Default transparent border */
+    border-radius: 25%; /* Match dot shape */
+    display: inline-block;
+    margin: 2px;
+    position: relative;
+}
+
+.square.incorrect {
+    border: 5px solid rgba(255, 152, 152, 0.8);
+}
+
+/* Add borders for correct and incorrect colors */
+.indicator-box.correct {
+    border-color: #38e038;
+}
+
+.indicator-box.incorrect {
+    border-color: red;
+}
+
+/* Styling for the correct dot shown above the incorrect ones */
+.correct-dot {
+    position: absolute;
+    top: -35px; /* Adjust based on your layout */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px; /* Match dot size */
+    height: 20px; /* Match dot size */
+    border-radius: 50%;
+    background-color: transparent; /* Initially transparent */
+    border: 2px solid black;
+    box-shadow: 0 3px 5px white;
+}
+
+/* Styling for the -❤️ indicator */
+.heart-loss-indicator {
+    font-size: 32px;
+    font-weight: bold;
+    color: black;
+    background-color: rgba(255, 152, 152, 0.8);
+    box-shadow:  0px 4px 8px black;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* Styling for the +❤️ and Restart buttons container */
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    width: max-content;
+    max-width: 94vw;
+    position: absolute;
+    bottom: -150%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Styling for the +❤️ button */
+#extra-heart-button {
+    padding: 10px 20px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    background-color: #38e038; /* Green background */
+    color: white; /* White text */
+    cursor: pointer;
+    border: 2px solid black;
+    white-space: nowrap;
+}
+
+#extra-heart-button:hover {
+    background-color: #32cd32; /* Darker green on hover */
+}
+
+/* Styling for the Restart button */
+#restart-button {
+    padding: 8px 15px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    background-color: #e03838; /* Red background */
+    color: white; /* White text */
+    cursor: pointer;
+    border: 2px solid black;
+}
+
+#restart-button:hover {
+    background-color: #cd3232; /* Darker red on hover */
+}
+
+/* Rewarded ad and direct-sponsor fallback */
+#reward-ad-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(12, 12, 16, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.reward-ad-card {
+    width: min(520px, 100%);
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    color: #121212;
+    text-align: left;
+    background: #f8f7f3;
+    border: 3px solid #111;
+    border-radius: 22px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+.reward-ad-label {
+    margin-bottom: 12px;
+    color: #666;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+}
+
+.reward-ad-card h2 {
+    max-width: 390px;
+    margin: 0;
+    font-size: clamp(28px, 7vw, 46px);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+}
+
+.reward-ad-copy {
+    max-width: 420px;
+    margin: 14px 0 22px;
+    color: #4d4d4d;
+    font-size: 16px;
+    line-height: 1.45;
+}
+
+.reward-ad-close {
+    width: 38px;
+    height: 38px;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    color: #111;
+    background: rgba(255, 255, 255, 0.75);
+    border: 2px solid #111;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 26px;
+    line-height: 1;
+}
+
+.reward-ad-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.reward-ad-button {
+    min-height: 46px;
+    padding: 10px 16px;
+    border: 2px solid #111;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.reward-ad-button-primary {
+    color: #111;
+    background: #38e038;
+}
+
+.reward-ad-button-secondary {
+    color: #111;
+    background: #fff;
+}
+
+.reward-ad-button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.house-ad-panel {
+    min-height: 150px;
+    margin: 0 -6px 18px;
+    padding: 20px;
+    border: 2px solid #111;
+    border-radius: 16px;
+    align-items: center;
+    display: grid;
+    background:
+        radial-gradient(circle at 12% 12%, #fff 0 3%, transparent 3.5%),
+        linear-gradient(120deg, #ff4d9d 0 24%, #ffe13b 24% 50%, #37dcff 50% 75%, #704dff 75%);
+    color: #111;
+    box-shadow: 5px 5px 0 #111;
+    text-transform: uppercase;
+}
+
+.house-ad-panel span {
+    font-size: clamp(17px, 5vw, 26px);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.house-ad-panel strong {
+    font-size: clamp(42px, 13vw, 78px);
+    line-height: 0.8;
+    letter-spacing: -0.08em;
+}
+
+.house-ad-link {
+    display: inline-block;
+    width: fit-content;
+    margin-bottom: 18px;
+    color: #111;
+    font-weight: 800;
+    text-underline-offset: 4px;
+}
+
+.reward-ad-timer {
+    margin: 0 0 8px;
+    color: #555;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.reward-ad-progress {
+    height: 7px;
+    overflow: hidden;
+    margin-bottom: 18px;
+    background: #ddd;
+    border-radius: 10px;
+}
+
+.reward-ad-progress-bar {
+    width: 0;
+    height: 100%;
+    background: #111;
+    transition-property: width;
+    transition-timing-function: linear;
+}
+
+.reward-ad-continue {
+    width: 100%;
+}
+
+#site-links {
+    position: absolute;
+    bottom: 1%;
+    left: 50%;
+    z-index: 20;
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    transform: translateX(-50%);
+    padding: 3px 8px;
+    color: #111;
+    background: rgba(255, 255, 255, 0.66);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+#site-links a {
+    color: inherit;
+    text-underline-offset: 2px;
+}
+
+/* Add this CSS for white dots when the background is black */
+body.background-black .mix-indicator .dot {
+    background-color: white;
+}
+
+/* Media query for small screens */
+@media (max-width: 600px) {
+    .reward-ad-card {
+        padding: 24px 20px 20px;
+    }
+
+    .reward-ad-actions {
+        flex-direction: column-reverse;
+    }
+
+    .reward-ad-button {
+        width: 100%;
+    }
+
+    .color-display {
+        width: 45vw;
+        height: 45vw;
+        display: fixed;
+    }
+
+    #color-buttons button {
+        font-size: 12px;
+        padding: 10px 15px;
+        width: 15vw;
+        height: 15vw;
+    }
+
+    .mix-indicator .dot {
+        width: 20px;
+        height: 20px;
+    }
+
+    #reset-button {
+        font-size: 12px;
+        padding: 8px 15px;
+    }
+
+    #result-popup {
+        font-size: 24px;
+        padding: 1px;
+        top:0%;
+    }
+
+    #result-popup .square {
+        margin: 2px;
+        height: 40px; /* Adjusted for visibility */
+        width: 40px; /* Adjusted for visibility */
+        font-size: 20px; /* Adjusted font size */
+    }
+
+    #ok-button {
+        font-size: 22px;
+        padding: 12px 36px;
+    }
+
+    .mix-indicator-counter {
+        font-size: 16px;
+    }
+
+    #status-container {
+        flex-direction: row;
+        align-items: center;
+        padding: 7%;
+        top: 5px;
+    }
+
+    #streaks {
+        align-items: left;
+        margin-bottom: 0px;
+    }
+
+    #streaks p {
+        font-size: 24px;
+    }
+
+    #hearts-container {
+        margin-bottom: 0px;
+    }
+
+    .heart {
+        width: 40px;
+        height: 40px;
+    }
+
+    #reset-button {
+        font-size: 20px;
+        padding: 8px 12px;
+    }
+}
