@@ -19,6 +19,8 @@ export interface RemixState {
   selectedId: string | null; phase: 'intro' | 'reveal' | 'playing' | 'won' | 'lost';
   paused: boolean; elapsedMs: number; remainingMs: number; lives: number; solved: number;
   target: Recipe; assisted: boolean;
+  zenPhase: 'fadeIn' | 'hold' | 'fadeOut'; zenPhaseMs: number; zenRemainingMs: number; zenStreak: number;
+  overloadMs: number;
 }
 export type RemixAction =
   | { type: 'start' | 'undo' | 'reset' | 'submit' | 'retry' | 'resume' | 'next' }
