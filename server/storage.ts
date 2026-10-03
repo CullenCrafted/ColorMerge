@@ -96,7 +96,17 @@ export class MemStorage implements IStorage {
   async createGameStats(insertStats: InsertGameStats): Promise<GameStats> {
     const id = this.currentGameStatsId++;
     const stats: GameStats = { 
-      ...insertStats, 
+      ...insertStats,
+      userId: insertStats.userId ?? null,
+      currentLevel: insertStats.currentLevel ?? 1,
+      bestLevel: insertStats.bestLevel ?? 1,
+      currentScore: insertStats.currentScore ?? 0,
+      bestScore: insertStats.bestScore ?? 0,
+      hearts: insertStats.hearts ?? 3,
+      streak: insertStats.streak ?? 0,
+      totalPlays: insertStats.totalPlays ?? 0,
+      successRate: insertStats.successRate ?? 0,
+      gameState: insertStats.gameState ?? null,
       id, 
       lastPlayed: new Date() 
     };
@@ -145,7 +155,13 @@ export class MemStorage implements IStorage {
 
   async createUserChallenge(insertChallenge: InsertUserChallenge): Promise<UserChallenge> {
     const id = this.currentUserChallengeId++;
-    const challenge: UserChallenge = { ...insertChallenge, id, completedAt: null };
+    const challenge: UserChallenge = {
+      ...insertChallenge, id, completedAt: null,
+      userId: insertChallenge.userId ?? null,
+      challengeId: insertChallenge.challengeId ?? null,
+      completed: insertChallenge.completed ?? false,
+      score: insertChallenge.score ?? 0,
+    };
     this.userChallenges.set(id, challenge);
     return challenge;
   }
@@ -168,6 +184,7 @@ export class MemStorage implements IStorage {
     const id = this.currentSubscriptionId++;
     const subscription: Subscription = { 
       ...insertSubscription, 
+      active: insertSubscription.active ?? true,
       id, 
       subscribedAt: new Date() 
     };
