@@ -77,6 +77,14 @@ export function makeCommerceHandler(deps: {store?:()=>CommerceStore; stripe?:()=
     if(!wallet) return res.status(404).json({message:'Recovery code not recognized.'});
     cookie(res,token); return res.json({balance:Math.max(0,wallet.balance)});
    }
+   let products: {sku:string;hearts:number;amount:number;currency:string}[]=[];
+   if(action==='status') {
+    products=await Promise.all(PACKS.map(async p=>{
+     const price=await stripe().prices.retrieve(process.env[p.env]!);
+     if(!price.active||price.type!=='one_time'||price.unit_amount===null) throw new Error('Unavailable product');
+     return {sku:p.sku,hearts:p.hearts,amount:price.unit_amount,currency:price.currency};
+    }));
+   }
    let token=req.headers.cookie?.split(';').map(v=>v.trim()).find(v=>v.startsWith(cookieName+'='))?.slice(cookieName.length+1);
    let wallet: Wallet|undefined=token&&tokenPattern.test(token)?await store.wallet(hash(token)):undefined;
    let recoveryCode: string|undefined;
@@ -85,12 +93,7 @@ export function makeCommerceHandler(deps: {store?:()=>CommerceStore; stripe?:()=
     token=secret(); recoveryCode=secret(); wallet=await store.createWallet(hash(token),hash(recoveryCode)); cookie(res,token);
    }
    if(action==='status') {
-    const products=await Promise.all(PACKS.map(async p=>{
-     const price=await stripe().prices.retrieve(process.env[p.env]!);
-     if(!price.active||price.type!=='one_time'||price.unit_amount===null) throw new Error('Unavailable product');
-     return {sku:p.sku,hearts:p.hearts,amount:price.unit_amount,currency:price.currency};
-    }));
-    return res.json({available:true,balance:wallet.balance,products,...(recoveryCode?{recoveryCode}:{})});
+    return res.json({available:true,balance:Math.max(0,wallet.balance),products,...(recoveryCode?{recoveryCode}:{})});
    }
    const body=jsonBody(req);
    if(action==='ad-challenge') {

@@ -30,7 +30,7 @@ export default function HeartShop({onClose,onBalanceChange}:{onClose:()=>void;on
  }
  async function restore() {
   setBusy(true);setError('');
-  try {await restoreWallet(recovery.trim());setRecovery('');await refresh();}
+  try {await restoreWallet(recovery.trim());setSavedCode(recovery.trim());setAck(true);setRecovery('');await refresh();}
   catch {setError('Wallet could not be restored. Check the parent-held recovery code.');}
   finally {setBusy(false);}
  }

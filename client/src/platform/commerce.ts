@@ -14,7 +14,10 @@ async function request<T>(action:string,body?:unknown):Promise<T> {
 }
 export function getWallet():Promise<WalletStatus> {
  if(isNativeCommerce()) return Promise.resolve({available:false,balance:0,products:[],message:'Store purchases are not available in this build. Free play is available.'});
- return request('status');
+ return request<WalletStatus>('status').then(wallet=>{
+  if(wallet.recoveryCode) sessionStorage.setItem('cm-parent-recovery',wallet.recoveryCode);
+  return wallet;
+ });
 }
 export function consumeHeart(idempotencyKey:string):Promise<{authorizationId:string;balance:number}> {
  if(isNativeCommerce()) return Promise.reject(new Error('Store purchases are not configured.'));
@@ -26,10 +29,13 @@ export function createCheckout(sku:Sku):Promise<{url:string}> {
 }
 export function restoreWallet(recoveryCode:string):Promise<{balance:number}> {
  if(isNativeCommerce()) return Promise.reject(new Error('Wallet restoration is available on the website.'));
- return request('restore',{recoveryCode});
+ return request<{balance:number}>('restore',{recoveryCode}).then(result=>{
+  sessionStorage.setItem('cm-parent-recovery',recoveryCode);
+  return result;
+ });
 }
 export function formatPrice(amount:number,currency:string) {
  const format=new Intl.NumberFormat(undefined,{style:'currency',currency});
- const digits=format.resolvedOptions().maximumFractionDigits;
+ const digits=['isk','ugx'].includes(currency.toLowerCase())?2:format.resolvedOptions().maximumFractionDigits;
  return format.format(amount/10**digits);
 }
