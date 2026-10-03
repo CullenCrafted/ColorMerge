@@ -5,7 +5,7 @@ import type { GameStats } from "@shared/schema";
 export function useGameStats(gameType: string) {
   const queryClient = useQueryClient();
 
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading } = useQuery<GameStats>({
     queryKey: ["/api/stats", gameType],
   });
 

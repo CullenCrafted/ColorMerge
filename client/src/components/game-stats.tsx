@@ -70,7 +70,7 @@ export default function GameStats({ stats }: GameStatsProps) {
                 {Array.from({ length: 3 }, (_, i) => (
                   <div
                     key={i}
-                    className={`heart-shape ${i < stats.hearts ? 'bg-red-500' : 'bg-gray-300'}`}
+                    className={`heart-shape ${i < (stats.hearts ?? 0) ? 'bg-red-500' : 'bg-gray-300'}`}
                   />
                 ))}
               </>

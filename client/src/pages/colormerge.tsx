@@ -420,7 +420,7 @@ export default function ColorMerge() {
         })}
       </div>
       
-      <div className={`h-screen flex flex-col relative z-10 overflow-hidden transition-all duration-300 isolate-layer ${
+      <div className={`h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] flex flex-col relative z-10 overflow-hidden transition-all duration-300 isolate-layer ${
         showSuccessFlash ? 'ring-8 ring-green-400/50' : showHeartLoss ? 'ring-8 ring-red-500/50' : ''
       }`}>
         {/* Floating Particles with Success Celebration */}
@@ -450,6 +450,7 @@ export default function ColorMerge() {
             {/* Left side controls */}
             <div className="flex items-center space-x-2">
               <Button
+                aria-label={soundEnabled ? "Mute sound" : "Enable sound"}
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 variant="ghost"
                 size="sm"
@@ -460,6 +461,8 @@ export default function ColorMerge() {
                 {soundEnabled ? <Volume2 className={`w-5 h-5 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`} /> : <VolumeX className={`w-5 h-5 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`} />}
               </Button>
               <Button
+                aria-label="Toggle enhanced haptics"
+                aria-pressed={enhancedHaptics}
                 onClick={() => setEnhancedHaptics(!enhancedHaptics)}
                 variant="ghost"
                 size="sm"
@@ -478,6 +481,7 @@ export default function ColorMerge() {
             {/* Right side controls */}
             <div className="flex items-center space-x-2">
               <Button
+                aria-label="Pause game"
                 onClick={() => setIsPaused(!isPaused)}
                 variant="ghost"
                 size="sm"
@@ -488,6 +492,7 @@ export default function ColorMerge() {
                 <Pause className={`w-4 h-4 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`} />
               </Button>
               <Button
+                aria-label="How to play Classic"
                 onClick={() => setShowInstructions(true)}
                 variant="ghost"
                 size="sm"
@@ -498,6 +503,7 @@ export default function ColorMerge() {
                 <HelpCircle className={`w-4 h-4 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`} />
               </Button>
               <Button
+                aria-label="Restart Classic from level one"
                 onClick={handleResetLevel}
                 variant="ghost"
                 size="sm"
@@ -674,13 +680,14 @@ export default function ColorMerge() {
           </div>
 
           {/* Color Buttons */}
-          <div className="flex items-center justify-center space-x-4 mb-4 relative z-20 pointer-events-auto">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mb-4 relative z-20 pointer-events-auto">
             {colorButtons.map(({ color, exactColor, bgColor, shadowColor, textColor = 'text-white' }) => (
               <Button
                 key={color}
+                aria-label={`Add ${color}`}
                 onClick={() => handleColorClick(color)}
                 disabled={gameLogic.getRemainingMixes() <= 0 || isPaused || gameLogic.busy || !gameLogic.ready || gameLogic.status !== 'playing' || showSuccessFlash}
-                className={`w-16 h-16 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-110 active:scale-95 transition-all duration-200 border-2 border-white/40 disabled:opacity-50 disabled:cursor-not-allowed ${textColor} game-interactive touch-enabled`}
+                className={`w-[52px] h-[52px] sm:w-16 sm:h-16 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-110 active:scale-95 transition-all duration-200 border-2 border-white/40 disabled:opacity-50 disabled:cursor-not-allowed ${textColor} game-interactive touch-enabled`}
                 style={{ 
                   backgroundColor: exactColor,
                   zIndex: 50,
