@@ -80,6 +80,13 @@ for (const platform of platforms) {
         '<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713" />\n    </application>'));
     }
   } else {
+    // iOS 16 supplies the dialog and structuredClone APIs used by the game.
+    const projectPath = "ios/App/App.xcodeproj/project.pbxproj";
+    writeFileSync(projectPath, readFileSync(projectPath, "utf8").replace(
+      /IPHONEOS_DEPLOYMENT_TARGET = [0-9.]+;/g, "IPHONEOS_DEPLOYMENT_TARGET = 16.0;"));
+    const podfilePath = "ios/App/Podfile";
+    if (existsSync(podfilePath)) writeFileSync(podfilePath, readFileSync(podfilePath, "utf8").replace(
+      /platform :ios, '[0-9.]+'/g, "platform :ios, '16.0'"));
     const plistPath = "ios/App/App/Info.plist";
     const plist = readFileSync(plistPath, "utf8");
     if (!plist.includes("GADApplicationIdentifier")) {

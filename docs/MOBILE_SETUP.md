@@ -47,3 +47,5 @@ Preferences persist the native wallet capability across launches. Preferences ar
 Both `VITE_ADMOB_ENABLED=true` and `VITE_ADMOB_CHILD_AUDIENCE_READY=true` are required in the native build, together with the parent's in-app ad preference and valid platform-specific placement IDs. Set `VITE_ADMOB_ANDROID_INTERSTITIAL_ID`, `VITE_ADMOB_IOS_INTERSTITIAL_ID`, `VITE_ADMOB_ANDROID_REWARDED_ID`, and `VITE_ADMOB_IOS_REWARDED_ID` as appropriate. Keep `VITE_ADMOB_TESTING=true` while developing. Child-audience readiness is an explicit release configuration after reviewing audience eligibility; it never weakens the SDK's child-directed defaults.
 
 Interstitials run only on selected completed-level transitions, with introductory levels excluded and a three-minute controller limit. Rewarded continues require a server-verified wallet credit, then an ordinary heart debit. Pending provider confirmation never enables a free continuation.
+
+The generated iOS app targets iOS 16 or later. This supports the native dialog and structuredClone browser APIs used by the game; the setup script sets both Xcode and CocoaPods deployment targets.
