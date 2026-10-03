@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   createRun, getLevelSpec, reducer, rgbString, PIGMENTS, remainingAdditions,
-  targetVisible, targetOpacity, restoreRun, type RemixAction, type RemixState, type Pigment,
+  targetVisible, targetOpacity, restoreRun, canMix, OVERLOAD_GRACE_MS, type RemixAction, type RemixState, type Pigment,
 } from "@shared/remix";
 import { ArcadeScene } from "./ArcadeScene";
 import { PuzzleScene } from "./PuzzleScene";
 import HeartShop from "./HeartShop";
-import { consumeHeart } from "@/platform/commerce";
-import { loadNativeServices } from "@/platform/mobile";
+import { consumeHeart, nativeAdTransport, readAdPreference } from "@/platform/commerce";
+import { getNativePlatform, loadNativeServices } from "@/platform/mobile";
+import { createInterstitialController } from "@/platform/ad-policy";
+import { createRewardedController } from "@/platform/rewarded-ads";
 import { completeLevel, readRemixSave, writeRemixSave, type RemixSave } from "./storage";
 import "./remix.css";
 
@@ -57,6 +59,15 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
   };
   const [levelChoice, setLevelChoice] = useState(state.level);
   const [busy, setBusy] = useState(false);
+  const [adApproved, setAdApproved] = useState(readAdPreference);
+  const [interstitial] = useState(() => createInterstitialController(loadNativeServices));
+  const [rewarded] = useState(() => createRewardedController(loadNativeServices, nativeAdTransport));
+  const platform = getNativePlatform();
+  const adsEnabled = import.meta.env.VITE_ADMOB_ENABLED === "true" && import.meta.env.VITE_ADMOB_CHILD_AUDIENCE_READY === "true" && platform !== "web";
+  const interstitialId = (platform === "ios" ? import.meta.env.VITE_ADMOB_IOS_INTERSTITIAL_ID : import.meta.env.VITE_ADMOB_ANDROID_INTERSTITIAL_ID) || "";
+  const rewardedId = (platform === "ios" ? import.meta.env.VITE_ADMOB_IOS_REWARDED_ID : import.meta.env.VITE_ADMOB_ANDROID_REWARDED_ID) || "";
+  const adTesting = import.meta.env.VITE_ADMOB_TESTING === "true";
+  const rewardAvailable = adsEnabled && adApproved && /^ca-app-pub-\d{16}\/\d{10}$/.test(rewardedId);
   const [error, setError] = useState("");
   const [storageWarning, setStorageWarning] = useState(false);
   const pending = useRef(false);
@@ -68,7 +79,7 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
   settings.current = save.settings;
   const dispatch = useCallback((action: RemixAction) => setState(current => reducer(current, action)), []);
   const active = state.objects.find(object => object.id === state.selectedId && object.status === "active");
-  const stopped = state.paused || state.phase !== "playing" || help || levels || shop || busy;
+  const stopped = !canMix(state) || help || levels || shop || busy;
   const target = state.spec.style === "rings" && active ? active.target : state.target;
   const showTarget = targetVisible(state) && !state.paused;
   const background = showTarget ? rgbString(target) : "#f1f1f1";
@@ -140,6 +151,13 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
     return () => { cancelled = true; void handle?.remove().catch(() => {}); };
   }, [dispatch]);
 
+  useEffect(() => {
+    const refresh = () => setAdApproved(readAdPreference());
+    window.addEventListener("cm-ad-preference", refresh);
+    window.addEventListener("storage", refresh);
+    return () => { window.removeEventListener("cm-ad-preference", refresh); window.removeEventListener("storage", refresh); };
+  }, []);
+
   const feedback = () => {
     if (settings.current.haptics && typeof navigator.vibrate === "function") navigator.vibrate(12);
     if (!settings.current.sound) return;
@@ -194,6 +212,40 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
       setError(failure instanceof Error ? failure.message : "Unable to use a heart. Please retry.");
     } finally { pending.current = false; setBusy(false); }
   };
+  const watchToContinue = async () => {
+    if (pending.current || state.phase !== "lost" || !rewardAvailable) return;
+    if (!persistSession(state, continueKey.current)) {
+      setError("Device storage is unavailable. You can still retry this level for free.");
+      return;
+    }
+    pending.current = true; setBusy(true); setError("");
+    try {
+      const outcome = await rewarded.show({ enabled: adsEnabled, parentApproved: readAdPreference(), adId: rewardedId, testing: adTesting });
+      pending.current = false;
+      if (outcome === "credited") {
+        // Only a provider-verified server credit can fund this continuation.
+        await useHeart();
+      } else if (outcome === "pending") {
+        setError("Your reward is awaiting confirmation. Check your heart balance in the shop shortly, then use a heart to continue. You can also retry for free.");
+      } else {
+        setError("No rewarded ad is available right now. You can retry this level for free.");
+      }
+    } finally { pending.current = false; setBusy(false); }
+  };
+  const advance = async () => {
+    if (pending.current || state.phase !== "won") return;
+    const introductory = [1, 11, 21, 36, 51, 66, 81, 101, 121].some(first => state.level >= first && state.level < first + 3);
+    pending.current = true; setBusy(true);
+    try {
+      if (!introductory && state.level >= 10 && state.level % 3 === 0) {
+        await interstitial.showAtBreak({ enabled: adsEnabled, parentApproved: readAdPreference(), adId: interstitialId, testing: adTesting });
+      }
+    } finally {
+      pending.current = false; setBusy(false);
+      // The next challenge remains at its intro until the player presses Start.
+      newLevel(Math.min(state.level + 1, save.unlockedLevel));
+    }
+  };
   const setting = (key: keyof RemixSave["settings"]) => {
     setSave(previous => ({ ...previous, settings: { ...previous.settings, [key]: !previous.settings[key] } }));
   };
@@ -211,17 +263,18 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
       </header>
       <div className="cm-status cm-glass">
         <span>{state.solved} / {state.spec.objectCount} matched</span>
-        <span aria-label={state.lives + " attempts remaining"}>♥ {state.lives}</span>
-        <span>{state.spec.timeLimitMs > 0 ? time(state.remainingMs) : time(state.elapsedMs)}</span>
+        <span aria-label={state.spec.style === "zen" ? "No lives lost in Zen" : state.lives + " attempts remaining"}>{state.spec.style === "zen" ? "Keep flowing" : "♥ " + state.lives}</span>
+        <span>{state.spec.style === "zen" ? "Streak " + state.zenStreak : state.spec.timeLimitMs > 0 ? time(state.remainingMs) + " left" : time(state.elapsedMs) + " elapsed"}</span>
       </div>
-      <p className="cm-stage-instruction cm-glass">{state.phase === "reveal" ? "Remember this color. Mixing starts when it disappears." : state.spec.instruction}</p>
+      <p className="cm-stage-instruction cm-glass">{state.phase === "reveal" ? "Remember this color. Mixing starts when it disappears." : state.spec.style === "zen" && state.phase === "playing" ? state.zenPhase === "hold" ? "Match while the color is still. " + time(state.zenRemainingMs) + " left in this window." : "Let the color fade. Mixing resumes when the new target is fully visible." : state.spec.instruction}</p>
+      {state.overloadMs > 0 && <p className="cm-warning cm-overload" role="alert">Screen filling up! Clear a shape within {Math.max(0, Math.ceil((OVERLOAD_GRACE_MS - state.overloadMs) / 1000))} seconds.</p>}
       <div className="cm-scene" style={{ visibility: state.paused ? "hidden" : "visible" }} aria-label={state.spec.title + " play area"}>
         {isArcade ? <ArcadeScene state={state} onSelect={select} /> : <PuzzleScene state={state} onSelect={select} />}
       </div>
       <section className="cm-mixing-controls cm-glass" aria-label="Mix colors">
         <div className="cm-current-mixture">
           <span className="cm-mixture-swatch" style={{ background: active ? rgbString(active.recipe) : "transparent" }} aria-hidden="true" />
-          <span>{active ? "Your mixture" : "Waiting for a shape"}<small>{active ? remaining + " additions available" : "Shapes select automatically when needed"}</small></span>
+          <span>{active ? "Your mixture" : state.spec.style === "zen" ? "Next color arriving" : "Waiting for a shape"}<small>{active ? remaining + " additions available" : state.spec.style === "zen" ? "The fade never adds white pigment" : "Shapes select automatically when needed"}</small></span>
           <div className="cm-addition-history" aria-label="Colors you added">{active?.additions.map((color, index) => <span key={index} title={color} style={{ backgroundColor: pigmentColors[color] }}><span className="cm-sr-only">{color} </span></span>)}</div>
         </div>
         <div className="cm-palette">
@@ -240,7 +293,7 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
     {state.phase === "intro" && !help && !levels && !shop && <Panel title={"Level " + state.level + " · " + state.spec.title}>
       <p>{state.spec.instruction}</p>
       <p>Add colors to make your shape match the target. Blue and yellow combine into green. Blank shapes contain no pigment.</p>
-      <p>{state.spec.objectCount} matches · {state.lives} attempts{state.spec.timeLimitMs > 0 ? " · " + time(state.spec.timeLimitMs) : ""}</p>
+      <p>{state.spec.objectCount} matches · {state.spec.style === "zen" ? "Misses reset your streak" : state.lives + " attempts"}{state.spec.timeLimitMs > 0 ? " · " + time(state.spec.timeLimitMs) : state.spec.style === "zen" ? "" : " · No time limit"}</p>
       <button data-testid="remix-start" className="cm-primary" onClick={() => { feedback(); dispatch({ type: "pause", paused: false }); dispatch({ type: "start" }); }}>Start level</button>
       <div className="cm-panel-actions"><button onClick={() => { setLevelChoice(state.level); setLevels(true); }}>Replay levels</button><button onClick={openHelp}>Settings</button><button onClick={onHome}>Home</button></div>
     </Panel>}
@@ -255,11 +308,12 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
       {state.phase === "won" ? <>
         <p>Level {state.level} complete in {time(state.elapsedMs)}.</p>
         {state.assisted ? <p>Assisted completion. Your next level is unlocked.</p> : <p>Personal best: {time(save.bestTimes[String(state.level)] ?? state.elapsedMs)}</p>}
-        <button className="cm-primary" onClick={() => newLevel(Math.min(state.level + 1, save.unlockedLevel))}>Next level</button>
+        <button className="cm-primary" onClick={() => void advance()} disabled={busy}>{busy ? "Preparing next level…" : "Next level"}</button>
       </> : <>
-        <p>You matched {state.solved} of {state.spec.objectCount}. Retry this level for free, or use one purchased heart to continue your current puzzle.</p>
+        <p>You matched {state.solved} of {state.spec.objectCount}. Retry this level for free, or use one banked heart to continue your current puzzle.</p>
         <button className="cm-primary" onClick={retry} disabled={busy}>Retry level free</button>
-        <button onClick={() => void useHeart()} disabled={busy}>{busy ? "Verifying heart…" : "Use 1 purchased heart to continue"}</button>
+        <button onClick={() => void useHeart()} disabled={busy}>{busy ? "Verifying heart…" : "Use 1 banked heart to continue"}</button>
+        {rewardAvailable && <button onClick={() => void watchToContinue()} disabled={busy}>Watch an ad for 1 heart &amp; continue</button>}
         <button onClick={() => setShop(true)} disabled={busy}>Parents &amp; heart shop</button>
         {error && <p role="alert" className="cm-warning">{error}</p>}
       </>}
