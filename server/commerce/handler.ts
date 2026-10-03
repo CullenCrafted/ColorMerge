@@ -5,6 +5,7 @@ import { PACKS, configured } from './catalog.js';
 import { commerceStore, type CommerceStore, type Wallet } from './store.js';
 import { createAdChallenge, verifyAdReward } from './admob.js';
 const adsEnabled=()=>process.env.ADMOB_REWARDS_ENABLED==='true'&&process.env.ADMOB_CHILD_AUDIENCE_READY==='true'&&!!process.env.ADMOB_REWARD_SECRET&&!!process.env.ADMOB_REWARDED_AD_UNITS;
+import {nativeCommerceHandler} from './native-handler.js';
 const cookieName='cm_wallet';
 const hash=(value: string)=>createHash('sha256').update(value).digest('hex');
 const secret=()=>randomBytes(32).toString('hex');
@@ -37,6 +38,9 @@ export function makeCommerceHandler(deps: {store?:()=>CommerceStore; stripe?:()=
   res.setHeader('Cache-Control','private, no-store'); res.setHeader('Vary','Cookie');
   res.setHeader('X-Content-Type-Options','nosniff');
   const action=new URL(req.url,'https://local.invalid').searchParams.get('action')||'status';
+  if(action==='revenuecat-webhook'||action==='native-bootstrap'||req.headers['x-colormerge-native']==='1'||
+   (req.method==='OPTIONS'&&!!req.headers.origin)||(action==='admob-ssv'&&process.env.NATIVE_COMMERCE_ENABLED==='true'))
+   return nativeCommerceHandler(req,res,action);
   const enabled=(deps.enabled||configured)();
   if(!enabled) return res.status(action==='status'?200:503).json({available:false,balance:0,products:[],message:'Purchases are not available yet. Free play is always available.'});
   const stripe=()=>deps.stripe?deps.stripe():new Stripe(process.env.STRIPE_SECRET_KEY!);

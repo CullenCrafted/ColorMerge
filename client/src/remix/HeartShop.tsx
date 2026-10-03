@@ -1,5 +1,5 @@
 import {useEffect,useState} from 'react';
-import {createCheckout,formatPrice,getWallet,restoreWallet,type Sku,type WalletStatus} from '../platform/commerce';
+import {createCheckout,formatPrice,getWallet,restoreWallet,isNativeCommerce,purchaseNative,readAdPreference,setAdPreference,type Sku,type WalletStatus} from '../platform/commerce';
 export default function HeartShop({onClose,onBalanceChange}:{onClose:()=>void;onBalanceChange?:(balance:number)=>void}) {
  const [wallet,setWallet]=useState<WalletStatus|null>(null);
  const [error,setError]=useState('');
@@ -9,8 +9,10 @@ export default function HeartShop({onClose,onBalanceChange}:{onClose:()=>void;on
  const [recovery,setRecovery]=useState('');
  const [savedCode,setSavedCode]=useState('');
  const [ack,setAck]=useState(false);
+ const [ads,setAds]=useState(readAdPreference);
  async function refresh() {
   const next=await getWallet();setWallet(next);onBalanceChange?.(next.balance);
+  setSavedCode(sessionStorage.getItem('cm-parent-recovery')||'');
   if(next.recoveryCode) {setSavedCode(next.recoveryCode);sessionStorage.setItem('cm-parent-recovery',next.recoveryCode);}
  }
  useEffect(()=>{
@@ -25,8 +27,14 @@ export default function HeartShop({onClose,onBalanceChange}:{onClose:()=>void;on
  },[]);
  async function buy(sku:Sku) {
   setBusy(true);setError('');
-  try {const {url}=await createCheckout(sku);const target=new URL(url);if(target.protocol!=='https:'||target.hostname!=='checkout.stripe.com')throw new Error('Invalid checkout');location.assign(url);}
-  catch {setError('Checkout could not open. No hearts were added.');setBusy(false);}
+  try {
+   if(isNativeCommerce()){
+    const result=await purchaseNative(sku);await refresh();
+    setError(result.state==='pending'?'Payment is awaiting store confirmation. Please do not purchase again; refresh the balance shortly.':'Hearts confirmed in your wallet.');
+    setBusy(false);return;
+   }
+   const {url}=await createCheckout(sku);const target=new URL(url);if(target.protocol!=='https:'||target.hostname!=='checkout.stripe.com')throw new Error('Invalid checkout');location.assign(url);}
+  catch {setError(isNativeCommerce()?'Purchase did not finish here. Refresh your balance before trying again; store approval may still be pending.':'Checkout could not open. Refresh your balance before trying again.');setBusy(false);}
  }
  async function restore() {
   setBusy(true);setError('');
@@ -46,10 +54,11 @@ export default function HeartShop({onClose,onBalanceChange}:{onClose:()=>void;on
    </form>:<>
     <p className="mt-4 font-medium">Hearts: {wallet?.balance??'…'}</p>
     <p className="mt-2 text-sm">A heart continues one failed attempt. It is spent only when you choose to use it. This parent area deters accidental purchases; it does not verify identity or parental consent.</p>
-    <p className="mt-2 text-sm">The wallet belongs to this browser, separately from game resets. Keep its recovery code privately to restore it after clearing cookies or changing devices. We do not ask children for an email address.</p>
+    <p className="mt-2 text-sm">The wallet belongs to this installation, separately from game resets. Keep its recovery code privately to restore it after clearing cookies or changing devices. We do not ask children for an email address.</p>
     {savedCode&&<div className="mt-3 rounded-xl bg-neutral-100 p-3"><p className="font-medium">Parent recovery code — keep private</p><code className="block break-all text-xs">{savedCode}</code><label className="mt-3 flex gap-2"><input type="checkbox" checked={ack} onChange={e=>setAck(e.target.checked)}/>I saved this code somewhere private.</label></div>}
-    {wallet?.available?<div className="mt-4 grid gap-3">{wallet.products.map(p=><button key={p.sku} disabled={busy||(!!savedCode&&!ack)} onClick={()=>buy(p.sku)} className="min-h-12 rounded-xl border border-neutral-300 p-3 disabled:opacity-50">{p.hearts} hearts · {formatPrice(p.amount,p.currency)}</button>)}</div>:<p className="mt-4">{wallet?.message||'Loading shop…'}</p>}
-    <p className="mt-3 text-sm">Payment is handled by Stripe on the website. Hearts appear after payment is confirmed, which may take a moment. Taxes or local checkout options, if configured, appear before payment.</p>
+    {wallet?.available?<div className="mt-4 grid gap-3">{wallet.products.map(p=><button key={p.sku} disabled={busy||(!!savedCode&&!ack)} onClick={()=>buy(p.sku)} className="min-h-12 rounded-xl border border-neutral-300 p-3 disabled:opacity-50">{p.hearts} hearts · {p.localizedPrice||formatPrice(p.amount,p.currency)}</button>)}</div>:<p className="mt-4">{wallet?.message||'Loading shop…'}</p>}
+    <p className="mt-3 text-sm">{isNativeCommerce()?'Purchases use your device’s App Store or Google Play. Hearts appear after the store confirms payment to our server. Consumable hearts are recovered through your parent wallet code, not by restoring spent store purchases.':'Payment is handled by Stripe on the website. Hearts appear after confirmed payment. Final taxes and checkout options appear before payment.'}</p>
+    {isNativeCommerce()&&<label className="mt-4 flex gap-2"><input type="checkbox" checked={ads} onChange={e=>{setAds(e.target.checked);setAdPreference(e.target.checked);}}/>Allow optional ads. This preference does not verify parental consent. You can turn it off here.</label>}
     <button className="mt-3 min-h-11 underline" disabled={busy} onClick={()=>refresh().catch(()=>setError('Could not refresh the wallet.'))}>Refresh balance</button>
     <details className="mt-4"><summary>Restore a parent wallet</summary><input aria-label="Private recovery code" autoComplete="off" type="password" value={recovery} onChange={e=>setRecovery(e.target.value)} className="my-3 w-full rounded-xl border p-3"/><button disabled={busy||!recovery.trim()} onClick={restore} className="min-h-11 rounded-xl border px-4">Restore wallet</button><p className="mt-2 text-sm">Restoring signs this wallet out on other browsers. Lost cookies and a lost recovery code require parent support.</p></details>
    </>}
