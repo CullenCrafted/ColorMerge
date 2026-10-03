@@ -75,6 +75,23 @@ test("PostgreSQL wallet functions preserve idempotency and serialize money-deriv
     assert.equal(balance(), "1");
     await assert.rejects(query("SELECT cm_wallet_refund('payment','charge',1000,1001)"), /invalid refund/);
 
+    if (migrations.some(name => name.startsWith("004-"))) {
+      const nativeEvent = (transaction: string, refund: boolean, hearts = 5, product = "hearts5") =>
+        "SELECT cm_native_event('" + transaction + "','" + wallet + "','" + product + "'," + hearts + "," + refund + ")";
+      sync(nativeEvent("native-purchase", false));
+      sync(nativeEvent("native-purchase", false));
+      assert.equal(balance(), "6", "Native transaction credits once");
+      await assert.rejects(query(nativeEvent("native-purchase", false, 10)));
+      await assert.rejects(query(nativeEvent("native-purchase", false, 5, "different")));
+      assert.equal(balance(), "6", "Conflicting product or amount leaves balance unchanged");
+      sync(nativeEvent("native-purchase", true));
+      sync(nativeEvent("native-purchase", true));
+      assert.equal(balance(), "1", "Native refund removes credit once");
+      sync(nativeEvent("native-refund-first", true));
+      sync(nativeEvent("native-refund-first", false));
+      assert.equal(balance(), "1", "Refund tombstone prevents later purchase delivery from granting");
+    }
+
     if (migrations.some(name => name.startsWith("003-"))) {
       const round = randomUUID();
       const state = {
