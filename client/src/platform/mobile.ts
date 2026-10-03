@@ -27,7 +27,13 @@ export interface NativePreferences {
   set(options: { key: string; value: string }): Promise<void>;
   remove(options: { key: string }): Promise<void>;
 }
-export interface NativeServices { App: NativeApp; AdMob: NativeAds; Purchases: NativePurchases; Preferences: NativePreferences; }
+export interface NativeServices {
+  App: NativeApp;
+  AdMob: NativeAds;
+  Purchases: NativePurchases;
+  Preferences: NativePreferences;
+  Haptics: { impact(options: { style: "LIGHT" }): Promise<void> };
+}
 type CapacitorWindow = Window & { Capacitor?: { isNativePlatform(): boolean; getPlatform?(): string } };
 export function isNativePlatform(): boolean {
   return typeof window !== "undefined" && Boolean((window as CapacitorWindow).Capacitor?.isNativePlatform());

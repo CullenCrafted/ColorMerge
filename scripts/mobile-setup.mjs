@@ -12,7 +12,7 @@ const command = (name, args) => {
 };
 // Capacitor 7 requires Node 20+; iOS builds require macOS and Xcode.
 if (Number(process.versions.node.split(".")[0]) < 22) throw new Error("Use Node.js 22 or newer.");
-command("npm", ["install", "@capacitor/core@7", "@capacitor/app@7", "@capacitor-community/admob@7", "@capacitor/preferences@7", "@revenuecat/purchases-capacitor@11",
+command("npm", ["install", "@capacitor/core@7", "@capacitor/app@7", "@capacitor-community/admob@7", "@capacitor/preferences@7", "@capacitor/haptics@7", "@revenuecat/purchases-capacitor@11",
   ...platforms.map(platform => "@capacitor/" + platform + "@7")]);
 command("npm", ["install", "--save-dev", "@capacitor/cli@7"]);
 mkdirSync("client/src/platform", { recursive: true });
@@ -23,6 +23,8 @@ writeFileSync("client/src/platform/native-installed.ts", [
   'import type { NativeServices } from "./mobile";',
   'import { Purchases as NativePurchases, PRODUCT_CATEGORY } from "@revenuecat/purchases-capacitor";',
   'import { Preferences as NativePreferences } from "@capacitor/preferences";',
+  'import { Haptics as NativeHaptics, ImpactStyle } from "@capacitor/haptics";',
+  'export const Haptics: NativeServices["Haptics"] = { impact: () => NativeHaptics.impact({ style: ImpactStyle.Light }) };',
   'export const Preferences: NativeServices["Preferences"] = NativePreferences;',
   'export const Purchases: NativeServices["Purchases"] = {',
   '  configure: options => NativePurchases.configure(options),',
