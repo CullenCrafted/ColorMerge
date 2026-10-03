@@ -28,9 +28,14 @@ export interface NativePreferences {
   remove(options: { key: string }): Promise<void>;
 }
 export interface NativeServices { App: NativeApp; AdMob: NativeAds; Purchases: NativePurchases; Preferences: NativePreferences; }
-type CapacitorWindow = Window & { Capacitor?: { isNativePlatform(): boolean } };
+type CapacitorWindow = Window & { Capacitor?: { isNativePlatform(): boolean; getPlatform?(): string } };
 export function isNativePlatform(): boolean {
   return typeof window !== "undefined" && Boolean((window as CapacitorWindow).Capacitor?.isNativePlatform());
+}
+export function getNativePlatform(): "ios" | "android" | "web" {
+  if (!isNativePlatform()) return "web";
+  const value = (window as CapacitorWindow).Capacitor?.getPlatform?.();
+  return value === "ios" || value === "android" ? value : "web";
 }
 // The setup script creates this file with real native package imports.
 // An empty glob is intentional in web-only checkouts.
