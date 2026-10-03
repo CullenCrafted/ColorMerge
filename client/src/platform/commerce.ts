@@ -13,10 +13,13 @@ async function request<T>(action:string,body?:unknown):Promise<T> {
  if(!response.ok) throw new Error(data.message||'The heart shop is unavailable.');
  return data as T;
 }
+function keepRecoveryCode(code:string|null) {
+ try { if(code===null) sessionStorage.removeItem('cm-parent-recovery'); else sessionStorage.setItem('cm-parent-recovery',code); } catch { /* Parent can retain the displayed code without browser storage. */ }
+}
 export function getWallet():Promise<WalletStatus> {
  if(isNativeCommerce()) return nativeCatalog().catch(()=>({available:false,balance:0,products:[],message:'Store purchases are unavailable right now. Free play is available.'}));
  return request<WalletStatus>('status').then(wallet=>{
-  if(wallet.recoveryCode) sessionStorage.setItem('cm-parent-recovery',wallet.recoveryCode);
+  if(wallet.recoveryCode) keepRecoveryCode(wallet.recoveryCode);
   return wallet;
  });
 }
@@ -31,7 +34,7 @@ export function createCheckout(sku:Sku):Promise<{url:string}> {
 export function restoreWallet(recoveryCode:string):Promise<{balance:number}> {
  if(isNativeCommerce()) return restoreNativeWallet(recoveryCode);
  return request<{balance:number}>('restore',{recoveryCode}).then(result=>{
-  sessionStorage.setItem('cm-parent-recovery',recoveryCode);
+  keepRecoveryCode(recoveryCode);
   return result;
  });
 }
@@ -42,9 +45,9 @@ export function formatPrice(amount:number,currency:string) {
 }
 
 export {purchaseNative};
-export const readAdPreference=()=>localStorage.getItem('cm-parent-ads-approved')==='true';
+export const readAdPreference=()=>{try{return localStorage.getItem('cm-parent-ads-approved')==='true';}catch{return false;}};
 export function setAdPreference(approved:boolean) {
- localStorage.setItem('cm-parent-ads-approved',String(approved));
+ try {localStorage.setItem('cm-parent-ads-approved',String(approved));} catch {return;}
  window.dispatchEvent(new Event('cm-ad-preference'));
 }
 export const nativeAdTransport={
@@ -64,6 +67,6 @@ export async function replaceRecoveryCode():Promise<string> {
  const result=isNativeCommerce()
   ?await nativeRequest<{recoveryCode:string}>('rotate-recovery',{})
   :await request<{recoveryCode:string}>('rotate-recovery',{});
- sessionStorage.setItem('cm-parent-recovery',result.recoveryCode);
+ keepRecoveryCode(result.recoveryCode);
  return result.recoveryCode;
 }

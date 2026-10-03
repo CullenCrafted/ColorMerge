@@ -2,7 +2,7 @@
 
 Commerce is disabled by default. No keys, prices, or live ads are bundled.
 
-Apply migrations/002-commerce.sql before enabling. Set COMMERCE_ENABLED=true,
+Apply all migrations in numeric order (001 through 004) before enabling. Set COMMERCE_ENABLED=true,
 COMMERCE_ORIGIN to the exact HTTPS web origin, STRIPE_SECRET_KEY,
 STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_HEARTS_5, STRIPE_PRICE_HEARTS_20,
 STRIPE_PRICE_HEARTS_60. Price IDs must refer to active one-time prices.
@@ -30,7 +30,7 @@ privacy disclosures and a parent support/refund process before enabling.
 consume returns a stable authorization per wallet and idempotency key. Persist
 the failed run and its consume key BEFORE spending; reuse the key after a lost
 response. A client-only Remix continuation is not an authoritative competitive
-score. Classic requires a separate transaction restoring its server game state.
+score. Web Classic uses cm_classic_continue (migration 003) to debit a wallet and restore the server game atomically. Native Classic applies a verified debit to its local engine.
 
 AdMob is separately disabled until ADMOB_REWARDS_ENABLED=true and
 ADMOB_CHILD_AUDIENCE_READY=true, ADMOB_REWARD_SECRET and a comma-separated
@@ -109,3 +109,5 @@ recovered by rotating again while still authenticated. Parent UI never enables
 purchase buttons without a displayed code and an explicit saved-code checkbox.
 A new session with no locally retained code must generate a replacement before
 purchase. Session storage is convenience only, not a recovery guarantee.
+
+Stripe refund events received before order settlement return a retryable server error; monitor webhook delivery failures and replay unresolved events. Native store refunds use durable refund-first tombstones. Production operations must reconcile failed webhook deliveries against provider records.
