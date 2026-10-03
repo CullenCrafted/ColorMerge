@@ -35,3 +35,9 @@ The browser smoke covers navigation and a mobile viewport; it does not replace p
 ## Android CI artifact
 
 The Android CI job generates a shell with Google's sample AdMob application ID, typechecks the real installed plugin adapter, compiles with Java 21, and uploads `colormerge-android-debug`. This is an installable debug APK for review, not a signed store release. No advertisements are enabled automatically. The SDK adapter maps the application's G rating to the plugin's `MaxAdContentRating.General` enum. A successful build verifies compilation, not SDK operation or device usability.
+
+## Native heart purchases
+
+Native setup installs RevenueCat Purchases Capacitor 11 (compatible with Capacitor 7) and Capacitor Preferences. Configure the public RevenueCat iOS/Android SDK keys, native commerce API origin, store product identifiers and authenticated RevenueCat webhook on the backend. Native adapters fetch non-subscription products, display store-localized pricing, and purchase through Apple/Google billing. A client purchase result is not a heart grant; the verified backend wallet remains authoritative.
+
+Preferences persist the native wallet capability across launches. Preferences are application storage, not an encrypted secure vault. Avoid exposing credentials in diagnostics, and support parent recovery for reinstalls or device changes. Do not interpret RevenueCat restore callbacks as restoring consumable balances; recovery must reconnect to the server wallet ledger.

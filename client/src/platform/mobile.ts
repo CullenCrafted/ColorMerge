@@ -15,7 +15,19 @@ export interface NativeAds {
   prepareRewardVideoAd(options: { adId: string; isTesting: boolean; npa: true; ssv: { userId: string; customData: string } }): Promise<unknown>;
   showRewardVideoAd(): Promise<unknown>;
 }
-export interface NativeServices { App: NativeApp; AdMob: NativeAds; }
+export interface NativePurchases {
+  configure(options: { apiKey: string; appUserID: string }): Promise<void>;
+  logIn(options: { appUserID: string }): Promise<unknown>;
+  getProducts(options: { productIdentifiers: string[] }): Promise<{ products: Array<{ identifier: string; title: string; priceString: string }> }>;
+  purchaseProduct(options: { productIdentifier: string }): Promise<unknown>;
+  restorePurchases(): Promise<unknown>;
+}
+export interface NativePreferences {
+  get(options: { key: string }): Promise<{ value: string | null }>;
+  set(options: { key: string; value: string }): Promise<void>;
+  remove(options: { key: string }): Promise<void>;
+}
+export interface NativeServices { App: NativeApp; AdMob: NativeAds; Purchases: NativePurchases; Preferences: NativePreferences; }
 type CapacitorWindow = Window & { Capacitor?: { isNativePlatform(): boolean } };
 export function isNativePlatform(): boolean {
   return typeof window !== "undefined" && Boolean((window as CapacitorWindow).Capacitor?.isNativePlatform());

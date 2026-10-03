@@ -12,7 +12,7 @@ const command = (name, args) => {
 };
 // Capacitor 7 requires Node 20+; iOS builds require macOS and Xcode.
 if (Number(process.versions.node.split(".")[0]) < 22) throw new Error("Use Node.js 22 or newer.");
-command("npm", ["install", "@capacitor/core@7", "@capacitor/app@7", "@capacitor-community/admob@7",
+command("npm", ["install", "@capacitor/core@7", "@capacitor/app@7", "@capacitor-community/admob@7", "@capacitor/preferences@7", "@revenuecat/purchases-capacitor@11",
   ...platforms.map(platform => "@capacitor/" + platform + "@7")]);
 command("npm", ["install", "--save-dev", "@capacitor/cli@7"]);
 mkdirSync("client/src/platform", { recursive: true });
@@ -21,6 +21,21 @@ writeFileSync("client/src/platform/native-installed.ts", [
   'import { App as NativeApp } from "@capacitor/app";',
   'import { AdMob as NativeAdMob, MaxAdContentRating } from "@capacitor-community/admob";',
   'import type { NativeServices } from "./mobile";',
+  'import { Purchases as NativePurchases, PRODUCT_CATEGORY } from "@revenuecat/purchases-capacitor";',
+  'import { Preferences as NativePreferences } from "@capacitor/preferences";',
+  'export const Preferences: NativeServices["Preferences"] = NativePreferences;',
+  'export const Purchases: NativeServices["Purchases"] = {',
+  '  configure: options => NativePurchases.configure(options),',
+  '  logIn: options => NativePurchases.logIn(options),',
+  '  getProducts: options => NativePurchases.getProducts({ ...options, type: PRODUCT_CATEGORY.NON_SUBSCRIPTION }),',
+  '  purchaseProduct: async ({ productIdentifier }) => {',
+  '    const { products } = await NativePurchases.getProducts({ productIdentifiers: [productIdentifier], type: PRODUCT_CATEGORY.NON_SUBSCRIPTION });',
+  '    const product = products.find(item => item.identifier === productIdentifier);',
+  '    if (!product) throw new Error("This heart pack is unavailable in the store.");',
+  '    return NativePurchases.purchaseStoreProduct({ product, googleIsPersonalizedPrice: false });',
+  '  },',
+  '  restorePurchases: () => NativePurchases.restorePurchases(),',
+  '};',
   'export const App: NativeServices["App"] = NativeApp;',
   'export const AdMob: NativeServices["AdMob"] = {',
   '  initialize: options => NativeAdMob.initialize({',
