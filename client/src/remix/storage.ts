@@ -35,7 +35,17 @@ export function readRemixSave(): RemixSave {
   return fallback;
 }
 export function writeRemixSave(save: RemixSave): boolean {
-  try { localStorage.setItem(KEY, JSON.stringify(save)); return true; }
+  try {
+    // A second tab changing settings must not overwrite a farther checkpoint.
+    const existing = readRemixSave();
+    const unlockedLevel = Math.max(existing.unlockedLevel, save.unlockedLevel);
+    const bestTimes = { ...existing.bestTimes };
+    for (const [level, value] of Object.entries(save.bestTimes)) {
+      if (bestTimes[level] === undefined || value < bestTimes[level]) bestTimes[level] = value;
+    }
+    localStorage.setItem(KEY, JSON.stringify({ ...save, unlockedLevel, bestTimes }));
+    return true;
+  }
   catch { return false; }
 }
 export function completeLevel(save: RemixSave, level: number, elapsedMs: number, assisted = false): RemixSave {

@@ -182,7 +182,7 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
       const receipt = await consumeHeart(continueKey.current);
       if (!receipt.authorizationId) throw new Error("The heart could not be verified. Please retry.");
       let resumed = reducer(state, { type: "resume" });
-      if (document.hidden) resumed = reducer(resumed, { type: "pause", paused: true });
+      if (document.hidden || !document.hasFocus()) resumed = reducer(resumed, { type: "pause", paused: true });
       const nextKey = makeKey();
       // Save the continued run before rendering it. If the page closes before
       // this response, the old key retrieves the same debit authorization.
