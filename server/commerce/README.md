@@ -99,3 +99,13 @@ if hearts were already used; visible spendable balance is zero until settled.
 Test both event orders, duplicate delivery, bad webhook secrets, unknown SKU,
 sandbox isolation, interrupted purchase, parent wallet recovery and physical
 device billing. Stub-store unit tests do not replace live Postgres/store tests.
+
+
+Authenticated recovery-code rotation: POST rotate-recovery requires the current
+web wallet cookie or native bearer, generates a new random code server-side and
+atomically replaces only that wallet's recovery hash. Old codes immediately stop
+working; the wallet token does not change. A lost rotation response can be
+recovered by rotating again while still authenticated. Parent UI never enables
+purchase buttons without a displayed code and an explicit saved-code checkbox.
+A new session with no locally retained code must generate a replacement before
+purchase. Session storage is convenience only, not a recovery guarantee.

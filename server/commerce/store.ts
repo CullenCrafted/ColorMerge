@@ -10,6 +10,7 @@ export interface CommerceStore {
  adStatus(wallet:string,nonce:string):Promise<boolean>;
  wallet(hash: string): Promise<Wallet | undefined>;
  createWallet(tokenHash: string, recoveryHash: string): Promise<Wallet>;
+ rotateRecovery(wallet:string,recoveryHash:string):Promise<void>;
  restore(recoveryHash: string, tokenHash: string): Promise<Wallet | undefined>;
  order(wallet: string, sku: string, priceId: string, hearts: number): Promise<string>;
  attach(order: string, session: string): Promise<void>;
@@ -33,6 +34,7 @@ export function commerceStore(): CommerceStore {
    const rows=await sql`INSERT INTO cm_wallets(id,token_hash,recovery_hash) VALUES(${randomUUID()},${tokenHash},${recoveryHash}) RETURNING id,balance`;
    return rows[0] as Wallet;
   },
+  async rotateRecovery(wallet,recoveryHash) {const rows=await sql`UPDATE cm_wallets SET recovery_hash=${recoveryHash} WHERE id=${wallet} RETURNING id`;if(rows.length!==1)throw new Error('Wallet unavailable');},
   async restore(recoveryHash,tokenHash) {
    const rows=await sql`UPDATE cm_wallets SET token_hash=${tokenHash} WHERE recovery_hash=${recoveryHash} RETURNING id,balance`;
    return rows[0] as Wallet | undefined;

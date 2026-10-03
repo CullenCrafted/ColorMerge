@@ -1,5 +1,6 @@
 import {createHash,randomBytes} from 'node:crypto';
 import type {Request,Response} from 'express';
+import {rotateRecoveryCode} from './recovery.js';
 import {commerceStore} from './store.js';
 import {applyRevenueCatEvent,nativeConfigured,nativePacks,validRevenueCatSecret} from './revenuecat.js';
 import {createAdChallenge,verifyAdReward} from './admob.js';
@@ -55,6 +56,7 @@ export async function nativeCommerceHandler(req:Request,res:Response,action:stri
   const wallet=validToken(bearer)?await store.wallet(hash(bearer)):undefined;
   if(!wallet)return res.status(401).json({message:'Restore your parent wallet or create a new wallet in the shop.'});
   if(action==='status')return res.json({available:true,walletId:wallet.id,balance:Math.max(0,wallet.balance),nativeProducts:nativePacks(),products:[]});
+  if(action==='rotate-recovery')return res.json(await rotateRecoveryCode(store,wallet));
   if(action==='consume') {
    if(typeof body.idempotencyKey!=='string'||!/^[a-zA-Z0-9_-]{16,100}$/.test(body.idempotencyKey))return res.sendStatus(400);
    return res.json(await store.apply(wallet.id,'consume:'+wallet.id+':'+body.idempotencyKey,-1));

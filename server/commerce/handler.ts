@@ -5,6 +5,7 @@ import { PACKS, configured } from './catalog.js';
 import { commerceStore, type CommerceStore, type Wallet } from './store.js';
 import { createAdChallenge, verifyAdReward } from './admob.js';
 const adsEnabled=()=>process.env.ADMOB_REWARDS_ENABLED==='true'&&process.env.ADMOB_CHILD_AUDIENCE_READY==='true'&&!!process.env.ADMOB_REWARD_SECRET&&!!process.env.ADMOB_REWARDED_AD_UNITS;
+import {rotateRecoveryCode} from './recovery.js';
 import {nativeCommerceHandler} from './native-handler.js';
 const cookieName='cm_wallet';
 const hash=(value: string)=>createHash('sha256').update(value).digest('hex');
@@ -100,6 +101,7 @@ export function makeCommerceHandler(deps: {store?:()=>CommerceStore; stripe?:()=
     return res.json({available:true,balance:Math.max(0,wallet.balance),products,...(recoveryCode?{recoveryCode}:{})});
    }
    const body=jsonBody(req);
+   if(action==='rotate-recovery') return res.json(await rotateRecoveryCode(store,wallet));
    if(action==='ad-challenge') {
     if(!adsEnabled()||body.parentApproved!==true) return res.status(503).json({message:'Optional ads are not available.'});
     const challenge=createAdChallenge(wallet.id,process.env.ADMOB_REWARD_SECRET!);
