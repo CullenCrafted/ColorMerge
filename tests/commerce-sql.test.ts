@@ -11,7 +11,13 @@ test("PostgreSQL wallet functions preserve idempotency and serialize money-deriv
   timeout: 60_000,
 }, async () => {
   const schema = "cm_test_" + randomUUID().replaceAll("-", "");
-  const env = { ...process.env, PGDATABASE: database, PGOPTIONS: "-c search_path=" + schema + ",public" };
+  const connection = new URL(database!);
+  const env = { ...process.env,
+    PGHOST: connection.hostname, PGPORT: connection.port || "5432",
+    PGDATABASE: decodeURIComponent(connection.pathname.slice(1)),
+    PGUSER: decodeURIComponent(connection.username), PGPASSWORD: decodeURIComponent(connection.password),
+    PGOPTIONS: "-c search_path=" + schema + ",public",
+  };
   const sync = (sql: string, isolated = true) => {
     const result = spawnSync("psql", ["-X", "-q", "-A", "-t", "-v", "ON_ERROR_STOP=1", "-c", sql], {
       env: isolated ? env : { ...env, PGOPTIONS: "" }, encoding: "utf8",
