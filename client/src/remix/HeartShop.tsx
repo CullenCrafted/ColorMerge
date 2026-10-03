@@ -1,6 +1,10 @@
-import {useEffect,useState} from 'react';
+import {useEffect,useState,useRef} from 'react';
 import {createCheckout,formatPrice,getWallet,restoreWallet,isNativeCommerce,purchaseNative,readAdPreference,setAdPreference,replaceRecoveryCode,type Sku,type WalletStatus} from '../platform/commerce';
+function readCode() {try{return sessionStorage.getItem('cm-parent-recovery')||'';}catch{return '';}}
+function retainCode(code:string) {try{sessionStorage.setItem('cm-parent-recovery',code);}catch{/* The displayed code can still be saved by the parent. */}}
 export default function HeartShop({onClose,onBalanceChange}:{onClose:()=>void;onBalanceChange?:(balance:number)=>void}) {
+ const dialog=useRef<HTMLDialogElement>(null);
+ useEffect(()=>{const node=dialog.current;node?.showModal();return()=>node?.close();},[]);
  const [wallet,setWallet]=useState<WalletStatus|null>(null);
  const [error,setError]=useState('');
  const [busy,setBusy]=useState(false);
@@ -12,11 +16,11 @@ export default function HeartShop({onClose,onBalanceChange}:{onClose:()=>void;on
  const [ads,setAds]=useState(readAdPreference);
  async function refresh() {
   const next=await getWallet();setWallet(next);onBalanceChange?.(next.balance);
-  setSavedCode(sessionStorage.getItem('cm-parent-recovery')||'');
-  if(next.recoveryCode) {setSavedCode(next.recoveryCode);setAck(false);sessionStorage.setItem('cm-parent-recovery',next.recoveryCode);}
+  setSavedCode(readCode());
+  if(next.recoveryCode) {setSavedCode(next.recoveryCode);setAck(false);retainCode(next.recoveryCode);}
  }
  useEffect(()=>{
-  setSavedCode(sessionStorage.getItem('cm-parent-recovery')||'');
+  setSavedCode(readCode());
   refresh().catch(()=>setError('Shop unavailable. You can keep playing for free.'));
   // Payment return only prompts polling. URL parameters never grant hearts.
   const returned=new URLSearchParams(location.search).get('checkout')==='returned';
@@ -48,7 +52,7 @@ export default function HeartShop({onClose,onBalanceChange}:{onClose:()=>void;on
   catch {setError('Wallet could not be restored. Check the parent-held recovery code.');}
   finally {setBusy(false);}
  }
- return <div role="dialog" aria-modal="true" aria-labelledby="heart-shop-title" className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+ return <dialog ref={dialog} onCancel={event=>{event.preventDefault();if(!busy)onClose();}} aria-labelledby="heart-shop-title" className="fixed inset-0 z-50 m-auto w-full max-w-md border-0 bg-transparent p-4 backdrop:bg-black/40">
   <section className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-6 text-neutral-900 shadow-xl">
    <button onClick={onClose} disabled={busy} className="float-right min-h-11 min-w-11 rounded-full" aria-label="Close heart shop">×</button>
    <h2 id="heart-shop-title" className="text-2xl font-semibold">For parents</h2>
@@ -73,5 +77,5 @@ export default function HeartShop({onClose,onBalanceChange}:{onClose:()=>void;on
    {error&&<p role="alert" className="mt-3">{error}</p>}
    <button onClick={onClose} disabled={busy} className="mt-5 min-h-11 w-full rounded-xl border p-3">Back to free play</button>
   </section>
- </div>;
+ </dialog>;
 }

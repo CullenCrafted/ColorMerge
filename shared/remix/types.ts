@@ -26,5 +26,5 @@ export type RemixAction =
   | { type: 'start' | 'undo' | 'reset' | 'submit' | 'retry' | 'resume' | 'next' }
   | { type: 'tick'; deltaMs: number }
   | { type: 'select'; id: string }
-  | { type: 'add'; color: Pigment }
+  | { type: 'add'; color: Pigment; id?: string }
   | { type: 'pause'; paused: boolean };

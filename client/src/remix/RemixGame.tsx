@@ -74,6 +74,8 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
   const continueKey = useRef(restored?.continueKey ?? makeKey());
   const latestState = useRef(state);
   latestState.current = state;
+  const pressedObject = useRef<string | null>(null);
+  const perfect = !state.assisted && state.lives === 3 && state.solved === state.spec.objectCount && (state.spec.style !== "zen" || state.zenStreak === state.solved);
   const audio = useRef<AudioContext | null>(null);
   const settings = useRef(save.settings);
   settings.current = save.settings;
@@ -94,9 +96,9 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
 
   useEffect(() => {
     if (state.phase === "won") {
-      setSave(previous => completeLevel(previous, state.level, state.elapsedMs, state.assisted));
+      setSave(previous => completeLevel(previous, state.level, state.elapsedMs, !perfect));
     }
-  }, [state.phase, state.level, state.elapsedMs, state.assisted]);
+  }, [state.phase, state.level, state.elapsedMs, state.assisted, perfect]);
 
   useEffect(() => {
     persistSession(state, continueKey.current);
@@ -284,7 +286,7 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
           <div className="cm-addition-history" aria-label="Colors you added">{active?.additions.map((color, index) => <span key={index} title={color} style={{ backgroundColor: pigmentColors[color] }}><span className="cm-sr-only">{color} </span></span>)}</div>
         </div>
         <div className="cm-palette">
-          {PIGMENTS.map(color => <button key={color} data-testid={"palette-" + color} className="cm-pigment" style={{ backgroundColor: pigmentColors[color], color: color === "white" || color === "yellow" ? "#161616" : "#fff" }} disabled={stopped || !active || remaining <= 0} aria-label={"Add " + color} onClick={() => { feedback(); dispatch({ type: "add", color }); }}><span>{color}</span></button>)}
+          {PIGMENTS.map(color => <button key={color} data-testid={"palette-" + color} className="cm-pigment" style={{ backgroundColor: pigmentColors[color], color: color === "white" || color === "yellow" ? "#161616" : "#fff" }} disabled={stopped || !active || remaining <= 0} aria-label={"Add " + color} onPointerDown={() => { pressedObject.current = active?.id ?? null; }} onPointerCancel={() => { pressedObject.current = null; }} onClick={event => { const id = event.detail === 0 ? active?.id : pressedObject.current; pressedObject.current = null; if (!id) return; feedback(); dispatch({ type: "add", color, id }); }}><span>{color}</span></button>)}
         </div>
         <div className="cm-mix-actions">
           <button disabled={stopped || !active?.additions.length} onClick={() => dispatch({ type: "undo" })}>Undo</button>
@@ -313,7 +315,7 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
     {finished && !shop && !help && !levels && <Panel title={state.phase === "won" ? "Beautifully blended!" : "Try another mix"}>
       {state.phase === "won" ? <>
         <p>Level {state.level} complete in {time(state.elapsedMs)}.</p>
-        {state.assisted ? <p>Assisted completion. Your next level is unlocked.</p> : <p>Personal best: {time(save.bestTimes[String(state.level)] ?? state.elapsedMs)}</p>}
+        {!perfect ? <p>Level complete. Your next level is unlocked. Clear every shape without losing an attempt for a personal best.</p> : <p>Personal best: {time(save.bestTimes[String(state.level)] ?? state.elapsedMs)}</p>}
         <button className="cm-primary" onClick={() => void advance()} disabled={busy}>{busy ? "Preparing next level…" : "Next level"}</button>
       </> : <>
         <p>You matched {state.solved} of {state.spec.objectCount}. Retry this level for free, or use one banked heart to continue your current puzzle.</p>

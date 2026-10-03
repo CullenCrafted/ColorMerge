@@ -223,6 +223,10 @@ function stepZenTime(state: RemixState, ms: number): void {
         if (state.zenPhase === 'fadeIn') {
           state.zenPhase = 'hold'; state.zenPhaseMs = 0;
         } else {
+          // A missed Zen target must be completed before the level can advance.
+          for (const object of state.objects) if (object.status === 'missed') {
+            object.status = 'queued'; object.recipe = { ...object.initial }; object.additions = [];
+          }
           settle(state);
           if (state.phase !== 'playing') return;
           state.zenPhase = 'fadeIn'; state.zenPhaseMs = 0;
@@ -334,7 +338,7 @@ export function reducer(saved: RemixState, action: RemixAction): RemixState {
   const object = state.objects.find(o => o.id === state.selectedId && o.status === 'active');
   if (!object) return saved;
   if (action.type === 'add') {
-    if (!PIGMENTS.includes(action.color) || remainingAdditions(object) <= 0) return saved;
+    if ((action.id !== undefined && action.id !== object.id) || !PIGMENTS.includes(action.color) || remainingAdditions(object) <= 0) return saved;
     object.recipe[action.color]++; object.additions.push(action.color);
     if (!isMemory(state)) evaluate(state, object);
   } else if (action.type === 'undo') {
@@ -399,6 +403,7 @@ export function restoreRun(value: unknown): RemixState | null {
       remainingMs: canonical.spec.timeLimitMs === 0 ? 0 : candidate.remainingMs, lives: candidate.lives, solved: objects.filter(o => o.status === 'solved').length,
       zenPhase, zenPhaseMs, zenRemainingMs, zenStreak, overloadMs,
     };
+    if (restored.phase === 'won' && restored.spec.style === 'zen' && restored.solved !== restored.spec.objectCount) return null;
     if (restored.phase === 'won' && !objects.every(o => o.status === 'solved' || o.status === 'missed')) return null;
     const selected = objects.find(o => o.id === restored.selectedId) ?? (restored.spec.style === 'zen' && restored.zenPhase === 'fadeOut'
       ? [...objects].reverse().find(o => o.status === 'solved' || o.status === 'missed') : undefined);

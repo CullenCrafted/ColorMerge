@@ -301,3 +301,14 @@ test('legacy untimed puzzle saves migrate to zero remaining time without losing 
   assert.deepEqual(restored!.objects, old.objects);
   assert.equal(restored!.phase, 'playing');
 });
+
+test('idle Zen never unlocks the next level and misses remain solvable', () => {
+ let state=start(101);
+ state=reducer(state,{type:'tick',deltaMs:200000});
+ assert.equal(state.phase,'playing'); assert.equal(state.solved,0); assert.equal(state.lives,3);
+ assert.ok(restoreRun(state));
+});
+test('a pigment press cannot spill into another automatically selected shape', () => {
+ const state=start(21);
+ assert.deepEqual(reducer(state,{type:'add',color:'red',id:'object-from-earlier-press'}),state);
+});
