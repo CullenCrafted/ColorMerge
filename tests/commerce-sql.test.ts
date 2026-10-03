@@ -29,7 +29,7 @@ test("PostgreSQL wallet functions preserve idempotency and serialize money-deriv
     "SELECT * FROM cm_wallet_apply('" + wallet + "','" + source + "'," + delta + ",'" + randomUUID() + "')";
   sync("CREATE SCHEMA " + schema, false);
   try {
-    const migrations = readdirSync("migrations").filter(name => /^\\d+.*\\.sql$/.test(name)).sort();
+    const migrations = readdirSync("migrations").filter(name => /^\d+.*\.sql$/.test(name)).sort();
     assert.ok(migrations.includes("002-commerce.sql"), "Commerce migration must be present");
     for (const migration of migrations) sync(readFileSync("migrations/" + migration, "utf8"));
     sync("INSERT INTO cm_wallets(id,token_hash,recovery_hash) VALUES('" + wallet + "','token','recovery')");
