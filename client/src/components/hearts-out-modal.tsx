@@ -90,9 +90,13 @@ interface HeartsOutModalProps {
   bestLevel: number;
   incorrectGuesses: IncorrectGuess[];
   onRestart: () => void;
+  onUseHeart?: () => void;
+  onShop?: () => void;
+  continueBusy?: boolean;
+  continueError?: string;
 }
 
-export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLevel, incorrectGuesses, onRestart }: HeartsOutModalProps) {
+export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLevel, incorrectGuesses, onRestart, onUseHeart, onShop, continueBusy = false, continueError }: HeartsOutModalProps) {
   const [floatingBubbles, setFloatingBubbles] = useState<Array<{
     id: string;
     x: number;
@@ -104,6 +108,7 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLev
   }>>([]);
 
   const handleRestart = () => {
+    if (continueBusy) return;
     onRestart();
     onOpenChange(false);
   };
@@ -213,12 +218,19 @@ export default function HeartsOutModal({ open, onOpenChange, finalLevel, bestLev
             </div>
           )}
 
-          <Button 
+          {onUseHeart && <Button onClick={onUseHeart} disabled={continueBusy}
+            className="w-full min-h-12 bg-white text-purple-900 hover:bg-white/90">
+            {continueBusy ? "Confirming…" : "Continue · 1 saved heart"}
+          </Button>}
+          {continueError && <p role="alert" className="rounded-xl bg-black/30 p-3 text-sm text-white">{continueError}</p>}
+          {onShop && <Button onClick={onShop} disabled={continueBusy} variant="outline" className="w-full min-h-11 text-gray-900">Parents: heart wallet</Button>}
+          <Button
+            disabled={continueBusy}
             onClick={handleRestart}
             className="w-full bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 hover:from-green-500 hover:via-emerald-600 hover:to-teal-600 text-white py-3 rounded-xl font-bold shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 border-2 border-white/30"
           >
             <RotateCcw className="w-5 h-5" />
-            Start Over
+            Start Over · Free
           </Button>
         </div>
       </DialogContent>

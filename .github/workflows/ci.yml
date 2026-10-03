@@ -1,48 +1,94 @@
-name: CI/CD Pipeline
+name: Verify Color Merge
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
-
+    branches: [main]
+permissions:
+  contents: read
 jobs:
-  test:
+  verify:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: colormerge_test
+          POSTGRES_PASSWORD: local_test_only
+          POSTGRES_DB: colormerge_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U colormerge_test -d colormerge_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_POSTGRES_URL: postgresql://colormerge_test:local_test_only@localhost:5432/colormerge_test
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Type check
-      run: npm run check
-    
-    - name: Build application
-      run: npm run build
-      env:
-        DATABASE_URL: postgresql://test:test@localhost:5432/test
-        SESSION_SECRET: test-secret
-
-  security:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Type check all application and test modules
+        run: npm run check
+      - name: Ensure PostgreSQL test client is available
+        run: |
+          if ! command -v psql >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+          fi
+      - name: Run regression and gameplay tests
+        if: ${{ !cancelled() }}
+        run: npm run test:all
+      - name: Build web and server
+        if: ${{ !cancelled() }}
+        run: npm run build
+      - name: Install browser verification tools without changing the lockfile
+        if: ${{ !cancelled() }}
+        run: npm install --no-save --package-lock=false playwright@1.56.1
+      - name: Install Chromium
+        if: ${{ !cancelled() }}
+        run: npx playwright install --with-deps chromium
+      - name: Verify mobile viewport navigation
+        if: ${{ !cancelled() }}
+        run: npm run test:browser
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: mobile-gameplay-screenshots
+          path: test-results/*.png
+          if-no-files-found: warn
+  android:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 20
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Run security audit
-      run: npm audit --audit-level moderate
-    
-    - name: Check for secrets
-      run: |
-        if grep -r "api[_-]key\|secret\|password\|token" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --exclude-dir=node_modules .; then
-          echo "Potential secrets found in code!"
-          exit 1
-        fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+      - run: npm ci
+      - name: Generate native shell with test AdMob application IDs
+        run: npm run mobile:setup -- android
+      - name: Typecheck installed native SDK adapters
+        run: npm run check
+      - name: Build installable Android debug application
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: colormerge-android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

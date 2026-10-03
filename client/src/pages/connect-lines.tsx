@@ -125,7 +125,7 @@ export default function ConnectLines() {
       .map(line => {
         const fromDot = dots.find(d => d.id === line.from);
         const toDot = dots.find(d => d.id === line.to);
-        return fromDot?.letter + toDot?.letter;
+        return (fromDot?.letter ?? '') + (toDot?.letter ?? '');
       })
       .join('');
 

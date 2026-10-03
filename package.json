@@ -11,7 +11,12 @@
     "db:push": "drizzle-kit push",
     "db:secure": "tsx scripts/setup-secure-db.ts",
     "test:secure": "node --import tsx --test tests/secure-game.test.ts",
-    "check:secure": "tsc -p tsconfig.secure.json"
+    "check:secure": "tsc -p tsconfig.secure.json",
+    "test:all": "node --import tsx --test tests/*.test.ts",
+    "test:browser": "node tests/browser-smoke.mjs",
+    "mobile:setup": "node scripts/mobile-setup.mjs",
+    "mobile:sync": "npm run build:client && npx cap sync",
+    "build:client": "vite build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

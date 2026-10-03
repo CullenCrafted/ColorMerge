@@ -2,6 +2,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { HelpCircle, RotateCcw, Pause, Volume2, VolumeX, Trophy, Heart, Zap } from "lucide-react";
 import { ColorMergeLogic } from "@/lib/colormerge-logic";
+import { LocalClassicLogic } from "@/lib/local-classic-logic";
+import { isNativePlatform } from "@/platform/mobile";
+import { consumeHeart, getWallet } from "@/platform/commerce";
+import { continueClassicWithHeart } from "@/platform/classic-commerce";
+import HeartShop from "@/remix/HeartShop";
 import { useAudio } from "@/hooks/use-audio";
 import { useToast } from "@/hooks/use-toast";
 import InstructionsModal from "@/components/instructions-modal";
@@ -13,7 +18,14 @@ export default function ColorMerge() {
   const [showGameOver, setShowGameOver] = useState(false);
   const [showHeartsOut, setShowHeartsOut] = useState(false);
 
-  const [gameLogic] = useState(() => new ColorMergeLogic());
+  const [gameLogic] = useState(() => isNativePlatform() ? new LocalClassicLogic() : new ColorMergeLogic());
+  const [showHeartShop, setShowHeartShop] = useState(false);
+  const [savedHearts, setSavedHearts] = useState(0);
+  const [continuationBusy, setContinuationBusy] = useState(false);
+  const [continuationError, setContinuationError] = useState("");
+  useEffect(() => {
+    if (showHeartsOut) void getWallet().then(wallet => setSavedHearts(Math.max(0, wallet.balance))).catch(() => {});
+  }, [showHeartsOut]);
   const [serviceError, setServiceError] = useState("");
   const [loadingGame, setLoadingGame] = useState(true);
   const [gameState, setGameState] = useState(gameLogic.getState());
@@ -267,6 +279,35 @@ export default function ColorMerge() {
       setServiceError(error instanceof Error ? error.message : "Unable to restart.");
     } finally { setLoadingGame(false); }
   };
+  const handleContinue = async () => {
+    if (continuationBusy || gameLogic.status !== 'over') return;
+    setContinuationBusy(true);
+    setContinuationError("");
+    try {
+      if (gameLogic instanceof LocalClassicLogic) {
+        await consumeHeart(gameLogic.continuationKey);
+        await gameLogic.continueWithHeart();
+      } else {
+        await continueClassicWithHeart(gameLogic.roundId, gameLogic.revision);
+        await gameLogic.load();
+      }
+      setGameState(gameLogic.getState());
+      setAllIncorrectGuesses(gameLogic.mistakes);
+      setShowHeartsOut(false);
+      void getWallet().then(wallet => setSavedHearts(Math.max(0, wallet.balance))).catch(() => {});
+    } catch (error) {
+      setContinuationError(error instanceof Error ? error.message : "Could not confirm the continuation. Please retry.");
+      // A lost response may have already committed both debit and continuation.
+      // Reloading never repeats the debit; another attempt uses the same game revision.
+      if (!(gameLogic instanceof LocalClassicLogic)) {
+        try {
+          await gameLogic.load();
+          setGameState(gameLogic.getState());
+          if (gameLogic.status !== 'over') setShowHeartsOut(false);
+        } catch {}
+      }
+    } finally { setContinuationBusy(false); }
+  };
   const handleResetLevel = handleNewGame;
 
   const colorButtons = [
@@ -420,7 +461,7 @@ export default function ColorMerge() {
         })}
       </div>
       
-      <div className={`h-screen flex flex-col relative z-10 overflow-hidden transition-all duration-300 isolate-layer ${
+      <div className={`h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] flex flex-col relative z-10 overflow-hidden transition-all duration-300 isolate-layer ${
         showSuccessFlash ? 'ring-8 ring-green-400/50' : showHeartLoss ? 'ring-8 ring-red-500/50' : ''
       }`}>
         {/* Floating Particles with Success Celebration */}
@@ -450,6 +491,7 @@ export default function ColorMerge() {
             {/* Left side controls */}
             <div className="flex items-center space-x-2">
               <Button
+                aria-label={soundEnabled ? "Mute sound" : "Enable sound"}
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 variant="ghost"
                 size="sm"
@@ -460,6 +502,8 @@ export default function ColorMerge() {
                 {soundEnabled ? <Volume2 className={`w-5 h-5 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`} /> : <VolumeX className={`w-5 h-5 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`} />}
               </Button>
               <Button
+                aria-label="Toggle enhanced haptics"
+                aria-pressed={enhancedHaptics}
                 onClick={() => setEnhancedHaptics(!enhancedHaptics)}
                 variant="ghost"
                 size="sm"
@@ -478,6 +522,7 @@ export default function ColorMerge() {
             {/* Right side controls */}
             <div className="flex items-center space-x-2">
               <Button
+                aria-label="Pause game"
                 onClick={() => setIsPaused(!isPaused)}
                 variant="ghost"
                 size="sm"
@@ -488,6 +533,7 @@ export default function ColorMerge() {
                 <Pause className={`w-4 h-4 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`} />
               </Button>
               <Button
+                aria-label="How to play Classic"
                 onClick={() => setShowInstructions(true)}
                 variant="ghost"
                 size="sm"
@@ -498,6 +544,7 @@ export default function ColorMerge() {
                 <HelpCircle className={`w-4 h-4 transition-colors duration-300 ${showSuccessFlash ? 'text-white' : textColorClass}`} />
               </Button>
               <Button
+                aria-label="Restart Classic from level one"
                 onClick={handleResetLevel}
                 variant="ghost"
                 size="sm"
@@ -674,13 +721,14 @@ export default function ColorMerge() {
           </div>
 
           {/* Color Buttons */}
-          <div className="flex items-center justify-center space-x-4 mb-4 relative z-20 pointer-events-auto">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mb-4 relative z-20 pointer-events-auto">
             {colorButtons.map(({ color, exactColor, bgColor, shadowColor, textColor = 'text-white' }) => (
               <Button
                 key={color}
+                aria-label={`Add ${color}`}
                 onClick={() => handleColorClick(color)}
                 disabled={gameLogic.getRemainingMixes() <= 0 || isPaused || gameLogic.busy || !gameLogic.ready || gameLogic.status !== 'playing' || showSuccessFlash}
-                className={`w-16 h-16 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-110 active:scale-95 transition-all duration-200 border-2 border-white/40 disabled:opacity-50 disabled:cursor-not-allowed ${textColor} game-interactive touch-enabled`}
+                className={`w-[52px] h-[52px] sm:w-16 sm:h-16 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-110 active:scale-95 transition-all duration-200 border-2 border-white/40 disabled:opacity-50 disabled:cursor-not-allowed ${textColor} game-interactive touch-enabled`}
                 style={{ 
                   backgroundColor: exactColor,
                   zIndex: 50,
@@ -729,7 +777,15 @@ export default function ColorMerge() {
         bestLevel={(stats as any)?.bestLevel || 0}
         incorrectGuesses={allIncorrectGuesses}
         onRestart={handleNewGame}
+        onUseHeart={savedHearts > 0 ? handleContinue : undefined}
+        onShop={() => { setShowHeartsOut(false); setShowHeartShop(true); }}
+        continueBusy={continuationBusy}
+        continueError={continuationError}
       />
+      {showHeartShop && <HeartShop
+        onBalanceChange={setSavedHearts}
+        onClose={() => { setShowHeartShop(false); setShowHeartsOut(gameLogic.status === 'over'); }}
+      />}
 
     </>
   );
