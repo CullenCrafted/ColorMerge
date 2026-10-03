@@ -31,3 +31,7 @@ The exported App service supports `appStateChange`; subscribe when native servic
 `npm run check` checks application and test modules. `npm run test:all` includes color, economy and ad-policy tests present in the checkout. `npm run build` produces web assets and the server bundle. CI installs Playwright without modifying the lockfile and runs `npm run test:browser` against the isolated in-memory Classic fixture at port 4173.
 
 The browser smoke covers navigation and a mobile viewport; it does not replace physical-device testing of SDK initialization, SSV delivery, billing receipts, audio, safe areas or app lifecycle behavior.
+
+## Android CI artifact
+
+The Android CI job generates a shell with Google's sample AdMob application ID, typechecks the real installed plugin adapter, compiles with Java 21, and uploads `colormerge-android-debug`. This is an installable debug APK for review, not a signed store release. No advertisements are enabled automatically. The SDK adapter maps the application's G rating to the plugin's `MaxAdContentRating.General` enum. A successful build verifies compilation, not SDK operation or device usability.

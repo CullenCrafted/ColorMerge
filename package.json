@@ -15,7 +15,8 @@
     "test:all": "node --import tsx --test tests/*.test.ts",
     "test:browser": "node tests/browser-smoke.mjs",
     "mobile:setup": "node scripts/mobile-setup.mjs",
-    "mobile:sync": "npm run build && npx cap sync"
+    "mobile:sync": "npm run build:client && npx cap sync",
+    "build:client": "vite build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
