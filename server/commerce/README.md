@@ -50,3 +50,52 @@ database; verify raw signed webhook in Express and Vercel; replay event twice;
 race two debits with one heart; refund before/after spending; verify restore
 after clearing cookie; ensure native checkout blocked; test Safari/iOS and
 Android. Repository-only implementation is not proof these integration gates pass.
+
+
+## Native purchases and authenticated rewards
+
+Apply migrations/004-native-commerce.sql after 002. Run the mobile setup script
+to install RevenueCat Purchases Capacitor v11 and Preferences. Configure real
+consumable products with identical product identifiers across the two stores
+(or extend the server catalog per platform before using different IDs).
+Set NATIVE_COMMERCE_ENABLED=true, COMMERCE_ORIGIN to canonical HTTPS,
+NATIVE_COMMERCE_ORIGINS to explicit WebView origins (for example
+capacitor://localhost,http://localhost; use actual generated app origins),
+REVENUECAT_WEBHOOK_SECRET to at least 32 random characters,
+REVENUECAT_PRODUCT_HEARTS_5/_20/_60, and REVENUECAT_ENVIRONMENT=SANDBOX during
+testing or PRODUCTION for release. Do not enable sandbox events in production.
+Configure RevenueCat webhook /api/commerce?action=revenuecat-webhook with
+Authorization: Bearer <secret>. Only APP_STORE/PLAY_STORE configured consumable
+NON_RENEWING_PURCHASE/CANCELLATION events affect the ledger. Unknown products,
+environments, transfers, aliases and subscription events do not grant hearts.
+Configure project ownership/transfer behavior so consumables remain bound to
+the original server-issued appUserID.
+
+Build public variables VITE_COMMERCE_ORIGIN, VITE_REVENUECAT_IOS_KEY and
+VITE_REVENUECAT_ANDROID_KEY are SDK public keys, not webhook/server secrets.
+Native bootstrap issues a server UUID appUserID and an independent random
+wallet bearer. Requests need both allowlisted WebView origin and bearer;
+Classic cookie-origin protections remain unchanged. Bearer lives in Capacitor
+Preferences (app-private preferences, NOT an encrypted credential vault).
+Threat model and backup policies must be reviewed before production; consider
+a keychain/keystore adapter if stronger at-rest protection is required.
+Restoration by parent code rotates access and logs RevenueCat into the recovered
+wallet. We deliberately do not offer StoreKit restore as recovery for spent
+consumables. Native purchases load real localized prices and invoke the store
+sheet. Only provider webhook updates credit the wallet; SDK success polls that
+authoritative balance and may remain pending. App resumes refresh balance.
+
+AdMob uses the same native bearer API. Parent area persists optional ad preference
+as cm-parent-ads-approved; event cm-ad-preference notifies gameplay UI. This is
+a UI preference, not verified parental consent. Native SDK child-directed
+settings and legal/store/provider setup still must be completed before enabling.
+No email, advertising identifier collection call, or subscriber-attribute
+collection is added to RevenueCat integration. Audit SDK default collection and
+publish accurate disclosures before release.
+
+Native transaction SQL serializes each store transaction, deduplicates events,
+and records refund-first tombstones. Refunds can create a negative internal debt
+if hearts were already used; visible spendable balance is zero until settled.
+Test both event orders, duplicate delivery, bad webhook secrets, unknown SKU,
+sandbox isolation, interrupted purchase, parent wallet recovery and physical
+device billing. Stub-store unit tests do not replace live Postgres/store tests.

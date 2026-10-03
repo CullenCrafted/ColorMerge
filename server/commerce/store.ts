@@ -3,6 +3,8 @@ import { randomUUID } from 'node:crypto';
 export interface Wallet { id: string; balance: number }
 export interface Order { id: string; wallet_id: string; hearts: number; price_id: string; session_id: string | null }
 export interface CommerceStore {
+ nativeEvent(transaction:string,wallet:string,product:string,hearts:number,refund:boolean):Promise<void>;
+ nativeCredited(wallet:string,transaction:string):Promise<boolean>;
  adChallenge(wallet:string,nonce:string,expiresAt:number):Promise<void>;
  adReward(wallet:string,nonce:string,transaction:string):Promise<void>;
  adStatus(wallet:string,nonce:string):Promise<boolean>;
@@ -21,6 +23,8 @@ export function commerceStore(): CommerceStore {
  if (!url) throw new Error('Commerce unavailable');
  const sql = neon(url);
  return {
+  async nativeEvent(transaction,wallet,product,hearts,refund) {await sql`SELECT cm_native_event(${transaction},${wallet}::uuid,${product},${hearts},${refund})`;},
+  async nativeCredited(wallet,transaction) {const rows=await sql`SELECT credited,refunded FROM cm_native_transactions WHERE transaction_id=${transaction} AND wallet_id=${wallet}`;return !!rows[0]?.credited&&!rows[0]?.refunded;},
   async adChallenge(wallet,nonce,expiresAt) {await sql`INSERT INTO cm_ad_challenges(nonce,wallet_id,expires_at) VALUES(${nonce},${wallet},${new Date(expiresAt).toISOString()})`;},
   async adReward(wallet,nonce,transaction) {await sql`SELECT cm_ad_reward(${nonce},${wallet}::uuid,${transaction})`;},
   async adStatus(wallet,nonce) {const rows=await sql`SELECT authorization_id FROM cm_ad_challenges WHERE nonce=${nonce} AND wallet_id=${wallet}`;return !!rows[0]?.authorization_id;},

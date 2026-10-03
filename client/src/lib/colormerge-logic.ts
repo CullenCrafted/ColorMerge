@@ -46,6 +46,8 @@ export class ColorMergeLogic {
     } finally { this.busy = false; }
   }
   getState() { return structuredClone(this.snapshot.state); }
+  get roundId() { return this.snapshot.roundId; }
+  get revision() { return this.snapshot.revision; }
   get bestLevel() { return this.snapshot.bestLevel; }
   get mistakes() { return this.snapshot.mistakes; }
   get status() { return this.snapshot.status; }

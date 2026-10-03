@@ -6,9 +6,9 @@ import {fulfillSession,isAllowedRequest,makeCommerceHandler} from '../server/com
 import type {CommerceStore} from '../server/commerce/store';
 import type {Request} from 'express';
 test('only same-origin custom-header requests enter the wallet',()=>{
- assert.equal(isAllowedRequest({headers:{'x-colormerge':'1',origin:'https://game.example'}} as Request,'https://game.example'),true);
- assert.equal(isAllowedRequest({headers:{origin:'https://game.example'}} as Request,'https://game.example'),false);
- assert.equal(isAllowedRequest({headers:{'x-colormerge':'1',origin:'https://evil.example'}} as Request,'https://game.example'),false);
+ assert.equal(isAllowedRequest({headers:{'x-colormerge':'1',origin:'https://game.example'}} as unknown as Request,'https://game.example'),true);
+ assert.equal(isAllowedRequest({headers:{origin:'https://game.example'}} as unknown as Request,'https://game.example'),false);
+ assert.equal(isAllowedRequest({headers:{'x-colormerge':'1',origin:'https://evil.example'}} as unknown as Request,'https://game.example'),false);
 });
 test('fulfillment uses stored order hearts, ignores unpaid sessions and deduplicates delivery',async()=>{
  let balance=0;const seen=new Set<string>();

@@ -2,6 +2,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { HelpCircle, RotateCcw, Pause, Volume2, VolumeX, Trophy, Heart, Zap } from "lucide-react";
 import { ColorMergeLogic } from "@/lib/colormerge-logic";
+import { LocalClassicLogic } from "@/lib/local-classic-logic";
+import { isNativePlatform } from "@/platform/mobile";
+import { consumeHeart, getWallet } from "@/platform/commerce";
+import { continueClassicWithHeart } from "@/platform/classic-commerce";
+import HeartShop from "@/remix/HeartShop";
 import { useAudio } from "@/hooks/use-audio";
 import { useToast } from "@/hooks/use-toast";
 import InstructionsModal from "@/components/instructions-modal";
@@ -13,7 +18,14 @@ export default function ColorMerge() {
   const [showGameOver, setShowGameOver] = useState(false);
   const [showHeartsOut, setShowHeartsOut] = useState(false);
 
-  const [gameLogic] = useState(() => new ColorMergeLogic());
+  const [gameLogic] = useState(() => isNativePlatform() ? new LocalClassicLogic() : new ColorMergeLogic());
+  const [showHeartShop, setShowHeartShop] = useState(false);
+  const [savedHearts, setSavedHearts] = useState(0);
+  const [continuationBusy, setContinuationBusy] = useState(false);
+  const [continuationError, setContinuationError] = useState("");
+  useEffect(() => {
+    if (showHeartsOut) void getWallet().then(wallet => setSavedHearts(Math.max(0, wallet.balance))).catch(() => {});
+  }, [showHeartsOut]);
   const [serviceError, setServiceError] = useState("");
   const [loadingGame, setLoadingGame] = useState(true);
   const [gameState, setGameState] = useState(gameLogic.getState());
@@ -266,6 +278,35 @@ export default function ColorMerge() {
     } catch (error) {
       setServiceError(error instanceof Error ? error.message : "Unable to restart.");
     } finally { setLoadingGame(false); }
+  };
+  const handleContinue = async () => {
+    if (continuationBusy || gameLogic.status !== 'over') return;
+    setContinuationBusy(true);
+    setContinuationError("");
+    try {
+      if (gameLogic instanceof LocalClassicLogic) {
+        await consumeHeart(gameLogic.continuationKey);
+        await gameLogic.continueWithHeart();
+      } else {
+        await continueClassicWithHeart(gameLogic.roundId, gameLogic.revision);
+        await gameLogic.load();
+      }
+      setGameState(gameLogic.getState());
+      setAllIncorrectGuesses(gameLogic.mistakes);
+      setShowHeartsOut(false);
+      void getWallet().then(wallet => setSavedHearts(Math.max(0, wallet.balance))).catch(() => {});
+    } catch (error) {
+      setContinuationError(error instanceof Error ? error.message : "Could not confirm the continuation. Please retry.");
+      // A lost response may have already committed both debit and continuation.
+      // Reloading never repeats the debit; another attempt uses the same game revision.
+      if (!(gameLogic instanceof LocalClassicLogic)) {
+        try {
+          await gameLogic.load();
+          setGameState(gameLogic.getState());
+          if (gameLogic.status !== 'over') setShowHeartsOut(false);
+        } catch {}
+      }
+    } finally { setContinuationBusy(false); }
   };
   const handleResetLevel = handleNewGame;
 
@@ -736,7 +777,15 @@ export default function ColorMerge() {
         bestLevel={(stats as any)?.bestLevel || 0}
         incorrectGuesses={allIncorrectGuesses}
         onRestart={handleNewGame}
+        onUseHeart={savedHearts > 0 ? handleContinue : undefined}
+        onShop={() => { setShowHeartsOut(false); setShowHeartShop(true); }}
+        continueBusy={continuationBusy}
+        continueError={continuationError}
       />
+      {showHeartShop && <HeartShop
+        onBalanceChange={setSavedHearts}
+        onClose={() => { setShowHeartShop(false); setShowHeartsOut(gameLogic.status === 'over'); }}
+      />}
 
     </>
   );

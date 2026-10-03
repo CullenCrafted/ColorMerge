@@ -31,3 +31,19 @@ The exported App service supports `appStateChange`; subscribe when native servic
 `npm run check` checks application and test modules. `npm run test:all` includes color, economy and ad-policy tests present in the checkout. `npm run build` produces web assets and the server bundle. CI installs Playwright without modifying the lockfile and runs `npm run test:browser` against the isolated in-memory Classic fixture at port 4173.
 
 The browser smoke covers navigation and a mobile viewport; it does not replace physical-device testing of SDK initialization, SSV delivery, billing receipts, audio, safe areas or app lifecycle behavior.
+
+## Android CI artifact
+
+The Android CI job generates a shell with Google's sample AdMob application ID, typechecks the real installed plugin adapter, compiles with Java 21, and uploads `colormerge-android-debug`. This is an installable debug APK for review, not a signed store release. No advertisements are enabled automatically. The SDK adapter maps the application's G rating to the plugin's `MaxAdContentRating.General` enum. A successful build verifies compilation, not SDK operation or device usability.
+
+## Native heart purchases
+
+Native setup installs RevenueCat Purchases Capacitor 11 (compatible with Capacitor 7) and Capacitor Preferences. Configure the public RevenueCat iOS/Android SDK keys, native commerce API origin, store product identifiers and authenticated RevenueCat webhook on the backend. Native adapters fetch non-subscription products, display store-localized pricing, and purchase through Apple/Google billing. A client purchase result is not a heart grant; the verified backend wallet remains authoritative.
+
+Preferences persist the native wallet capability across launches. Preferences are application storage, not an encrypted secure vault. Avoid exposing credentials in diagnostics, and support parent recovery for reinstalls or device changes. Do not interpret RevenueCat restore callbacks as restoring consumable balances; recovery must reconnect to the server wallet ledger.
+
+## Explicit ad activation
+
+Both `VITE_ADMOB_ENABLED=true` and `VITE_ADMOB_CHILD_AUDIENCE_READY=true` are required in the native build, together with the parent's in-app ad preference and valid platform-specific placement IDs. Set `VITE_ADMOB_ANDROID_INTERSTITIAL_ID`, `VITE_ADMOB_IOS_INTERSTITIAL_ID`, `VITE_ADMOB_ANDROID_REWARDED_ID`, and `VITE_ADMOB_IOS_REWARDED_ID` as appropriate. Keep `VITE_ADMOB_TESTING=true` while developing. Child-audience readiness is an explicit release configuration after reviewing audience eligibility; it never weakens the SDK's child-directed defaults.
+
+Interstitials run only on selected completed-level transitions, with introductory levels excluded and a three-minute controller limit. Rewarded continues require a server-verified wallet credit, then an ordinary heart debit. Pending provider confirmation never enables a free continuation.

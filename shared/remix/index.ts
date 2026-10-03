@@ -1,6 +1,8 @@
 import type { Pigment, Recipe, RGB, Style, LevelSpec, RemixObject, RemixState, RemixAction } from './types';
 export type { Pigment, Recipe, RGB, Style, LevelSpec, RemixObject, RemixState, RemixAction } from './types';
 
+export const ZEN_FADE_MS = 700;
+export const OVERLOAD_GRACE_MS = 3000;
 export const PIGMENTS: readonly Pigment[] = ['blue', 'red', 'yellow', 'white', 'black'];
 export function emptyRecipe(): Recipe { return { red: 0, blue: 0, yellow: 0, white: 0, black: 0 }; }
 export function countRecipe(recipe: Recipe): number { return PIGMENTS.reduce((sum, p) => sum + recipe[p], 0); }
@@ -58,7 +60,9 @@ export function getLevelSpec(requested: number): LevelSpec {
     level, style, title: LABELS[style][0] + (modifier ? ' + Recall' : ''),
     instruction: modifier ? 'Remember the background, then select and mix each strand. Press Check to submit.' : LABELS[style][1],
     modifier, objectCount: amounts[style], recipeSize, missingCount,
-    timeLimitMs: Math.max(45000, amounts[style] * (gentle ? 18000 : 13000)),
+    // Zero is an explicit, JSON-safe untimed puzzle marker. Memory challenges stay timed.
+    timeLimitMs: style === 'zen' || (!modifier && ['rings','strands','sphere'].includes(style))
+      ? 0 : Math.max(45000, amounts[style] * (gentle ? 18000 : 13000)),
     revealMs: Math.max(800, 2000 - Math.max(0, level - 51) * 8),
     spawnEveryMs: gentle ? 6500 : Math.max(2800, 6000 - level * 15),
     travelMs: gentle ? 18000 : Math.max(9000, 17000 - level * 30),
@@ -136,6 +140,7 @@ export function createRun(level = 1, seed = 1): RemixState {
     version: 1, seed, level: spec.level, spec, objects, selectedId: objects[0].id,
     phase: 'intro', paused: false, elapsedMs: 0, remainingMs: spec.timeLimitMs,
     lives: 3, solved: 0, target: { ...objects[0].target }, assisted: false,
+    zenPhase: 'fadeIn', zenPhaseMs: 0, zenRemainingMs: spec.travelMs, zenStreak: 0, overloadMs: 0,
   };
 }
 function isMemory(state: RemixState): boolean { return state.spec.style === 'recall' || state.spec.modifier === 'recall'; }
@@ -144,12 +149,25 @@ export function targetVisible(state: RemixState): boolean {
 }
 export function targetOpacity(state: RemixState): number {
   if (!targetVisible(state)) return 0;
-  if (state.spec.style !== 'zen' || state.phase !== 'playing') return 1;
-  const object = state.objects.find(o => o.status === 'active');
-  if (!object) return 0;
-  const window = Math.max(6000, state.spec.travelMs - state.solved * 700);
-  const age = (state.elapsedMs - object.spawnAtMs) / window;
-  return Math.max(0, Math.min(1, age / .1, (1 - age) / .2));
+  if (state.spec.style !== 'zen') return 1;
+  if (state.phase === 'intro' || state.phase === 'won') return 0;
+  if (state.zenPhase === 'fadeIn') return Math.min(1, state.zenPhaseMs / ZEN_FADE_MS);
+  if (state.zenPhase === 'fadeOut') return Math.max(0, 1 - state.zenPhaseMs / ZEN_FADE_MS);
+  return 1;
+}
+export function canMix(state: RemixState): boolean {
+  return state.phase === 'playing' && !state.paused &&
+    (state.spec.style !== 'zen' || state.zenPhase === 'hold');
+}
+function zenWindow(state: RemixState): number {
+  return Math.max(6000, state.spec.travelMs - state.zenStreak * 700);
+}
+function beginZenFade(state: RemixState, object: RemixObject, solved: boolean): void {
+  object.status = solved ? 'solved' : 'missed';
+  state.solved = state.objects.filter(o => o.status === 'solved').length;
+  state.zenStreak = solved ? state.zenStreak + 1 : 0;
+  state.zenPhase = 'fadeOut'; state.zenPhaseMs = 0; state.selectedId = null;
+  // Keep the outgoing canonical target until its opacity reaches zero.
 }
 function refreshSelection(state: RemixState): void {
   const active = state.objects.filter(o => o.status === 'active');
@@ -160,6 +178,7 @@ function refreshSelection(state: RemixState): void {
   if (object) state.target = { ...object.target };
 }
 function settle(state: RemixState): void {
+  if (state.spec.style === 'swarm' && state.objects.filter(o => o.status === 'active').length <= state.spec.capacity) state.overloadMs = 0;
   state.solved = state.objects.filter(o => o.status === 'solved').length;
   if (state.lives <= 0) { state.lives = 0; state.phase = 'lost'; return; }
   if (state.objects.every(o => o.status === 'solved' || o.status === 'missed')) { state.phase = 'won'; return; }
@@ -170,6 +189,11 @@ function settle(state: RemixState): void {
   refreshSelection(state);
 }
 function failObject(state: RemixState, object: RemixObject, missed: boolean): void {
+  if (state.spec.style === 'zen') {
+    if (missed) beginZenFade(state, object, false);
+    else { object.recipe = { ...object.initial }; object.additions = []; state.zenStreak = 0; }
+    return;
+  }
   state.lives--;
   if (missed) object.status = 'missed';
   else { object.recipe = { ...object.initial }; object.additions = []; }
@@ -177,8 +201,36 @@ function failObject(state: RemixState, object: RemixObject, missed: boolean): vo
 }
 function evaluate(state: RemixState, object: RemixObject): void {
   if (matches(object.recipe, object.target) && object.additions.length > 0) {
-    object.status = 'solved'; settle(state);
+    if (state.spec.style === 'zen') beginZenFade(state, object, true);
+    else { object.status = 'solved'; settle(state); }
   } else if (isMemory(state) || remainingAdditions(object) === 0) failObject(state, object, false);
+}
+function stepZenTime(state: RemixState, ms: number): void {
+  let left = ms;
+  while (left > 0 && state.phase === 'playing') {
+    if (state.zenPhase === 'hold') {
+      const used = Math.min(left, state.zenRemainingMs);
+      state.zenRemainingMs -= used; state.elapsedMs += used; left -= used;
+      if (state.zenRemainingMs === 0) {
+        const object = state.objects.find(o => o.status === 'active');
+        if (object) beginZenFade(state, object, false);
+        else { settle(state); return; }
+      }
+    } else {
+      const used = Math.min(left, ZEN_FADE_MS - state.zenPhaseMs);
+      state.zenPhaseMs += used; state.elapsedMs += used; left -= used;
+      if (state.zenPhaseMs === ZEN_FADE_MS) {
+        if (state.zenPhase === 'fadeIn') {
+          state.zenPhase = 'hold'; state.zenPhaseMs = 0;
+        } else {
+          settle(state);
+          if (state.phase !== 'playing') return;
+          state.zenPhase = 'fadeIn'; state.zenPhaseMs = 0;
+          state.zenRemainingMs = zenWindow(state);
+        }
+      }
+    }
+  }
 }
 function stepTime(state: RemixState, ms: number): void {
   if (state.phase === 'reveal') {
@@ -192,9 +244,12 @@ function stepTime(state: RemixState, ms: number): void {
     return;
   }
   if (state.phase !== 'playing') return;
+  if (state.spec.style === 'zen') { stepZenTime(state, ms); return; }
   state.elapsedMs += ms;
-  state.remainingMs = Math.max(0, state.remainingMs - ms);
-  if (state.remainingMs === 0) { state.lives = 0; state.phase = 'lost'; return; }
+  if (state.spec.timeLimitMs > 0) {
+    state.remainingMs = Math.max(0, state.remainingMs - ms);
+    if (state.remainingMs === 0) { state.lives = 0; state.phase = 'lost'; return; }
+  }
   const style = state.spec.style;
   for (const object of state.objects) {
     if (['fall','swarm'].includes(style) && object.status === 'queued' && object.spawnAtMs <= state.elapsedMs) object.status = 'active';
@@ -208,15 +263,23 @@ function stepTime(state: RemixState, ms: number): void {
       if (object.x < .08 || object.x > .92) { object.x = Math.max(.08, Math.min(.92, object.x)); object.vx *= -1; }
       if (object.y < .08 || object.y > .88) { object.y = Math.max(.08, Math.min(.88, object.y)); object.vy *= -1; }
     }
-    if (['tower','zen'].includes(style)) {
+    if (style === 'tower') {
       const window = Math.max(6000, state.spec.travelMs - state.solved * 700);
       if (state.elapsedMs - object.spawnAtMs >= window) failObject(state, object, true);
     }
     if (state.phase !== 'playing') return;
   }
   if (style === 'swarm' && state.objects.filter(o => o.status === 'active').length > state.spec.capacity) {
-    state.lives = 0; state.phase = 'lost'; return;
-  }
+    // Charge only time actually spent beyond capacity, including the precise
+    // spawn boundary, rather than instantly ending the run on a new arrival.
+    const overflowSince = state.objects.filter(o => o.status === 'active')
+      .map(o => o.spawnAtMs).sort((a,b) => a-b)[state.spec.capacity];
+    state.overloadMs = Math.min(OVERLOAD_GRACE_MS,
+      state.overloadMs + Math.min(ms, Math.max(0, state.elapsedMs - overflowSince)));
+    if (state.overloadMs >= OVERLOAD_GRACE_MS) {
+      state.lives = 0; state.phase = 'lost'; return;
+    }
+  } else state.overloadMs = 0;
   settle(state);
 }
 /** Local, unranked simulation. Payment/reward authorization belongs to the shell. */
@@ -228,7 +291,7 @@ export function reducer(saved: RemixState, action: RemixAction): RemixState {
   if (action.type === 'resume') {
     if (state.phase !== 'lost') return saved;
     state.lives = 1; state.assisted = true; state.paused = false;
-    state.remainingMs = state.spec.timeLimitMs;
+    state.remainingMs = state.spec.timeLimitMs; state.overloadMs = 0;
     // Preserve unfinished mixtures while moving timed objects safely back into play.
     for (const object of state.objects) {
       if (object.status === 'missed') object.status = 'queued';
@@ -262,7 +325,7 @@ export function reducer(saved: RemixState, action: RemixAction): RemixState {
     }
     return state;
   }
-  if (state.phase !== 'playing') return saved;
+  if (!canMix(state)) return saved;
   if (action.type === 'select') {
     if (state.spec.style === 'fall') return saved;
     if (!state.objects.some(o => o.id === action.id && o.status === 'active')) return saved;
@@ -297,7 +360,19 @@ export function restoreRun(value: unknown): RemixState | null {
     if (!candidate.phase || !['intro','reveal','playing','won','lost'].includes(candidate.phase)) return null;
     if (typeof candidate.paused !== 'boolean' || typeof candidate.assisted !== 'boolean') return null;
     if (candidate.elapsedMs === undefined || !Number.isFinite(candidate.elapsedMs) || candidate.elapsedMs < 0 || candidate.elapsedMs > 1e9) return null;
-    if (candidate.remainingMs === undefined || !Number.isFinite(candidate.remainingMs) || candidate.remainingMs < 0 || candidate.remainingMs > canonical.spec.timeLimitMs) return null;
+    if (candidate.remainingMs === undefined || !Number.isFinite(candidate.remainingMs) || candidate.remainingMs < 0) return null;
+    const legacy = candidate.zenPhase === undefined;
+    if (candidate.remainingMs > canonical.spec.timeLimitMs && !(legacy && canonical.spec.timeLimitMs === 0 && candidate.remainingMs <= 3600000)) return null;
+    const zenPhase = candidate.zenPhase ?? 'fadeIn';
+    const zenPhaseMs = candidate.zenPhaseMs ?? 0;
+    const zenRemainingMs = candidate.zenRemainingMs ?? canonical.spec.travelMs;
+    const zenStreak = candidate.zenStreak ?? 0;
+    const overloadMs = candidate.overloadMs ?? 0;
+    if (!['fadeIn','hold','fadeOut'].includes(zenPhase)) return null;
+    if (!Number.isFinite(zenPhaseMs) || zenPhaseMs < 0 || zenPhaseMs > ZEN_FADE_MS) return null;
+    if (!Number.isFinite(zenRemainingMs) || zenRemainingMs < 0 || zenRemainingMs > canonical.spec.travelMs) return null;
+    if (!Number.isInteger(zenStreak) || zenStreak < 0 || zenStreak > canonical.spec.objectCount) return null;
+    if (!Number.isFinite(overloadMs) || overloadMs < 0 || overloadMs > OVERLOAD_GRACE_MS) return null;
     if (candidate.lives === undefined || !Number.isInteger(candidate.lives) || candidate.lives < 0 || candidate.lives > 3) return null;
     if ((candidate.phase === 'lost') !== (candidate.lives === 0)) return null;
     const objects: RemixObject[] = [];
@@ -321,10 +396,12 @@ export function restoreRun(value: unknown): RemixState | null {
     const restored: RemixState = {
       ...canonical, objects, selectedId: candidate.selectedId || null, phase: candidate.phase,
       paused: candidate.paused, assisted: candidate.assisted, elapsedMs: candidate.elapsedMs,
-      remainingMs: candidate.remainingMs, lives: candidate.lives, solved: objects.filter(o => o.status === 'solved').length,
+      remainingMs: canonical.spec.timeLimitMs === 0 ? 0 : candidate.remainingMs, lives: candidate.lives, solved: objects.filter(o => o.status === 'solved').length,
+      zenPhase, zenPhaseMs, zenRemainingMs, zenStreak, overloadMs,
     };
     if (restored.phase === 'won' && !objects.every(o => o.status === 'solved' || o.status === 'missed')) return null;
-    const selected = objects.find(o => o.id === restored.selectedId);
+    const selected = objects.find(o => o.id === restored.selectedId) ?? (restored.spec.style === 'zen' && restored.zenPhase === 'fadeOut'
+      ? [...objects].reverse().find(o => o.status === 'solved' || o.status === 'missed') : undefined);
     if (selected) restored.target = { ...selected.target };
     return restored;
   } catch { return null; }

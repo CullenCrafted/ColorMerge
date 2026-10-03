@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createRun, getLevelSpec, reducer, mix, matches, emptyRecipe, countRecipe, remainingAdditions, targetVisible, targetOpacity, restoreRun, PIGMENTS } from '../shared/remix';
+import { createRun, getLevelSpec, reducer, mix, matches, emptyRecipe, countRecipe, remainingAdditions, targetVisible, targetOpacity, restoreRun, PIGMENTS, canMix, ZEN_FADE_MS, OVERLOAD_GRACE_MS } from '../shared/remix';
 import { ColorMergeLogic as ClassicEngine } from '../server/secure/engine';
 import type { RemixState } from '../shared/remix';
 
 function start(level = 1, seed = 1): RemixState {
   let state = reducer(createRun(level, seed), { type: 'start' });
   if (state.phase === 'reveal') state = reducer(state, { type: 'tick', deltaMs: state.spec.revealMs });
+  if (state.spec.style === 'zen') state = reducer(state, { type: 'tick', deltaMs: ZEN_FADE_MS });
   return state;
 }
 function solveSelected(state: RemixState): RemixState {
@@ -19,6 +20,7 @@ function solveSelected(state: RemixState): RemixState {
     }
   }
   if (state.spec.style === 'recall' || state.spec.modifier) state = reducer(state, { type: 'submit' });
+  if (state.spec.style === 'zen' && state.zenPhase === 'fadeOut') state = reducer(state, { type: 'tick', deltaMs: ZEN_FADE_MS * 2 });
   return state;
 }
 test('mixer preserves pairing, rounded equivalence and raw quantities', () => {
@@ -118,14 +120,14 @@ test('spawn/timer behavior is independent of frame batching', () => {
   assert.equal(batch.selectedId, batch.objects[0].id);
 });
 test('countdown loss, free replay and authorized continue preserve appropriate work', () => {
-  let state = start(36);
+  let state = start(141);
   state = solveSelected(state);
   const solved = state.solved;
   state = reducer(state, { type: 'tick', deltaMs: state.spec.timeLimitMs });
   assert.equal(state.phase, 'lost');
   assert.equal(state.lives, 0);
   const continued = reducer(state, { type: 'resume' });
-  assert.equal(continued.phase, 'playing');
+  assert.equal(continued.phase, 'reveal');
   assert.equal(continued.lives, 1);
   assert.equal(continued.solved, solved);
   assert.ok(continued.assisted);
@@ -140,13 +142,17 @@ test('swarm overrun loses and continuation restores manageable unfinished shapes
   // Select a later swarm level from the deterministic rotation.
   for (let level = 84; level < 141; level++) if (getLevelSpec(level).style === 'swarm' && getLevelSpec(level).objectCount > 6) { state = start(level); break; }
   state = reducer(state, { type: 'tick', deltaMs: state.spec.spawnEveryMs * 6 });
+  assert.equal(state.phase, 'playing');
+  state = reducer(state, { type: 'tick', deltaMs: OVERLOAD_GRACE_MS - 1 });
+  assert.equal(state.phase, 'playing');
+  state = reducer(state, { type: 'tick', deltaMs: 1 });
   assert.equal(state.phase, 'lost');
   const continued = reducer(state, { type: 'resume' });
   assert.equal(continued.phase, 'playing');
   assert.ok(continued.objects.filter(o => o.status === 'active').length <= 3);
 });
 test('zen fades without modifying the target recipe', () => {
-  let state = start(101);
+  let state = reducer(createRun(101), { type: 'start' });
   const target = structuredClone(state.target);
   assert.equal(targetOpacity(state), 0);
   state = reducer(state, { type: 'tick', deltaMs: state.spec.travelMs / 2 });
@@ -167,7 +173,8 @@ test('restore accepts valid saves and rejects malformed or impossible mixtures',
   assert.equal(restoreRun(null), null);
   const bad = structuredClone(state); bad.objects[0].recipe.red += 100;
   assert.equal(restoreRun(bad), null);
-  const lost = reducer(state, { type: 'tick', deltaMs: state.spec.timeLimitMs });
+  const timed = start(51);
+  const lost = reducer(timed, { type: 'tick', deltaMs: timed.spec.timeLimitMs });
   assert.equal(restoreRun(lost)?.phase, 'lost');
   const wrong = structuredClone(state); wrong.objects[0].x = Infinity;
   assert.equal(restoreRun(wrong), null);
@@ -186,4 +193,111 @@ test('all pigment sequences through six taps agree with the original Classic mix
     if (sequence.length < 6) for (const color of PIGMENTS) visit([...sequence, color]);
   };
   visit([]);
+});
+
+test('puzzle chapters are untimed while memory variants retain their countdown', () => {
+  for (const level of [11, 36, 121]) {
+    let state = start(level);
+    const recipes = state.objects.map(object => object.recipe);
+    assert.equal(state.spec.timeLimitMs, 0);
+    state = reducer(state, { type: 'tick', deltaMs: 3600000 });
+    assert.equal(state.phase, 'playing');
+    assert.equal(state.remainingMs, 0);
+    assert.equal(state.lives, 3);
+    assert.deepEqual(state.objects.map(object => object.recipe), recipes);
+    assert.deepEqual(restoreRun(JSON.parse(JSON.stringify(state))), state);
+  }
+  assert.ok(start(141).spec.timeLimitMs > 0);
+});
+test('Zen only accepts pigment during opaque holds and freezes the hold clock through fades', () => {
+  let state = reducer(createRun(101), { type: 'start' });
+  const original = structuredClone(state);
+  assert.equal(canMix(state), false);
+  assert.deepEqual(reducer(state, { type: 'add', color: 'red' }), state);
+  state = reducer(state, { type: 'tick', deltaMs: ZEN_FADE_MS / 2 });
+  assert.equal(targetOpacity(state), .5);
+  assert.equal(state.zenRemainingMs, original.zenRemainingMs);
+  const paused = reducer(state, { type: 'pause', paused: true });
+  assert.deepEqual(reducer(paused, { type: 'tick', deltaMs: 10000 }), paused);
+  state = reducer(state, { type: 'tick', deltaMs: ZEN_FADE_MS / 2 });
+  assert.equal(canMix(state), true);
+  assert.equal(targetOpacity(state), 1);
+  assert.equal(state.zenRemainingMs, original.zenRemainingMs);
+});
+test('early Zen success fades the old target fully out before the next target fades in', () => {
+  let state = start(101);
+  const object = state.objects[0], outgoing = structuredClone(state.target);
+  for (const color of PIGMENTS) {
+    for (let i = 0; i < object.target[color] - object.recipe[color]; i++) state = reducer(state, { type: 'add', color });
+  }
+  assert.equal(state.zenPhase, 'fadeOut');
+  assert.equal(state.zenStreak, 1);
+  assert.equal(targetOpacity(state), 1);
+  assert.deepEqual(state.target, outgoing);
+  assert.deepEqual(restoreRun(JSON.parse(JSON.stringify(state))), state);
+  state = reducer(state, { type: 'tick', deltaMs: ZEN_FADE_MS / 2 });
+  assert.equal(targetOpacity(state), .5);
+  assert.deepEqual(state.target, outgoing);
+  state = reducer(state, { type: 'tick', deltaMs: ZEN_FADE_MS / 2 });
+  assert.equal(targetOpacity(state), 0);
+  assert.equal(state.zenPhase, 'fadeIn');
+  assert.deepEqual(state.target, state.objects[1].target);
+  const hold = state.zenRemainingMs;
+  state = reducer(state, { type: 'tick', deltaMs: ZEN_FADE_MS });
+  assert.equal(state.zenRemainingMs, hold);
+  assert.equal(targetOpacity(state), 1);
+  assert.ok(hold < state.spec.travelMs);
+});
+test('Zen misses are gentle and recover without spending lives', () => {
+  let state = start(101);
+  state = solveSelected(state);
+  assert.equal(state.zenStreak, 1);
+  state = reducer(state, { type: 'tick', deltaMs: state.zenRemainingMs });
+  assert.equal(state.zenPhase, 'fadeOut');
+  assert.equal(state.zenStreak, 0);
+  assert.equal(state.lives, 3);
+  assert.equal(state.phase, 'playing');
+  state = reducer(state, { type: 'tick', deltaMs: ZEN_FADE_MS * 2 });
+  assert.equal(state.zenRemainingMs, state.spec.travelMs);
+  assert.equal(canMix(state), true);
+  assert.deepEqual(restoreRun(JSON.parse(JSON.stringify(state))), state);
+});
+test('clearing a shape during overload cancels the warning and gives a fresh grace period', () => {
+  let level = 84;
+  while (getLevelSpec(level).style !== 'swarm' || getLevelSpec(level).objectCount <= 7) level++;
+  let state = start(level);
+  state = reducer(state, { type: 'tick', deltaMs: state.spec.spawnEveryMs * 6 + 1000 });
+  assert.ok(state.overloadMs > 0);
+  assert.equal(state.phase, 'playing');
+  state = solveSelected(state);
+  assert.equal(state.overloadMs, 0);
+  assert.equal(state.objects.filter(object => object.status === 'active').length, state.spec.capacity);
+  state = reducer(state, { type: 'tick', deltaMs: state.spec.spawnEveryMs - 1000 });
+  assert.equal(state.overloadMs, 0);
+  state = reducer(state, { type: 'tick', deltaMs: 1000 });
+  assert.equal(state.overloadMs, 1000);
+  assert.deepEqual(restoreRun(JSON.parse(JSON.stringify(state))), state);
+});
+
+test('Zen rejects translucent input and safely restores every transition boundary', () => {
+  let state = reducer(createRun(101, 91), { type: 'start' });
+  for (let step = 0; step < 2000 && state.phase !== 'won'; step++) {
+    assert.deepEqual(restoreRun(JSON.parse(JSON.stringify(state))), state);
+    if (state.zenPhase !== 'hold') {
+      assert.deepEqual(reducer(state, { type: 'add', color: 'black' }), state);
+      state = reducer(state, { type: 'tick', deltaMs: 137 });
+    } else state = solveSelected(state);
+  }
+  assert.equal(state.phase, 'won');
+});
+test('legacy untimed puzzle saves migrate to zero remaining time without losing work', () => {
+  const old = JSON.parse(JSON.stringify(start(36)));
+  delete old.zenPhase; delete old.zenPhaseMs; delete old.zenRemainingMs;
+  delete old.zenStreak; delete old.overloadMs;
+  old.remainingMs = 54000;
+  const restored = restoreRun(old);
+  assert.ok(restored);
+  assert.equal(restored!.remainingMs, 0);
+  assert.deepEqual(restored!.objects, old.objects);
+  assert.equal(restored!.phase, 'playing');
 });

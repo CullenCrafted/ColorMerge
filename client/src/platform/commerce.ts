@@ -1,5 +1,6 @@
+import {nativeCatalog,nativeRequest,purchaseNative,restoreNativeWallet} from './native-billing';
 export type Sku='hearts5'|'hearts20'|'hearts60';
-export interface WalletStatus {available:boolean;balance:number;products:Array<{sku:Sku;hearts:number;amount:number;currency:string}>;message?:string;recoveryCode?:string}
+export interface WalletStatus {available:boolean;balance:number;products:Array<{sku:Sku;hearts:number;amount:number;currency:string;localizedPrice?:string}>;message?:string;recoveryCode?:string}
 declare global {interface Window {Capacitor?: {isNativePlatform?:()=>boolean}}}
 export const isNativeCommerce=()=>typeof window!=='undefined'&&!!window.Capacitor?.isNativePlatform?.();
 async function request<T>(action:string,body?:unknown):Promise<T> {
@@ -13,14 +14,14 @@ async function request<T>(action:string,body?:unknown):Promise<T> {
  return data as T;
 }
 export function getWallet():Promise<WalletStatus> {
- if(isNativeCommerce()) return Promise.resolve({available:false,balance:0,products:[],message:'Store purchases are not available in this build. Free play is available.'});
+ if(isNativeCommerce()) return nativeCatalog().catch(()=>({available:false,balance:0,products:[],message:'Store purchases are unavailable right now. Free play is available.'}));
  return request<WalletStatus>('status').then(wallet=>{
   if(wallet.recoveryCode) sessionStorage.setItem('cm-parent-recovery',wallet.recoveryCode);
   return wallet;
  });
 }
 export function consumeHeart(idempotencyKey:string):Promise<{authorizationId:string;balance:number}> {
- if(isNativeCommerce()) return Promise.reject(new Error('Store purchases are not configured.'));
+ if(isNativeCommerce()) return nativeRequest('consume',{idempotencyKey});
  return request('consume',{idempotencyKey});
 }
 export function createCheckout(sku:Sku):Promise<{url:string}> {
@@ -28,7 +29,7 @@ export function createCheckout(sku:Sku):Promise<{url:string}> {
  return request('checkout',{sku,platform:'web'});
 }
 export function restoreWallet(recoveryCode:string):Promise<{balance:number}> {
- if(isNativeCommerce()) return Promise.reject(new Error('Wallet restoration is available on the website.'));
+ if(isNativeCommerce()) return restoreNativeWallet(recoveryCode);
  return request<{balance:number}>('restore',{recoveryCode}).then(result=>{
   sessionStorage.setItem('cm-parent-recovery',recoveryCode);
   return result;
@@ -36,6 +37,24 @@ export function restoreWallet(recoveryCode:string):Promise<{balance:number}> {
 }
 export function formatPrice(amount:number,currency:string) {
  const format=new Intl.NumberFormat(undefined,{style:'currency',currency});
- const digits=['isk','ugx'].includes(currency.toLowerCase())?2:format.resolvedOptions().maximumFractionDigits;
+ const digits=['isk','ugx'].includes(currency.toLowerCase())?2:(format.resolvedOptions().maximumFractionDigits??2);
  return format.format(amount/10**digits);
 }
+
+export {purchaseNative};
+export const readAdPreference=()=>localStorage.getItem('cm-parent-ads-approved')==='true';
+export function setAdPreference(approved:boolean) {
+ localStorage.setItem('cm-parent-ads-approved',String(approved));
+ window.dispatchEvent(new Event('cm-ad-preference'));
+}
+export const nativeAdTransport={
+ async challenge():Promise<{userId:string;customData:string;challengeId:string}> {
+  if(!readAdPreference())throw new Error('Parent approval is required for optional ads.');
+  const result=await nativeRequest<{walletId:string;token:string;nonce:string}>('ad-challenge',{parentApproved:true});
+  return {userId:result.walletId,customData:result.token,challengeId:result.nonce};
+ },
+ async credited(challengeId:string):Promise<boolean> {
+  const result=await nativeRequest<{granted:boolean}>('ad-status',{nonce:challengeId});
+  return result.granted;
+ },
+};

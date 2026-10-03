@@ -4,7 +4,9 @@ import Stripe from 'stripe';
 import { PACKS, configured } from './catalog.js';
 import { commerceStore, type CommerceStore, type Wallet } from './store.js';
 import { createAdChallenge, verifyAdReward } from './admob.js';
+import { continueClassic, validClassicContinuation } from './classic.js';
 const adsEnabled=()=>process.env.ADMOB_REWARDS_ENABLED==='true'&&process.env.ADMOB_CHILD_AUDIENCE_READY==='true'&&!!process.env.ADMOB_REWARD_SECRET&&!!process.env.ADMOB_REWARDED_AD_UNITS;
+import {nativeCommerceHandler} from './native-handler.js';
 const cookieName='cm_wallet';
 const hash=(value: string)=>createHash('sha256').update(value).digest('hex');
 const secret=()=>randomBytes(32).toString('hex');
@@ -37,6 +39,9 @@ export function makeCommerceHandler(deps: {store?:()=>CommerceStore; stripe?:()=
   res.setHeader('Cache-Control','private, no-store'); res.setHeader('Vary','Cookie');
   res.setHeader('X-Content-Type-Options','nosniff');
   const action=new URL(req.url,'https://local.invalid').searchParams.get('action')||'status';
+  if(action==='revenuecat-webhook'||action==='native-bootstrap'||req.headers['x-colormerge-native']==='1'||
+   (req.method==='OPTIONS'&&!!req.headers.origin)||(action==='admob-ssv'&&process.env.NATIVE_COMMERCE_ENABLED==='true'))
+   return nativeCommerceHandler(req,res,action);
   const enabled=(deps.enabled||configured)();
   if(!enabled) return res.status(action==='status'?200:503).json({available:false,balance:0,products:[],message:'Purchases are not available yet. Free play is always available.'});
   const stripe=()=>deps.stripe?deps.stripe():new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -124,6 +129,11 @@ export function makeCommerceHandler(deps: {store?:()=>CommerceStore; stripe?:()=
     if(!session.url) throw new Error('Checkout unavailable');
     return res.json({url:session.url});
    }
+   if(action==='classic-continue') {
+    if(!validClassicContinuation(body)) return res.sendStatus(400);
+    const result=await continueClassic(wallet.id,req.headers.cookie,body.roundId as string,body.revision as number);
+    return res.json(result);
+   }
    if(action==='consume') {
     if(typeof body.idempotencyKey!=='string'||! /^[a-zA-Z0-9_-]{16,100}$/.test(body.idempotencyKey)) return res.sendStatus(400);
     const result=await store.apply(wallet.id,'consume:'+wallet.id+':'+body.idempotencyKey,-1);
@@ -132,6 +142,7 @@ export function makeCommerceHandler(deps: {store?:()=>CommerceStore; stripe?:()=
    return res.sendStatus(404);
   } catch(error) {
    if(typeof error==='object'&&error&&'code' in error&&error.code==='P0002') return res.status(409).json({message:'No hearts available. You can retry for free.'});
+   if(typeof error==='object'&&error&&'code' in error&&error.code==='P0003') return res.status(409).json({message:'The Classic game changed. Reload it before continuing.'});
    // Do not expose payment, database, or recovery details.
    return res.status(503).json({message:'The heart shop is temporarily unavailable. Free play is always available.'});
   }
