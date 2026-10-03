@@ -58,3 +58,12 @@ export const nativeAdTransport={
   return result.granted;
  },
 };
+
+export async function replaceRecoveryCode():Promise<string> {
+ sessionStorage.removeItem('cm-parent-recovery');
+ const result=isNativeCommerce()
+  ?await nativeRequest<{recoveryCode:string}>('rotate-recovery',{})
+  :await request<{recoveryCode:string}>('rotate-recovery',{});
+ sessionStorage.setItem('cm-parent-recovery',result.recoveryCode);
+ return result.recoveryCode;
+}

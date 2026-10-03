@@ -1,3 +1,4 @@
+import {rotateRecoveryCode} from './recovery.js';
 import { createHash, randomBytes } from 'node:crypto';
 import type { Request, Response } from 'express';
 import Stripe from 'stripe';
@@ -101,6 +102,7 @@ export function makeCommerceHandler(deps: {store?:()=>CommerceStore; stripe?:()=
     return res.json({available:true,balance:Math.max(0,wallet.balance),products,...(recoveryCode?{recoveryCode}:{})});
    }
    const body=jsonBody(req);
+   if(action==='rotate-recovery') return res.json(await rotateRecoveryCode(store,wallet));
    if(action==='ad-challenge') {
     if(!adsEnabled()||body.parentApproved!==true) return res.status(503).json({message:'Optional ads are not available.'});
     const challenge=createAdChallenge(wallet.id,process.env.ADMOB_REWARD_SECRET!);
