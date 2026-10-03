@@ -8,7 +8,7 @@ Use Node.js 22 and a clean checkout. Run `npm ci`, then `npm run mobile:setup --
 
 Confirm the application ID `xyz.colormerge.app` before registering it with Apple/Google. Configure signing identities, icons, launch screens, deployment targets and store metadata in the generated projects. Test on physical devices before release.
 
-The shell loads local bundled web assets. Classic currently uses the server-backed game endpoint: configure an authenticated native API transport before claiming offline Classic or mobile purchasing. Remix can run locally. Do not change the shell to load the live website as a substitute for bundled assets.
+The shell loads local bundled web assets. Native Classic and Remix run locally for free play. Web Classic retains the server-backed game endpoint. Native purchases and ad rewards use the configured authenticated commerce API and require connectivity; unavailable commerce never blocks free play. Do not change the shell to load the live website as a substitute for bundled assets.
 
 ## AdMob
 
