@@ -4,7 +4,13 @@ import { readRemixSave } from "./storage";
 import "./remix.css";
 
 export default function Home({ onClassic, onRemix }: { onClassic: () => void; onRemix: () => void }) {
-  const [shop, setShop] = useState(false);
+  const [shop, setShop] = useState(() => new URLSearchParams(window.location.search).get("shop") === "1");
+  const closeShop = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("shop"); url.searchParams.delete("checkout");
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    setShop(false);
+  };
   const [save] = useState(readRemixSave);
   return (
     <main className="cm-home" data-testid="home-screen">
@@ -30,7 +36,7 @@ export default function Home({ onClassic, onRemix }: { onClassic: () => void; on
         <p className="cm-home-note">Remix saves your level on this device. Replay and retry for free.</p>
         <button className="cm-text-button" onClick={() => setShop(true)}>Parents &amp; heart shop</button>
       </section>
-      {shop && <HeartShop onClose={() => setShop(false)} />}
+      {shop && <HeartShop onClose={closeShop} />}
     </main>
   );
 }

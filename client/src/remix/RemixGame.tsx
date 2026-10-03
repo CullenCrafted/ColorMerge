@@ -1,17 +1,33 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   createRun, getLevelSpec, reducer, rgbString, PIGMENTS, remainingAdditions,
-  targetVisible, targetOpacity, type RemixAction, type RemixState, type Pigment,
+  targetVisible, targetOpacity, restoreRun, type RemixAction, type RemixState, type Pigment,
 } from "@shared/remix";
 import { ArcadeScene } from "./ArcadeScene";
 import { PuzzleScene } from "./PuzzleScene";
 import HeartShop from "./HeartShop";
 import { consumeHeart } from "@/platform/commerce";
+import { loadNativeServices } from "@/platform/mobile";
 import { completeLevel, readRemixSave, writeRemixSave, type RemixSave } from "./storage";
 import "./remix.css";
 
 const pigmentColors: Record<Pigment, string> = { blue: "#0000ff", red: "#ff0000", yellow: "#ffff00", white: "#ffffff", black: "#000000" };
 const time = (ms: number) => (Math.max(0, ms) / 1000).toFixed(1) + "s";
+const RUN_KEY = "colormerge.remix.run.v1";
+interface SavedRun { version: 1; state: RemixState; continueKey: string }
+function restoreSession(): SavedRun | null {
+  try {
+    const raw = JSON.parse(sessionStorage.getItem(RUN_KEY) || "null") as Partial<SavedRun> | null;
+    if (!raw || raw.version !== 1 || typeof raw.continueKey !== "string" || !/^[a-zA-Z0-9-]{10,100}$/.test(raw.continueKey)) return null;
+    const state = restoreRun(raw.state);
+    if (!state || state.level > readRemixSave().unlockedLevel) return null;
+    return { version: 1, state: { ...state, paused: state.phase === "playing" || state.phase === "reveal" || state.paused }, continueKey: raw.continueKey };
+  } catch { return null; }
+}
+function persistSession(state: RemixState, continueKey: string): boolean {
+  try { sessionStorage.setItem(RUN_KEY, JSON.stringify({ version: 1, state, continueKey } satisfies SavedRun)); return true; }
+  catch { return false; }
+}
 const makeKey = () => typeof crypto.randomUUID === "function" ? crypto.randomUUID() : "continue-" + Date.now() + "-" + Math.random().toString(36).slice(2);
 
 function Panel({ title, children, onDismiss }: { title: string; children: ReactNode; onDismiss?: () => void }) {
@@ -28,16 +44,25 @@ function Panel({ title, children, onDismiss }: { title: string; children: ReactN
 
 export default function RemixGame({ onHome }: { onHome: () => void }) {
   const [save, setSave] = useState<RemixSave>(readRemixSave);
-  const [state, setState] = useState<RemixState>(() => createRun(readRemixSave().selectedLevel, 20261003));
+  const [restored] = useState(restoreSession);
+  const [state, setState] = useState<RemixState>(() => restored?.state ?? createRun(readRemixSave().selectedLevel, 20261003));
   const [help, setHelp] = useState(false);
   const [levels, setLevels] = useState(false);
-  const [shop, setShop] = useState(false);
+  const [shop, setShop] = useState(() => new URLSearchParams(window.location.search).get("shop") === "1");
+  const closeShop = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("shop"); url.searchParams.delete("checkout");
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    setShop(false);
+  };
   const [levelChoice, setLevelChoice] = useState(state.level);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [storageWarning, setStorageWarning] = useState(false);
   const pending = useRef(false);
-  const continueKey = useRef(makeKey());
+  const continueKey = useRef(restored?.continueKey ?? makeKey());
+  const latestState = useRef(state);
+  latestState.current = state;
   const audio = useRef<AudioContext | null>(null);
   const settings = useRef(save.settings);
   settings.current = save.settings;
@@ -45,7 +70,8 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
   const active = state.objects.find(object => object.id === state.selectedId && object.status === "active");
   const stopped = state.paused || state.phase !== "playing" || help || levels || shop || busy;
   const target = state.spec.style === "rings" && active ? active.target : state.target;
-  const background = targetVisible(state) ? rgbString(target) : "#f1f1f1";
+  const showTarget = targetVisible(state) && !state.paused;
+  const background = showTarget ? rgbString(target) : "#f1f1f1";
   const needsSubmit = state.spec.style === "recall" || state.spec.modifier === "recall";
   const isArcade = ["fall", "swarm", "tower"].includes(state.spec.style);
   const remaining = active ? remainingAdditions(active) : 0;
@@ -60,6 +86,16 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
       setSave(previous => completeLevel(previous, state.level, state.elapsedMs, state.assisted));
     }
   }, [state.phase, state.level, state.elapsedMs, state.assisted]);
+
+  useEffect(() => {
+    persistSession(state, continueKey.current);
+  }, [state.phase, state.paused, state.level]);
+  useEffect(() => {
+    const saveRun = () => { persistSession(latestState.current, continueKey.current); };
+    const interval = window.setInterval(saveRun, 1500);
+    window.addEventListener("pagehide", saveRun);
+    return () => { clearInterval(interval); window.removeEventListener("pagehide", saveRun); saveRun(); };
+  }, []);
 
   // A fresh monotonic timestamp on every restart prevents background time from
   // becoming an instant loss. Cap unusually long frames; this is local play.
@@ -88,6 +124,20 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
       window.removeEventListener("blur", blur);
       void audio.current?.close();
     };
+  }, [dispatch]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let handle: { remove(): Promise<void> } | undefined;
+    void loadNativeServices().then(async native => {
+      if (!native || cancelled) return;
+      const listener = await native.App.addListener("appStateChange", appState => {
+        if (!appState.isActive) dispatch({ type: "pause", paused: true });
+      });
+      if (cancelled) await listener.remove();
+      else handle = listener;
+    }).catch(() => {});
+    return () => { cancelled = true; void handle?.remove().catch(() => {}); };
   }, [dispatch]);
 
   const feedback = () => {
@@ -123,13 +173,23 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
   };
   const useHeart = async () => {
     if (pending.current || state.phase !== "lost") return;
+    if (!persistSession(state, continueKey.current)) {
+      setError("Device storage is unavailable, so a purchased continuation cannot be recovered safely. You can still retry this level for free.");
+      return;
+    }
     pending.current = true; setBusy(true); setError("");
     try {
       const receipt = await consumeHeart(continueKey.current);
       if (!receipt.authorizationId) throw new Error("The heart could not be verified. Please retry.");
-      dispatch({ type: "resume" });
-      if (document.hidden) dispatch({ type: "pause", paused: true });
-      continueKey.current = makeKey();
+      let resumed = reducer(state, { type: "resume" });
+      if (document.hidden) resumed = reducer(resumed, { type: "pause", paused: true });
+      const nextKey = makeKey();
+      // Save the continued run before rendering it. If the page closes before
+      // this response, the old key retrieves the same debit authorization.
+      persistSession(resumed, nextKey);
+      continueKey.current = nextKey;
+      latestState.current = resumed;
+      setState(resumed);
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : "Unable to use a heart. Please retry.");
     } finally { pending.current = false; setBusy(false); }
@@ -141,7 +201,7 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
   const select = (id: string) => { if (!stopped) dispatch({ type: "select", id }); };
 
   return <main data-testid="remix-screen" className={"cm-remix" + (save.settings.reducedMotion ? " cm-reduced-motion" : "")}>
-    <div className="cm-target-background" style={{ backgroundColor: background, opacity: targetVisible(state) ? targetOpacity(state) : 1 }} aria-hidden="true" />
+    <div className="cm-target-background" style={{ backgroundColor: background, opacity: showTarget ? targetOpacity(state) : 1 }} aria-hidden="true" />
     <div className="cm-remix-content">
       <header className="cm-toolbar cm-glass">
         <button onClick={onHome} disabled={busy}>Home</button>
@@ -155,7 +215,7 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
         <span>{state.spec.timeLimitMs > 0 ? time(state.remainingMs) : time(state.elapsedMs)}</span>
       </div>
       <p className="cm-stage-instruction cm-glass">{state.phase === "reveal" ? "Remember this color. Mixing starts when it disappears." : state.spec.instruction}</p>
-      <div className="cm-scene" aria-label={state.spec.title + " play area"}>
+      <div className="cm-scene" style={{ visibility: state.paused ? "hidden" : "visible" }} aria-label={state.spec.title + " play area"}>
         {isArcade ? <ArcadeScene state={state} onSelect={select} /> : <PuzzleScene state={state} onSelect={select} />}
       </div>
       <section className="cm-mixing-controls cm-glass" aria-label="Mix colors">
@@ -170,7 +230,7 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
         <div className="cm-mix-actions">
           <button disabled={stopped || !active?.additions.length} onClick={() => dispatch({ type: "undo" })}>Undo</button>
           <button disabled={stopped || !active?.additions.length} onClick={() => dispatch({ type: "reset" })}>Reset mixture</button>
-          {needsSubmit && <button className="cm-primary" disabled={stopped || !active || active.additions.length === 0} onClick={() => dispatch({ type: "submit" })}>Submit</button>}
+          {needsSubmit && <button className="cm-primary" disabled={stopped || !active || active.additions.length === 0} onClick={() => dispatch({ type: "submit" })}>Check</button>}
         </div>
       </section>
       <p className="cm-local-note">Progress saved on this device{state.assisted ? " · Assisted run" : ""}</p>
@@ -227,6 +287,6 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
       <button onClick={() => newLevel(save.unlockedLevel)}>Continue latest · {save.unlockedLevel}</button>
       <button onClick={() => setLevels(false)}>Back</button>
     </Panel>}
-    {shop && <HeartShop onClose={() => setShop(false)} />}
+    {shop && <HeartShop onClose={closeShop} />}
   </main>;
 }

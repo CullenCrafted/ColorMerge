@@ -9,7 +9,7 @@ const KEY = "colormerge.remix.v1";
 const LIMIT = 100000;
 const initial = (): RemixSave => ({
   version: 1, unlockedLevel: 1, selectedLevel: 1, bestTimes: {},
-  settings: { sound: false, haptics: true, reducedMotion: typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches },
+  settings: { sound: false, haptics: false, reducedMotion: typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches },
 });
 const validLevel = (value: unknown): value is number => Number.isInteger(value) && Number(value) >= 1 && Number(value) <= LIMIT;
 export function readRemixSave(): RemixSave {
