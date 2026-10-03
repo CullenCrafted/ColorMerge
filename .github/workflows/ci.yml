@@ -11,6 +11,22 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: colormerge_test
+          POSTGRES_PASSWORD: local_test_only
+          POSTGRES_DB: colormerge_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U colormerge_test -d colormerge_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_POSTGRES_URL: postgresql://colormerge_test:local_test_only@localhost:5432/colormerge_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,6 +36,12 @@ jobs:
       - run: npm ci
       - name: Type check all application and test modules
         run: npm run check
+      - name: Ensure PostgreSQL test client is available
+        run: |
+          if ! command -v psql >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+          fi
       - name: Run regression and gameplay tests
         if: ${{ !cancelled() }}
         run: npm run test:all
