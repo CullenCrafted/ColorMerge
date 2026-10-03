@@ -159,7 +159,13 @@ export default function RemixGame({ onHome }: { onHome: () => void }) {
   }, []);
 
   const feedback = () => {
-    if (settings.current.haptics && typeof navigator.vibrate === "function") navigator.vibrate(12);
+    if (settings.current.haptics) {
+      if (platform === "web") {
+        if (typeof navigator.vibrate === "function") navigator.vibrate(12);
+      } else {
+        void loadNativeServices().then(native => native?.Haptics.impact({ style: "LIGHT" })).catch(() => {});
+      }
+    }
     if (!settings.current.sound) return;
     try {
       const context = audio.current ?? (audio.current = new AudioContext());
